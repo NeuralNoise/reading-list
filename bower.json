@@ -1,6 +1,8 @@
 {
   "name": "infinite-scroll-proto",
   "dependencies": {
-    "jquery": "~2.1.1"
+    "jquery": "~2.1.1",
+    "iscroll-native": "~0.0.2",
+    "detect-mobile-browser-tablet-support": "~0.0.2"
   }
 }

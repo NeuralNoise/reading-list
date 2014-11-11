@@ -10,7 +10,7 @@ var HOME_PAGE = 'example.html';
 
 // start server
 app.use(serveStatic('example', {index: [HOME_PAGE]}));
-app.use(serveStatic('../bower_components', {index: false, extensions: ['html', 'css']}));
+app.use(serveStatic('bower_components', {index: false, extensions: ['html', 'css']}));
 app.listen(PORT);
 
 // open browser
