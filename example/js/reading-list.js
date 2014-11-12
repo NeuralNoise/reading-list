@@ -106,8 +106,6 @@
           $readingListContent.trigger('reading-list-item-in-looking', $item);
         }
       });
-
-// TODO : check if item is in the looking area
     };
 
     $readingListContent.on('reading-list-item-in-looking', function (event, item) {
@@ -132,7 +130,6 @@
       } else {
         name = 'adspace';
       }
-      console.log('in view', name);
     });
     $readingListContent.on('reading-list-item-out-view', function (event, item) {
       var $item = $(item);
@@ -142,7 +139,6 @@
       } else {
         name = 'adspace';
       }
-      console.log('out view', name);
     });
     $readingListContent.on('reading-list-at-top', function () {
       console.log('topped', $readingListContent.scrollTop());
