@@ -5,12 +5,20 @@
   width: 300px;               /* note: this width is the reading-list-content margin-left */
 }
 
-#stickyLeftNav ul {
+#stickyLeftNav #readingListMiniMap {
   margin: 10px;
 }
 
-#stickyLeftNav ul li {
+#stickyLeftNav #readingListMiniMap .reading-list-mini-map-item {
   margin-bottom: 10px;
+}
+
+#stickyLeftNav #readingListMiniMap .reading-list-mini-map-item .nav-viewing-indicator {
+  visibility: hidden;
+}
+
+#stickyLeftNav #readingListMiniMap .reading-list-mini-map-item.active .nav-viewing-indicator {
+  visibility: visible;
 }
 
 #readingListContent {
@@ -25,26 +33,26 @@
   padding: 1px 0;             /* padding to ensure you can reach bottom of articles */
 }
 
-#readingListContent #readingListArticles div.reading-list-item {
+#readingListContent #readingListArticles .reading-list-item {
   margin: 30px 0px 30px;
   opacity: hidden;
 }
 
-#readingListContent #readingListArticles div.reading-list-item article {
+#readingListContent #readingListArticles .reading-list-item article {
   padding: 0 50px;
 }
 
-#readingListContent #readingListArticles div.reading-list-item article h1 {
+#readingListContent #readingListArticles .reading-list-item article h1 {
   font-size: 30px;
   margin-bottom: 10px;
 }
 
-#readingListContent #readingListArticles div.reading-list-item article p {
+#readingListContent #readingListArticles .reading-list-item article p {
   font-size: 20px;
   margin-bottom: 10px;
 }
 
-#readingListContent #readingListArticles div.reading-list-item section.adspace {
+#readingListContent #readingListArticles .reading-list-item section.adspace {
   color: #ffff00;
   background-color: #ff0000;
   height: 400px;

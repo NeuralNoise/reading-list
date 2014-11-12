@@ -4,5 +4,8 @@
     "lorem-ipsum": "^1.0.1",
     "open": "0.0.5",
     "serve-static": "^1.7.1"
+  },
+  "dependencies": {
+    "slugify": "^0.1.0"
   }
 }

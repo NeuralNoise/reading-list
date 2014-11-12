@@ -2,6 +2,7 @@ var connect = require('connect');
 var serveStatic = require('serve-static');
 var open = require('open');
 var loreumIpsum = require('lorem-ipsum');
+var slugify = require('slugify');
 
 var app = connect();
 
@@ -16,11 +17,14 @@ app.use(serveStatic('bower_components', {index: false, extensions: ['html', 'css
 // make endpoints for some test articles
 app.use('/article', function articleMiddleware(req, res, next) {
 
+  var title = loreumIpsum({
+    sentenceLowerBound: 2,
+    sentenceUpperBound: 8
+  }).replace('.', '');
+
   var article = {
-    title: loreumIpsum({
-      sentenceLowerBound: 2,
-      sentenceUpperBound: 8
-    }).replace('.', ''),
+    id: slugify(title).toLowerCase() + '-' + Math.floor(Math.random() * 100),
+    title: title,
     body: loreumIpsum({
       units: 'paragraphs',
       paragraphLowerBound: 1,
@@ -31,7 +35,6 @@ app.use('/article', function articleMiddleware(req, res, next) {
   res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify(article));
 });
-
 
 // start server
 app.listen(PORT);
