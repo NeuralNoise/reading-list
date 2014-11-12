@@ -25,26 +25,26 @@
   padding: 1px 0;             /* padding to ensure you can reach bottom of articles */
 }
 
-#readingListContent #readingListArticles section {
+#readingListContent #readingListArticles div.reading-list-item {
   margin: 30px 0px 30px;
   opacity: hidden;
 }
 
-#readingListContent #readingListArticles section.article {
+#readingListContent #readingListArticles div.reading-list-item article {
   padding: 0 50px;
 }
 
-#readingListContent #readingListArticles section.article h1 {
+#readingListContent #readingListArticles div.reading-list-item article h1 {
   font-size: 30px;
   margin-bottom: 10px;
 }
 
-#readingListContent #readingListArticles section.article p {
+#readingListContent #readingListArticles div.reading-list-item article p {
   font-size: 20px;
   margin-bottom: 10px;
 }
 
-#readingListContent #readingListArticles section.adspace {
+#readingListContent #readingListArticles div.reading-list-item section.adspace {
   color: #ffff00;
   background-color: #ff0000;
   height: 400px;
