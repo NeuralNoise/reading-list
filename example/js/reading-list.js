@@ -28,16 +28,12 @@
 
   /**
    * Determine if a user is "looking" at an item. User is "looking" at the item if
-   *  it falls within the topRatio and bottomRatio of the screen.
-   *
-   * Probably want to use the last article that this is true for to determine which
-   *  article is being read.
+   *  it falls within the boundaries created by the top and bottom thresholds.
    */
-  var withinLookingArea = function (el, topRatio, bottomRatio) {
-    // get distance from midline to use for "looking" area
-    var wh = windowHeight();
-    var lineTop = wh * topRatio;
-    var lineBot = wh * bottomRatio;
+  var withinLookingArea = function (el, topThreshold, bottomThreshold) {
+    // get top and bottom thresholds
+    var lineTop = topThreshold;
+    var lineBot = bottomThreshold;
 
     // check if element is within "looking" area dimensions
     var elBounding = el.getBoundingClientRect();
@@ -51,8 +47,10 @@
   $document.ready(function () {
 
     var LOADING_THRESHOLD = 300;
-    var VIEWING_THRESHOLD_TOP = 0.10;
-    var VIEWING_THRESHOLD_BOT = 0.45;
+
+    // only one threshold is really necessary depending on algo, but use both
+    var VIEWING_THRESHOLD_TOP = 200;
+    var VIEWING_THRESHOLD_BOT = 250;
 
     var $readingListMiniMap = $('#readingListMiniMap');
     var $readingListMiniMapItems = $readingListMiniMap.find('.reading-list-mini-map-item');
@@ -82,6 +80,7 @@
       }
 
       // check if individual reading list items are in view
+      var $nowActive;
       $readingListItems.each(function (i, item) {
         var $item = $(item);
         var inThreshold = withinLoadingThreshold(item, LOADING_THRESHOLD);
@@ -93,19 +92,26 @@
           $readingListContent.trigger('reading-list-item-out-view', $item);
         }
 
-        // mark the last item to fall into the looking area as the one being looked at
+        // mark the higher up item in the looking area as the one being looked at
         var inLooking = withinLookingArea(item, VIEWING_THRESHOLD_TOP, VIEWING_THRESHOLD_BOT);
-        if(inLooking && !$item.is($activeItem)) {
-          // new item in looking area, set it to the active item
-          if ($activeItem) {
-            $activeItem.removeClass('in-looking');
-            $readingListContent.trigger('reading-list-item-out-looking', $activeItem);
+        if(inLooking && !$nowActive) {
+          // in looking area, and we haven't assigned a now active item yet
+          if (!$item.is($activeItem)) {
+            // this is not the currently active item, so we'll want to fire off events and things
+            if ($activeItem) {
+              // new item in looking area, set it to the active item
+              $activeItem.removeClass('in-looking');
+              $readingListContent.trigger('reading-list-item-out-looking', $activeItem);
+            }
+            // add looking class to active item, trigger event
+            $item.addClass('in-looking');
+            $readingListContent.trigger('reading-list-item-in-looking', $item);
           }
-          $item.addClass('in-looking');
-          $activeItem = $item;
-          $readingListContent.trigger('reading-list-item-in-looking', $item);
+          $nowActive = $item;
         }
       });
+      // found an active item, set it to the active item
+      $activeItem = $nowActive;
     };
 
     $readingListContent.on('reading-list-item-in-looking', function (event, item) {
@@ -113,6 +119,7 @@
       if ($item.children('article').length > 0) {
         var id = $item.children('article').attr('id');
         var $miniMapItem = $readingListMiniMapItems.filter('[data-item-ref="' + id + '"]').addClass('active');
+console.log('in looking', id);
       }
     });
     $readingListContent.on('reading-list-item-out-looking', function (event, item) {
@@ -120,6 +127,7 @@
       if ($item.children('article').length > 0) {
         var id = $item.children('article').attr('id');
         var $miniMapItem = $readingListMiniMapItems.filter('[data-item-ref="' + id + '"]').removeClass('active');
+console.log('out looking', id);
       }
     });
     $readingListContent.on('reading-list-item-in-view', function (event, item) {
@@ -150,6 +158,9 @@
     eventing();
     $readingListContent.on('scroll', function () {
 // TODO : might want to do some kind of debounce here
+      eventing();
+    });
+    $readingListContent.on('resize', function () {
       eventing();
     });
 
