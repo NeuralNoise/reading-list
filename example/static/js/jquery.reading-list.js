@@ -149,8 +149,6 @@
     });
     // found an active item, set it to the active item
     $activeItem = $nowActive;
-
-    $('#debugScrollPos').html('SCROLL ' + scrollTop);
   };
 
   /**
