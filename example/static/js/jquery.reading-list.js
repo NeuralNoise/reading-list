@@ -4,6 +4,12 @@
   var $window = $(window);
   var $document = $(window.document);
 
+  var loadStatus = {
+    NOT_ATTEMPTED: false,
+    LOADED: 'loaded',
+    FAILED: 'failed'
+  };
+
   // reading list specific elements
   var $readingListContainer;
   var $readingListContent;
@@ -24,7 +30,7 @@
    * Use an element's bounding box to determine if it's within an area defined
    *  by the top and bot boundaries.
    */
-  var elementInsideArea = function (el, top, bot) {
+  var elementBoundingInsideArea = function (el, top, bot) {
     // check if element bounding box is within area
     var elBounding = el.getBoundingClientRect();
     var overTop = elBounding.top < top && elBounding.bottom < top;
@@ -36,17 +42,6 @@
   };
 
   /**
-   * Check that some part of given element is in view + threshold. Use this to
-   *  determine if a reading list item is in the proximity of the window and
-   *  should probably be loaded.
-   */
-  var withinLoadingThreshold = function (el) {
-    // check if element is inside threshold
-    var threshold = settings.loadingThreshold;
-    return elementInsideArea(el, -threshold, windowHeight + threshold);
-  };
-
-  /**
    * Determine if a user is "looking" at an item. User is "looking" at the item
    *  if it falls within the boundaries created by the top and bottom
    *  thresholds, which are calculated as distances from the window top.
@@ -55,7 +50,7 @@
     // check if element is inside threshold
     var topThreshold = settings.viewingThresholdTop;
     var botThreshold = settings.viewingThresholdBottom;
-    return elementInsideArea(el, topThreshold, botThreshold);
+    return elementBoundingInsideArea(el, topThreshold, botThreshold);
   };
 
   /**
@@ -66,30 +61,64 @@
   var $activeItem;
   var eventing = function () {
     var scrollTop = $readingListContent.scrollTop();
+    var itemsBounding = $readingListItemsContainer[0].getBoundingClientRect();
+
+    // check min/max scroll
     if (scrollTop <= 0) {
       // we're at the top of the reading list
       $readingListContainer.trigger('reading-list-at-top');
-    } else if (scrollTop + windowHeight >=
-        $readingListItemsContainer.height()) {
-      // we're at the bottom of the reading list,
+    }
+    // do bot check separate since you can be at the top/bot simultaneously if
+    //  one item deep and item is shorter than window
+    if (scrollTop + windowHeight >= $readingListItemsContainer.height() ||
+        itemsBounding.bottom < windowHeight) {
+      // we're at the bottom of the reading list, or bot is above window bot
       $readingListContainer.trigger('reading-list-at-bottom');
     }
 
-    // check if individual reading list items are in view
+    // check loading threshold
+    var loadTop = false;
+    var loadBot = false;
+    if (scrollTop <= settings.loadingThreshold) {
+      // we're in the top loading threshold of the reading list
+      $readingListContainer.trigger('reading-list-at-top-load-threshold');
+      // flag that we need to load something on top
+      loadTop = true;
+    }
+    // do bot check separate since you can be at the top/bot simultaneously if
+    //  one item deep and item is shorter than window
+    if (scrollTop + windowHeight >=
+        $readingListItemsContainer.height() - settings.loadingThreshold ||
+        itemsBounding.bottom - settings.loadingThreshold < windowHeight) {
+      // we're in the bottom loading threshold of the reading list, or bot is
+      //  above threshold
+      $readingListContainer.trigger('reading-list-at-bottom-load-threshold');
+      // flag that we need to load something bot
+      loadBot = true;
+    }
+
+    // do event checks on individual items
     var $nowActive;
+    var loadingTopCounter = 0;
+    var loadingBotCounter = 0;
     $readingListItems.each(function (i, item) {
       var $item = $(item);
 
-      // check for firing within loading threshold events
-      var inThreshold = withinLoadingThreshold(item);
-      if(inThreshold && !$item.hasClass('js-in-threshold')) {
-        // item within threshold, fire in event
-        $item.addClass('js-in-threshold');
-        $readingListContainer.trigger('reading-list-item-in-view', [$item]);
-      } else if (!inThreshold && $item.hasClass('js-in-threshold')){
-        // item has left threshold, fire out event
-        $item.removeClass('js-in-threshold');
-        $readingListContainer.trigger('reading-list-item-out-view', [$item]);
+      // check if this is above a loaded item, and we're loading up
+      if (!$item.data('load-status') &&
+          loadingTopCounter < settings.itemsToLoad && loadTop &&
+          $item.next().data('load-status') === loadStatus.LOADED) {
+        // load something at the top
+        $readingListContainer.trigger('reading-list-start-item-load', [$item]);
+        loadingTopCounter++;
+      }
+      // check if this is below a loaded item and we're loading down
+      if (!$item.data('load-status') &&
+          loadingBotCounter < settings.itemsToLoad && loadBot &&
+          $item.prev().data('load-status') === loadStatus.LOADED) {
+        // load something at the bottom
+        $readingListContainer.trigger('reading-list-start-item-load', [$item]);
+        loadingBotCounter++;
       }
 
       // mark the higher up item in the looking area as the one being looked at
@@ -101,12 +130,12 @@
           //  events and things
           if ($activeItem) {
             // new item in looking area, set it to the active item
-            $activeItem.removeClass('js-in-looking');
+            $activeItem.removeClass('in-looking');
             $readingListContainer.trigger('reading-list-item-out-looking',
               [$activeItem]);
           }
           // add looking class to active item, trigger event
-          $item.addClass('js-in-looking');
+          $item.addClass('in-looking');
           $readingListContainer.trigger('reading-list-item-in-looking',
             [$item]);
         }
@@ -123,71 +152,32 @@
    */
   var retrieveReadingListItem = function ($readingListItem) {
     var href = $readingListItem.data('href');
-    return $.get(href);
-  };
-
-  /**
-   * Ensure everything within the loading threshold is loaded.
-   */
-  var retrieveReadingListItemsInLoadingArea = function () {
-
-/* TODO : fill this in
-This algo should be along the lines:
-1. Check url to see if there's an article specified
-  - if true: use that as first item to load
-  - if false: use first item in list as item to load
-2. Load first article
-3. Test if anything in loading zone needs to be loaded still
-4. Choose an unloaded article in loading zone, bias towards bottom of list
-5. Repeat 3,4 until loading complete
-*/
-
-    // retrieve first article to load
-    var $readingListItem0 = $($readingListItems[0]);
-    $readingListItem0.addClass('js-loading');
-    retrieveReadingListItem($readingListItem0)
+    $readingListItem.addClass('loading');
+    return $.get(href)
       .done(function (data) {
         // replace all the content in the reading list item, add loaded classes
-        $readingListItem0.html(data);
-        $readingListItem0.removeClass('js-loading');
-        $readingListItem0.addClass('js-loaded');
+        $readingListItem.html(data);
+        $readingListItem.removeClass('loading');
+        $readingListItem.addClass('loaded');
+        $readingListItem.data('load-status', loadStatus.LOADED);
+      })
+      .fail(function () {
+        // loading failed, loaded to false to indicate loading attempted, failed
+        $readingListItem.addClass('load-failed');
+        $readingListItem.data('load-status', loadStatus.FAILED);
       })
       .always(function () {
         // run events
         eventing();
       });
-
-    $readingListItems.each(function () {
-
-    });
-
-  };
-
-  /**
-   * Prepare reading list for loading in content. Each reading list item will
-   *  be kept at at least the height of the window so there's some buffer area
-   *  for loading.
-   */
-  var prepare = function () {
-
-    // // change height of loading cover to window height, ensure that it stays that way
-    // var resizeReadingListItem = function () {
-    //   $readingListLoadingCover.css('height', windowHeight + 'px');
-    // };
-    // $window.on('resize', resizeReadingListItem);
-    // resizeReadingListItem();
-
-    retrieveReadingListItemsInLoadingArea();
-
-    // // we're done loading, turn off resize loading cover handler, hide it
-    // $window.off('resize', resizeReadingListItem);
-    // $readingListLoadingCover.addClass('hidden');
-
   };
 
   $.fn.readingList = function (options) {
     settings = $.extend({
-      // height from the top and bottom of window to start loading items
+      // number of items to load simultaneously at the top/bottom when user is
+      //  within the loading threshold
+      itemsToLoad: 1,
+      // height from the top and bottom of scrolling container to start loading
       loadingThreshold: 300,
       // top boundary of "looking" area, measured from top of window
       viewingThresholdTop: 200,
@@ -202,8 +192,19 @@ This algo should be along the lines:
       $readingListContent.find('.reading-list-items');
     $readingListItems = $readingListItemsContainer.find('.reading-list-item');
 
-    // set up container
-    prepare();
+// TODO : check if there's an item in the url, if so, use that as first item to load
+    // load first article
+    var $readingListItem0 = $($readingListItems[0]);
+    retrieveReadingListItem($readingListItem0);
+
+    // set up some initial events
+    $readingListContainer.on('reading-list-start-item-load',
+      function (e, $item) {
+        // attempt to load this if loading hasn't been attempted before
+        if (!$item.data('load-status')) {
+          retrieveReadingListItem($item);
+        }
+      });
 
     // fire off initial eventing
     eventing();
@@ -219,6 +220,7 @@ This algo should be along the lines:
         useNativeScroll: true
       }));
     }
+
 
 // TODO : put generalized mini-map functions here along with other default behaviors
 

@@ -29,10 +29,6 @@
   position: fixed;
 }
 
-.reading-list-content .reading-list-loading-cover {
-  background-color: #f00;
-}
-
 .reading-list-content .reading-list-items {
   padding: -1px 0;             /* padding to ensure you can reach bottom of articles */
 }
@@ -42,12 +38,17 @@
   display: none;
 }
 
-.reading-list-content .reading-list-items .reading-list-item.js-loading {
+.reading-list-content .reading-list-items .reading-list-item.loading {
   background-color: #0af;
   display: block;
 }
 
-.reading-list-content .reading-list-items .reading-list-item.js-loaded {
+.reading-list-content .reading-list-items .reading-list-item.loaded {
+  display: block;
+}
+
+.reading-list-content .reading-list-items .reading-list-item.load-failed {
+  background-color: #f00;
   display: block;
 }
 

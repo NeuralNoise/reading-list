@@ -21,27 +21,10 @@
         var $miniMapItem = $readingListMiniMapItems.filter('[data-item-ref="' + id + '"]').removeClass('active');
       }
     });
-    $readingListContainer.on('reading-list-item-in-view', function (event, item) {
-      var $item = $(item);
-      var name;
-      if ($item.children('article').length > 0) {
-        name = $item.children('article').attr('id');
-      } else {
-        name = 'adspace';
-      }
-    });
-    $readingListContainer.on('reading-list-item-out-view', function (event, item) {
-      var $item = $(item);
-      var name;
-      if ($item.children('article').length > 0) {
-        name = $item.children('article').attr('id');
-      } else {
-        name = 'adspace';
-      }
-    });
 
     // initialize reading list
     $readingListContainer.readingList({
+      itemsToLoad: 1,
       loadingThreshold: 300,
       viewingThresholdTop: 200,
       viewingThresholdBottom: 250
