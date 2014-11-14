@@ -18,6 +18,9 @@
   var $readingListMiniMap;
   var $readingListMiniMapItems;
 
+  // iscroll container for mobile
+  var iscroll;
+
   // plugin settings
   var settings;
 
@@ -146,6 +149,8 @@
     });
     // found an active item, set it to the active item
     $activeItem = $nowActive;
+
+    $('#debugScrollPos').html('SCROLL ' + scrollTop);
   };
 
   /**
@@ -169,6 +174,9 @@
         $readingListItem.data('load-status', loadStatus.FAILED);
       })
       .always(function () {
+        // event that tells us something is done loading
+        $readingListContainer.trigger('reading-list-start-item-load-done',
+          [$readingListItem]);
         // run events
         eventing();
       });
@@ -197,10 +205,15 @@
     $readingListMiniMapItems = $readingListMiniMap
       .find('.reading-list-mini-map-item');
 
-// TODO : check if there's an item in the url, if so, use that as first item to load
-    // load first article
-    var $readingListItem0 = $($readingListItems[0]);
-    retrieveReadingListItem($readingListItem0);
+    // check if some item in list has been marked with load-first, use to load
+    var $firstLoad = $readingListItems.filter(function () {
+      return $(this).data('load-first');
+    });
+    // use item marked as first load or use first item in list
+    var $itemToLoad = $firstLoad.length > 0 ?
+      $firstLoad : $($readingListItems[0]);
+    // load this first item
+    retrieveReadingListItem($itemToLoad);
 
     // set up event to load items
     $readingListContainer.on('reading-list-start-item-load',
@@ -236,14 +249,14 @@
 
     // do iscroll if we're on mobile
     if ($.browser.mobile) {
-      // mobile browser, use IScroll
-      (new IScroll(this[0], {
+      var iscroll = (new IScroll($readingListContent[0], {
         useNativeScroll: true
       }));
+      $readingListContainer.on('reading-list-start-item-load-done',
+        function ($item) {
+          iscroll.refresh();
+        });
     }
-
-
-// TODO : put generalized mini-map functions here along with other default behaviors
 
     return this;
   };

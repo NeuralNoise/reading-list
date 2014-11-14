@@ -30,12 +30,18 @@
     <div class="reading-list-content">
       <div class="reading-list-items">
         {% for item in items %}
-          <div class="reading-list-item" data-type="{{ item.type }}" data-href="/{{ item.type }}/{{ item.slug }}">
+          <div class="reading-list-item" data-type="{{ item.type }}" data-href="/{{ item.type }}/{{ item.slug }}"
+              {% if item.loadFirst %}data-load-first="true"{% endif %}>
             <div class="reading-list-loader">Up next {{ item.title }}...</div>
           </div>
         {% endfor %}
       </div>
     </div>
+  </div>
+
+  <div style="position:absolute;bottom:0;left:0;background-color:green;">
+    <div>DEBUG</div>
+    <div id="debugScrollPos">SCROLL 0</div>
   </div>
 
 </body>
