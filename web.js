@@ -37,7 +37,9 @@ app.use('/lists/1', function (req, res, next) {
         type: 'article'
       },
       {
-        type: 'ad'
+        title: 'AD SECTION',
+        type: 'ad',
+        slug: 'ad-1'
       },
       {
         slug: 'lorem-officia-duis-2',
@@ -45,7 +47,9 @@ app.use('/lists/1', function (req, res, next) {
         type: 'article'
       },
       {
-        type: 'ad'
+        title: 'AD SECTION',
+        type: 'ad',
+        slug: 'ad-1'
       },
       {
         slug: 'minim-anim-id-anim-3',
@@ -53,7 +57,9 @@ app.use('/lists/1', function (req, res, next) {
         type: 'article'
       },
       {
-        type: 'ad'
+        title: 'AD SECTION',
+        type: 'ad',
+        slug: 'ad-1'
       },
       {
         slug: 'lorem-proident-non-4',
@@ -73,6 +79,7 @@ app.use('/ad', function (req, res, next) {
   res.end(
     swig.renderFile('example/templates/ad.html',
       {
+        slug: 'ad-1',
         body: 'THIS IS AN AD ' + loreumIpsum({
           sentenceLowerBound: 2,
           sentenceUpperBound: 8

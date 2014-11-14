@@ -20,12 +20,10 @@
     <div class="reading-list-left-nav">
       <ul class="reading-list-mini-map">
         {% for item in items %}
-          {% if item.type == 'article' %}
-            <li class="reading-list-mini-map-item" data-item-ref="{{ item.slug }}">
-              <span class="nav-viewing-indicator">&#x2713;</span>
-              <a href="/{{ item.type }}/{{ item.slug }}">{{ item.title }}</a>
-            </li>
-          {% endif %}
+          <li class="reading-list-mini-map-item" data-item-ref="{{ item.slug }}">
+            <span class="nav-viewing-indicator">&#x2713;</span>
+            <a href="/{{ item.type }}/{{ item.slug }}">{{ item.title }}</a>
+          </li>
         {% endfor %}
       </ul>
     </div>

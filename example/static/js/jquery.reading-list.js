@@ -15,6 +15,8 @@
   var $readingListContent;
   var $readingListItemsContainer;
   var $readingListItems;
+  var $readingListMiniMap;
+  var $readingListMiniMapItems;
 
   // plugin settings
   var settings;
@@ -191,19 +193,38 @@
     $readingListItemsContainer =
       $readingListContent.find('.reading-list-items');
     $readingListItems = $readingListItemsContainer.find('.reading-list-item');
+    $readingListMiniMap = $readingListContainer.find('.reading-list-mini-map');
+    $readingListMiniMapItems = $readingListMiniMap
+      .find('.reading-list-mini-map-item');
 
 // TODO : check if there's an item in the url, if so, use that as first item to load
     // load first article
     var $readingListItem0 = $($readingListItems[0]);
     retrieveReadingListItem($readingListItem0);
 
-    // set up some initial events
+    // set up event to load items
     $readingListContainer.on('reading-list-start-item-load',
       function (e, $item) {
         // attempt to load this if loading hasn't been attempted before
         if (!$item.data('load-status')) {
           retrieveReadingListItem($item);
         }
+      });
+
+    // set up minimap events
+    $readingListContainer.on('reading-list-item-in-looking',
+      function (event, $item) {
+        var id = $item.children().first().attr('id');
+        var $miniMapItem = $readingListMiniMapItems.filter(function () {
+          return $(this).data('item-ref') === id;
+        }).addClass('active');
+      });
+    $readingListContainer.on('reading-list-item-out-looking',
+      function (event, $item) {
+        var id = $item.children().first().attr('id');
+        var $miniMapItem = $readingListMiniMapItems.filter(function () {
+          return $(this).data('item-ref') === id;
+        }).removeClass('active');
       });
 
     // fire off initial eventing
