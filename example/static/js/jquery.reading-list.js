@@ -1,4 +1,4 @@
-(function ($) {
+(function ($, IScroll) {
   'use strict';
 
   var $window = $(window);
@@ -40,8 +40,9 @@
    *  determine if a reading list item is in the proximity of the window and
    *  should probably be loaded.
    */
-  var withinLoadingThreshold = function (el, threshold) {
+  var withinLoadingThreshold = function (el) {
     // check if element is inside threshold
+    var threshold = settings.loadingThreshold;
     return elementInsideArea(el, -threshold, windowHeight + threshold);
   };
 
@@ -50,9 +51,11 @@
    *  if it falls within the boundaries created by the top and bottom
    *  thresholds, which are calculated as distances from the window top.
    */
-  var withinLookingArea = function (el, topThreshold, bottomThreshold) {
+  var withinLookingArea = function (el) {
     // check if element is inside threshold
-    return elementInsideArea(el, topThreshold, bottomThreshold);
+    var topThreshold = settings.viewingThresholdTop;
+    var botThreshold = settings.viewingThresholdBottom;
+    return elementInsideArea(el, topThreshold, botThreshold);
   };
 
   /**
@@ -78,20 +81,19 @@
       var $item = $(item);
 
       // check for firing within loading threshold events
-      var inThreshold = withinLoadingThreshold(item, settings.loadingThreshold);
-      if(inThreshold && !$item.hasClass('in-threshold')) {
+      var inThreshold = withinLoadingThreshold(item);
+      if(inThreshold && !$item.hasClass('js-in-threshold')) {
         // item within threshold, fire in event
-        $item.addClass('in-threshold');
-        $readingListContainer.trigger('reading-list-item-in-view', $item);
-      } else if (!inThreshold && $item.hasClass('in-threshold')){
+        $item.addClass('js-in-threshold');
+        $readingListContainer.trigger('reading-list-item-in-view', [$item]);
+      } else if (!inThreshold && $item.hasClass('js-in-threshold')){
         // item has left threshold, fire out event
-        $item.removeClass('in-threshold');
-        $readingListContainer.trigger('reading-list-item-out-view', $item);
+        $item.removeClass('js-in-threshold');
+        $readingListContainer.trigger('reading-list-item-out-view', [$item]);
       }
 
       // mark the higher up item in the looking area as the one being looked at
-      var inLooking = withinLookingArea(item, settings.viewingThresholdTop,
-        settings.viewingThresholdBottom);
+      var inLooking = withinLookingArea(item);
       if(inLooking && !$nowActive) {
         // in looking area, and we haven't assigned a now active item yet
         if (!$item.is($activeItem)) {
@@ -99,19 +101,88 @@
           //  events and things
           if ($activeItem) {
             // new item in looking area, set it to the active item
-            $activeItem.removeClass('in-looking');
+            $activeItem.removeClass('js-in-looking');
             $readingListContainer.trigger('reading-list-item-out-looking',
-              $activeItem);
+              [$activeItem]);
           }
           // add looking class to active item, trigger event
-          $item.addClass('in-looking');
-          $readingListContainer.trigger('reading-list-item-in-looking', [$item]);
+          $item.addClass('js-in-looking');
+          $readingListContainer.trigger('reading-list-item-in-looking',
+            [$item]);
         }
         $nowActive = $item;
       }
     });
     // found an active item, set it to the active item
     $activeItem = $nowActive;
+  };
+
+  /**
+   * GET an item from reading list. Returns a promise that resolves when the
+   *   response comes back from the server.
+   */
+  var retrieveReadingListItem = function ($readingListItem) {
+    var href = $readingListItem.data('href');
+    return $.get(href);
+  };
+
+  /**
+   * Ensure everything within the loading threshold is loaded.
+   */
+  var retrieveReadingListItemsInLoadingArea = function () {
+
+/* TODO : fill this in
+This algo should be along the lines:
+1. Check url to see if there's an article specified
+  - if true: use that as first item to load
+  - if false: use first item in list as item to load
+2. Load first article
+3. Test if anything in loading zone needs to be loaded still
+4. Choose an unloaded article in loading zone, bias towards bottom of list
+5. Repeat 3,4 until loading complete
+*/
+
+    // retrieve first article to load
+    var $readingListItem0 = $($readingListItems[0]);
+    $readingListItem0.addClass('js-loading');
+    retrieveReadingListItem($readingListItem0)
+      .done(function (data) {
+        // replace all the content in the reading list item, add loaded classes
+        $readingListItem0.html(data);
+        $readingListItem0.removeClass('js-loading');
+        $readingListItem0.addClass('js-loaded');
+      })
+      .always(function () {
+        // run events
+        eventing();
+      });
+
+    $readingListItems.each(function () {
+
+    });
+
+  };
+
+  /**
+   * Prepare reading list for loading in content. Each reading list item will
+   *  be kept at at least the height of the window so there's some buffer area
+   *  for loading.
+   */
+  var prepare = function () {
+
+    // // change height of loading cover to window height, ensure that it stays that way
+    // var resizeReadingListItem = function () {
+    //   $readingListLoadingCover.css('height', windowHeight + 'px');
+    // };
+    // $window.on('resize', resizeReadingListItem);
+    // resizeReadingListItem();
+
+    retrieveReadingListItemsInLoadingArea();
+
+    // // we're done loading, turn off resize loading cover handler, hide it
+    // $window.off('resize', resizeReadingListItem);
+    // $readingListLoadingCover.addClass('hidden');
+
   };
 
   $.fn.readingList = function (options) {
@@ -131,6 +202,9 @@
       $readingListContent.find('.reading-list-items');
     $readingListItems = $readingListItemsContainer.find('.reading-list-item');
 
+    // set up container
+    prepare();
+
     // fire off initial eventing
     eventing();
 
@@ -138,7 +212,17 @@
     $readingListContent.on('scroll', eventing);
     $window.on('resize', eventing);
 
+    // do iscroll if we're on mobile
+    if ($.browser.mobile) {
+      // mobile browser, use IScroll
+      (new IScroll(this[0], {
+        useNativeScroll: true
+      }));
+    }
+
+// TODO : put generalized mini-map functions here along with other default behaviors
+
     return this;
   };
 
-})(jQuery);
+})(jQuery, IScroll);

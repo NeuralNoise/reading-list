@@ -1,39 +1,115 @@
 var connect = require('connect');
-var serveStatic = require('serve-static');
-var open = require('open');
 var loreumIpsum = require('lorem-ipsum');
+var open = require('open');
+var serveStatic = require('serve-static');
 var slugify = require('slugify');
+var swig = require('swig');
 
 var app = connect();
+
+// some utility stuff
+var makeArticle = function (title) {
+   return {
+    slug: slugify(title).toLowerCase() + '-1',
+    title: title,
+    body: loreumIpsum({
+      units: 'paragraphs',
+      paragraphLowerBound: 20,
+      paragraphUpperBound: 100
+    }).replace('\r\n', '')
+  };
+};
 
 // some constants
 var PORT = 3000;
 var HOME_PAGE = 'example.html';
 
 // set up 3rd party middleware
-app.use(serveStatic('example', {index: [HOME_PAGE]}));
+app.use(serveStatic('example/static', {index: [HOME_PAGE]}));
 app.use(serveStatic('bower_components', {index: false, extensions: ['html', 'css']}));
 
-// make endpoints for some test articles
-app.use('/article', function articleMiddleware(req, res, next) {
-
-  var title = loreumIpsum({
-    sentenceLowerBound: 2,
-    sentenceUpperBound: 8
-  }).replace('.', '');
-
-  var article = {
-    id: slugify(title).toLowerCase() + '-' + Math.floor(Math.random() * 100),
-    title: title,
-    body: loreumIpsum({
-      units: 'paragraphs',
-      paragraphLowerBound: 1,
-      paragraphUpperBound: 10
-    }).replace('\r\n', '')
+app.use('/lists/1', function (req, res, next) {
+  var readingList = {
+    items: [
+      {
+        slug: 'veniam-exercitation-in-tempor-1',
+        title: 'Veniam Exercitation In Tempor',
+        type: 'article'
+      },
+      {
+        type: 'ad'
+      },
+      {
+        slug: 'lorem-officia-duis-2',
+        title: 'Lorem Officia Duis',
+        type: 'article'
+      },
+      {
+        type: 'ad'
+      },
+      {
+        slug: 'minim-anim-id-anim-3',
+        title: 'Minim Anim id Anim',
+        type: 'article'
+      },
+      {
+        type: 'ad'
+      },
+      {
+        slug: 'lorem-proident-non-4',
+        title: 'Lorem Proident Non',
+        type: 'article'
+      }
+    ]
   };
 
-  res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify(article));
+  res.end(
+    swig.renderFile('example/templates/reading-list.html', readingList)
+  );
+});
+
+// make endpoint for some test ads
+app.use('/ad', function (req, res, next) {
+  res.end(
+    swig.renderFile('example/templates/ad.html',
+      {
+        body: 'THIS IS AN AD ' + loreumIpsum({
+          sentenceLowerBound: 2,
+          sentenceUpperBound: 8
+        }).replace('.', '')
+      }
+    )
+  );
+});
+
+// make endpoints for some test articles
+app.use('/article/veniam-exercitation-in-tempor-1', function (req, res, next) {
+  res.end(
+    swig.renderFile('example/templates/article.html',
+      makeArticle('Veniam Exercitation In Tempor')
+    )
+  );
+});
+app.use('/article/lorem-officia-duis-2', function (req, res, next) {
+  res.end(
+    swig.renderFile('example/templates/article.html',
+      makeArticle('Lorem Officia Duis')
+    )
+  );
+});
+app.use('/article/minim-anim-id-anim-3', function (req, res, next) {
+  res.end(
+    swig.renderFile('example/templates/article.html',
+      makeArticle('Minim Anim id Anim')
+    )
+  );
+});
+app.use('/article/lorem-proident-non-4', function (req, res, next) {
+  res.end(
+    swig.renderFile('example/templates/article.html',
+      makeArticle('Lorem Proident Non')
+    )
+  );
 });
 
 // start server

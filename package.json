@@ -6,6 +6,7 @@
     "serve-static": "^1.7.1"
   },
   "dependencies": {
-    "slugify": "^0.1.0"
+    "slugify": "^0.1.0",
+    "swig": "^1.4.2"
   }
 }

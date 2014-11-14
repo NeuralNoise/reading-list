@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Infinite Scroll - Reading List 1</title>
+
+  <link rel="stylesheet" type="text/css" href="/css/main.css">
+  <link rel="stylesheet" type="text/css" href="/css/reading-list.css">
+
+  <script src="/jquery/dist/jquery.min.js"></script>
+  <script src="/iscroll-native/src/iscroll.js"></script>
+  <script src="/detect-mobile-browser-tablet-support/detectmobilebrowser.js"></script>
+
+  <script src="/js/jquery.reading-list.js"></script>
+  <script src="/js/reading-list-init.js"></script>
+
+</head>
+<body>
+  <div id="readingList">
+    <div class="reading-list-left-nav">
+      <ul class="reading-list-mini-map">
+        {% for item in items %}
+          {% if item.type == 'article' %}
+            <li class="reading-list-mini-map-item" data-item-ref="{{ item.slug }}">
+              <span class="nav-viewing-indicator">&#x2713;</span>
+              <a href="/article/{{ item.slug }}">{{ item.title }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="reading-list-content">
+      <div class="reading-list-items">
+        {% for item in items %}
+          <div class="reading-list-item" data-type="{{ item.type }}" data-href="/article/{{ item.slug }}">
+            <div class="reading-list-loader">Up next {{ item.title }}...</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
