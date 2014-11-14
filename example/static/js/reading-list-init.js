@@ -11,14 +11,18 @@
       function (event, $item) {
         if ($item.children('article').length > 0) {
           var id = $item.children('article').attr('id');
-          var $miniMapItem = $readingListMiniMapItems.filter('[data-item-ref="' + id + '"]').addClass('active');
+          var $miniMapItem = $readingListMiniMapItems.filter(function () {
+            return $(this).data('item-ref') === id;
+          }).addClass('active');
         }
       });
     $readingListContainer.on('reading-list-item-out-looking', function (event, item) {
       var $item = $(item);
       if ($item.children('article').length > 0) {
         var id = $item.children('article').attr('id');
-        var $miniMapItem = $readingListMiniMapItems.filter('[data-item-ref="' + id + '"]').removeClass('active');
+        var $miniMapItem = $readingListMiniMapItems.filter(function () {
+          return $(this).data('item-ref') === id;
+        }).removeClass('active');
       }
     });
 

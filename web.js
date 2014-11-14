@@ -8,9 +8,9 @@ var swig = require('swig');
 var app = connect();
 
 // some utility stuff
-var makeArticle = function (title) {
+var makeArticle = function (title, id) {
    return {
-    slug: slugify(title).toLowerCase() + '-1',
+    slug: slugify(title).toLowerCase() + '-' + id,
     title: title,
     body: loreumIpsum({
       units: 'paragraphs',
@@ -86,28 +86,28 @@ app.use('/ad', function (req, res, next) {
 app.use('/article/veniam-exercitation-in-tempor-1', function (req, res, next) {
   res.end(
     swig.renderFile('example/templates/article.html',
-      makeArticle('Veniam Exercitation In Tempor')
+      makeArticle('Veniam Exercitation In Tempor', 1)
     )
   );
 });
 app.use('/article/lorem-officia-duis-2', function (req, res, next) {
   res.end(
     swig.renderFile('example/templates/article.html',
-      makeArticle('Lorem Officia Duis')
+      makeArticle('Lorem Officia Duis', 2)
     )
   );
 });
 app.use('/article/minim-anim-id-anim-3', function (req, res, next) {
   res.end(
     swig.renderFile('example/templates/article.html',
-      makeArticle('Minim Anim id Anim')
+      makeArticle('Minim Anim id Anim', 3)
     )
   );
 });
 app.use('/article/lorem-proident-non-4', function (req, res, next) {
   res.end(
     swig.renderFile('example/templates/article.html',
-      makeArticle('Lorem Proident Non')
+      makeArticle('Lorem Proident Non', 4)
     )
   );
 });
