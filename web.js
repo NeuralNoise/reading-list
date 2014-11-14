@@ -64,7 +64,8 @@ app.use('/lists/1', function (req, res, next) {
       {
         slug: 'lorem-proident-non-4',
         title: 'Lorem Proident Non',
-        type: 'article'
+        type: 'article',
+        loadFirst: true
       }
     ]
   };

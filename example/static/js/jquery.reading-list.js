@@ -10,6 +10,12 @@
     FAILED: 'failed'
   };
 
+  var loadDirection = {
+    UP: 'up',
+    NONE: false,
+    DOWN: 'down'
+  };
+
   // reading list specific elements
   var $readingListContainer;
   var $readingListContent;
@@ -114,7 +120,8 @@
           loadingTopCounter < settings.itemsToLoad && loadTop &&
           $item.next().data('load-status') === loadStatus.LOADED) {
         // load something at the top
-        $readingListContainer.trigger('reading-list-start-item-load', [$item]);
+        $readingListContainer.trigger('reading-list-start-item-load',
+          [$item, loadDirection.UP]);
         loadingTopCounter++;
       }
       // check if this is below a loaded item and we're loading down
@@ -122,7 +129,8 @@
           loadingBotCounter < settings.itemsToLoad && loadBot &&
           $item.prev().data('load-status') === loadStatus.LOADED) {
         // load something at the bottom
-        $readingListContainer.trigger('reading-list-start-item-load', [$item]);
+        $readingListContainer.trigger('reading-list-start-item-load',
+          [$item, loadDirection.DOWN]);
         loadingBotCounter++;
       }
 
@@ -155,16 +163,22 @@
    * GET an item from reading list. Returns a promise that resolves when the
    *   response comes back from the server.
    */
-  var retrieveReadingListItem = function ($readingListItem) {
+  var retrieveReadingListItem = function ($readingListItem, direction) {
     var href = $readingListItem.data('href');
     $readingListItem.addClass('loading');
     return $.get(href)
       .done(function (data) {
+        // get current scroll top so we can reset it
+        var oldScrollTop = $readingListContent.scrollTop();
         // replace all the content in the reading list item, add loaded classes
         $readingListItem.html(data);
         $readingListItem.removeClass('loading');
         $readingListItem.addClass('loaded');
         $readingListItem.data('load-status', loadStatus.LOADED);
+        // reset scroll top, only if we're loading up
+        if (direction === loadDirection.UP) {
+          $readingListContent.scrollTop(oldScrollTop + $readingListItem.height());
+        }
       })
       .fail(function () {
         // loading failed, loaded to false to indicate loading attempted, failed
@@ -215,10 +229,10 @@
 
     // set up event to load items
     $readingListContainer.on('reading-list-start-item-load',
-      function (e, $item) {
+      function (e, $item, direction) {
         // attempt to load this if loading hasn't been attempted before
         if (!$item.data('load-status')) {
-          retrieveReadingListItem($item);
+          retrieveReadingListItem($item, direction);
         }
       });
 
