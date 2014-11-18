@@ -31,16 +31,13 @@ Make your HTML like this:
   </div>
   <div class="reading-list-content">
     <div class="reading-list-items">
-        <div class="reading-list-item"
-          data-href="/article/article-1-slug">
+        <div id="article-1-slug" class="reading-list-item" data-href="/article/article-1-slug">
           <div class="reading-list-loader">Up next My First Article!...</div>
         </div>
-        <div class="reading-list-item"
-          data-href="/article/article-2-slug">
+        <div id="article-2-slug" class="reading-list-item" data-href="/article/article-2-slug">
           <div class="reading-list-loader">Up next My SECOND Article!...</div>
         </div>
-        <div class="reading-list-item"
-          data-href="/article/article-3-slug">
+        <div id="article-3-slug" class="reading-list-item" data-href="/article/article-3-slug">
           <div class="reading-list-loader">Up next This Is The Last Article :(!...</div>
         </div>
     </div>
@@ -56,13 +53,21 @@ $(document).on('ready', function () {
     loadingThreshold: 300,
     viewingThresholdTop: 200,
     viewingThresholdBottom: 250,
-    dataRetrievalCallback: function (data) { return data; }
+    dataRetrievalSuccess: function ($item, data) { return data; },
+    dataRetrievalFail: function ($item) { return 'fail!'; }
   });
 });
 ```
 
 As the user scrolls down, article content will be loaded according to the ```data-href```
-attribute on each reading list item.
+attribute on each reading list item. Items are marked in the mini-map as active
+based on the id of the reading list item which should match with the data-item-ref.
+
+Whatever contents are inside of the reading list item, which in this example case is
+```html
+<div class="reading-list-loader">Some text...</div>
+```
+will be replaced by the
 
 ### Options
 Following is a breakdown of the options available for this plugin:
@@ -72,7 +77,8 @@ Following is a breakdown of the options available for this plugin:
 | loadingThreshold | Height from the bottom of scrolling container to start loading. |
 | viewingThresholdTop | Top boundary of "looking" area, measured from top of window. |
 | viewingThresholdBottom | Bottom boundary of "looking" area, measured from top of window. |
-| dataRetrievalCallback | Reading list data transform callback to change received data to HTML. |
+| dataRetrievalSuccess | Reading list data transform callback to change received data to HTML. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return the HTML of the reading list item. |
+| dataRetrievalFail | Reading list data failure callback. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return HTML of some error message. |
 
 As an additional note, whatever the top item is in the reading list that falls within
 the "looking" area is what is active and will be marked as such in the mini-map.

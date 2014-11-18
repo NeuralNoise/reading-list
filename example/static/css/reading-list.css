@@ -32,21 +32,14 @@
 
 .reading-list-content .reading-list-items .reading-list-item {
   margin: 30px 0px 30px;
-  display: none;
 }
 
 .reading-list-content .reading-list-items .reading-list-item.loading {
   background-color: #0af;
-  display: block;
-}
-
-.reading-list-content .reading-list-items .reading-list-item.loaded {
-  display: block;
 }
 
 .reading-list-content .reading-list-items .reading-list-item.load-failed {
   background-color: #f00;
-  display: block;
 }
 
 .reading-list-content .reading-list-items .reading-list-item article {

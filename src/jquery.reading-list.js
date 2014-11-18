@@ -143,25 +143,32 @@
    * GET an item from reading list. Returns a promise that resolves when the
    *   response comes back from the server.
    */
-  var retrieveReadingListItem = function ($readingListItem, callback) {
+  var retrieveReadingListItem = function ($readingListItem, successCallback,
+      failCallback) {
     // wrap this response stuff so we don't have any problems with var reference
-    return (function ($item, callback) {
-      var respCallback = callback || settings.dataRetrievalCallback;
+    return (function ($item, sCallback, fCallback) {
+      var success = sCallback || settings.dataRetrievalSuccess;
+      var failure = fCallback || settings.dataRetrievalFail;
       var href = $item.data('href');
       $item.addClass('loading');
       return $.get(href)
         .done(function (data) {
-          // replace all the content in the reading list item, add loaded classes
-          var html = respCallback(data);
-          $item.html(html);
-          $item.removeClass('loading');
-          $item.addClass('loaded');
+          // allow us to know if loading succeeded
           $item.data('load-status', loadStatus.LOADED);
+          // replace all the content in the reading list item, add loaded classes
+          var html = success($item, data);
+          if (html) {
+            $item.html(html);
+          }
         })
         .fail(function () {
-          // loading failed, loaded to false to indicate loading attempted, failed
-          $item.addClass('load-failed');
+          // allow us to know if loading failed
           $item.data('load-status', loadStatus.FAILED);
+          // loading failed, loaded to false to indicate loading attempted, failed
+          var html = fCallback($item);
+          if (html) {
+            $item.html(html);
+          }
         })
         .always(function () {
           // do eventing
@@ -170,7 +177,7 @@
           $readingListContainer.trigger('reading-list-start-item-load-done',
             [$item]);
         });
-    })($readingListItem, callback);
+    })($readingListItem, successCallback, failCallback);
   };
 
   /**
@@ -185,8 +192,15 @@
       // bottom boundary of "looking" area, measured from top of window
       viewingThresholdBottom: 250,
       // reading list data transform callback to change received data to html
-      dataRetrievalCallback: function (data) {
+      dataRetrievalSuccess: function ($item, data) {
+        $item.removeClass('loading');
+        $item.addClass('loaded');
         return data;
+      },
+      // reading list data failure callback, return html to replace item contents
+      dataRetrievalFail: function ($item) {
+        $item.addClass('load-failed');
+        return '';
       }
     }, options);
 
@@ -212,14 +226,14 @@
     // set up minimap events
     $readingListContainer.on('reading-list-item-in-looking',
       function (event, $item) {
-        var id = $item.children().first().attr('id');
+        var id = $item.attr('id');
         var $miniMapItem = $readingListMiniMapItems.filter(function () {
           return $(this).data('item-ref') === id;
         }).addClass('active');
       });
     $readingListContainer.on('reading-list-item-out-looking',
       function (event, $item) {
-        var id = $item.children().first().attr('id');
+        var id = $item.attr('id');
         var $miniMapItem = $readingListMiniMapItems.filter(function () {
           return $(this).data('item-ref') === id;
         }).removeClass('active');
