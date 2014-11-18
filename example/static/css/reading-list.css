@@ -30,7 +30,7 @@
 }
 
 .reading-list-content .reading-list-items {
-  padding: -1px 0;             /* padding to ensure you can reach bottom of articles */
+  padding: 1px 0;             /* padding to ensure you can reach bottom of articles */
 }
 
 .reading-list-content .reading-list-items .reading-list-item {

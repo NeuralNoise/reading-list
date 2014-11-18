@@ -7,11 +7,13 @@
   <link rel="stylesheet" type="text/css" href="/css/main.css">
   <link rel="stylesheet" type="text/css" href="/css/reading-list.css">
 
-  <script src="/jquery/dist/jquery.min.js"></script>
+  <script src="/jquery/dist/jquery.js"></script>
   <script src="/iscroll-native/src/iscroll.js"></script>
   <script src="/detect-mobile-browser-tablet-support/detectmobilebrowser.js"></script>
+  <script src="/lodash/dist/lodash.js"></script>
 
-  <script src="/js/jquery.reading-list.js"></script>
+  <script src="/jquery.reading-list.js"></script>
+
   <script src="/js/reading-list-init.js"></script>
 
 </head>
@@ -31,7 +33,7 @@
       <div class="reading-list-items">
         {% for item in items %}
           <div class="reading-list-item" data-type="{{ item.type }}" data-href="/{{ item.type }}/{{ item.slug }}"
-              {% if item.loadFirst %}data-load-first="true"{% endif %}>
+              {% if item.load_to %}data-load-to="true"{% endif %}>
             <div class="reading-list-loader">Up next {{ item.title }}...</div>
           </div>
         {% endfor %}

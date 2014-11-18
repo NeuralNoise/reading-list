@@ -25,8 +25,9 @@ var PORT = 3000;
 var HOME_PAGE = 'example.html';
 
 // set up 3rd party middleware
-app.use(serveStatic('example/static', {index: [HOME_PAGE]}));
-app.use(serveStatic('bower_components', {index: false, extensions: ['html', 'css']}));
+app.use(serveStatic('../src', {index: false, extensions: ['js', 'css']}));
+app.use(serveStatic('static', {index: [HOME_PAGE]}));
+app.use(serveStatic('../bower_components', {index: false, extensions: ['html', 'css']}));
 
 app.use('/lists/1', function (req, res, next) {
   var readingList = {
@@ -34,7 +35,8 @@ app.use('/lists/1', function (req, res, next) {
       {
         slug: 'veniam-exercitation-in-tempor-1',
         title: 'Veniam Exercitation In Tempor',
-        type: 'article'
+        type: 'article',
+        load_to: true
       },
       {
         title: 'AD SECTION',
@@ -64,21 +66,20 @@ app.use('/lists/1', function (req, res, next) {
       {
         slug: 'lorem-proident-non-4',
         title: 'Lorem Proident Non',
-        type: 'article',
-        loadFirst: true
+        type: 'article'
       }
     ]
   };
 
   res.end(
-    swig.renderFile('example/templates/reading-list.html', readingList)
+    swig.renderFile('templates/reading-list.html', readingList)
   );
 });
 
 // make endpoint for some test ads
 app.use('/ad', function (req, res, next) {
   res.end(
-    swig.renderFile('example/templates/ad.html',
+    swig.renderFile('templates/ad.html',
       {
         slug: 'ad-1',
         body: 'THIS IS AN AD ' + loreumIpsum({
@@ -93,28 +94,28 @@ app.use('/ad', function (req, res, next) {
 // make endpoints for some test articles
 app.use('/article/veniam-exercitation-in-tempor-1', function (req, res, next) {
   res.end(
-    swig.renderFile('example/templates/article.html',
+    swig.renderFile('templates/article.html',
       makeArticle('Veniam Exercitation In Tempor', 1)
     )
   );
 });
 app.use('/article/lorem-officia-duis-2', function (req, res, next) {
   res.end(
-    swig.renderFile('example/templates/article.html',
+    swig.renderFile('templates/article.html',
       makeArticle('Lorem Officia Duis', 2)
     )
   );
 });
 app.use('/article/minim-anim-id-anim-3', function (req, res, next) {
   res.end(
-    swig.renderFile('example/templates/article.html',
+    swig.renderFile('templates/article.html',
       makeArticle('Minim Anim id Anim', 3)
     )
   );
 });
 app.use('/article/lorem-proident-non-4', function (req, res, next) {
   res.end(
-    swig.renderFile('example/templates/article.html',
+    swig.renderFile('templates/article.html',
       makeArticle('Lorem Proident Non', 4)
     )
   );
