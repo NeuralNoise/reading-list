@@ -141,36 +141,36 @@
 
   /**
    * GET an item from reading list. Returns a promise that resolves when the
-   *   response comes back from the server.
+   *   response comes back from the server and html is loaded in to the page.
    */
-  var retrieveReadingListItem = function ($readingListItem, successCallback,
+  var retrieveListItem = function ($readingListItem, successCallback,
       failCallback) {
     // wrap this response stuff so we don't have any problems with var reference
     return (function ($item, sCallback, fCallback) {
       var success = sCallback || settings.dataRetrievalSuccess;
       var failure = fCallback || settings.dataRetrievalFail;
       var href = $item.data('href');
+      // indicate loading is occuring
       $item.addClass('loading');
+      // do get request, return it as a promise
+      var html;
+      var status;
       return $.get(href)
         .done(function (data) {
-          // allow us to know if loading succeeded
-          $item.data('load-status', loadStatus.LOADED);
-          // replace all the content in the reading list item, add loaded classes
-          var html = success($item, data);
-          if (html) {
-            $item.html(html);
-          }
+          // get html from success callback, deal with it
+          html = success($item, data);
+          status = loadStatus.LOADED;
         })
         .fail(function () {
-          // allow us to know if loading failed
-          $item.data('load-status', loadStatus.FAILED);
-          // loading failed, loaded to false to indicate loading attempted, failed
-          var html = fCallback($item);
+          // get html from failure callback, deal with it
+          html = failure($item);
+          status = loadStatus.FAILED;
+        }).always(function () {
+          $item.data('load-status', status);
           if (html) {
+            // add html and resolve promise so we know html is for sure on page
             $item.html(html);
           }
-        })
-        .always(function () {
           // do eventing
           eventing();
           // event that tells us something is done loading
@@ -178,6 +178,47 @@
             [$item]);
         });
     })($readingListItem, successCallback, failCallback);
+  };
+
+  /**
+   * Load up all the items on the way to given reading list item.
+   */
+  var retrieveListItemsTo = function ($readingListItem) {
+    // wrap this response stuff so we don't have any problems with var reference
+    return (function ($readingListItem) {
+      // keep promise to resolve once they all come back
+      var deferred = $.Deferred();
+      // loop through reading list items and load everything up to and indcluding
+      //  given item
+      var pos = $readingListItems.index($readingListItem) + 1;
+      var loaded = 0;
+      var completeCheck = function () {
+        loaded++;
+        if (pos === loaded &&
+            deferred.state() !== 'resolved') {
+          // we're done loading,resolve our promise
+          deferred.resolve($readingListItem);
+        }
+      };
+      $readingListItems.each(function () {
+        var $item = $(this);
+        // start loading item
+        if (!$item.data('load-status')) {
+          // hasn't been loaded yet, attempt to load it
+          retrieveListItem($item).always(completeCheck);
+        } else {
+          // already loaded
+          completeCheck();
+        }
+        // check if we have our item that we want to stop at
+        if ($readingListItem.is($item)) {
+          // found our item, stop loadings
+          return false;
+        }
+      });
+      // return promise that resolves when all items come back
+      return deferred.promise();
+    })($readingListItem);
   };
 
   /**
@@ -219,9 +260,41 @@
       function (e, $item, direction) {
         // attempt to load this if loading hasn't been attempted before
         if (!$item.data('load-status')) {
-          retrieveReadingListItem($item);
+          retrieveListItem($item);
         }
       });
+
+    // set up minimap items
+    $readingListMiniMapItems.on('click', function (e) {
+      var $this = $(this);
+      // ensure our click event doesn't go through to the anchor
+      e.preventDefault();
+      // find the item to scroll to
+      var itemRef = $this.data('item-ref');
+      var $item = $readingListItems.filter('#' + itemRef);
+      // retrieve everything on the way to our item, then scroll to it
+      retrieveListItemsTo($item).always(function ($readingListItem) {
+          var stop = function () {
+            $readingListContent.stop();
+          };
+          // ensure we can stop the animation if we want
+          $document.on(
+            'scroll touchmove mousedown DOMMouseScroll mousewheel keyup resize',
+            stop);
+          // stop any running animations and begin a new one
+          $readingListContent.stop().animate(
+            {
+              scrollTop: $readingListItem.position().top
+            },
+            1000,
+            function () {
+              // unbind the scroll stoppage
+              $document.off(
+                'scroll touchmove mousedown DOMMouseScroll mousewheel keyup resize',
+                stop);
+            });
+      });
+    });
 
     // set up minimap events
     $readingListContainer.on('reading-list-item-in-looking',
@@ -247,7 +320,7 @@
     var $itemToLoad = $firstLoad.length > 0 ?
       $firstLoad : $($readingListItems[0]);
     // load this first item
-    retrieveReadingListItem($itemToLoad);
+    retrieveListItem($itemToLoad);
 
     // bind other events
     $readingListContent.on('scroll', eventing);
