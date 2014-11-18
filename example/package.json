@@ -1,11 +1,9 @@
 {
-  "devDependencies": {
+  "dependencies": {
     "connect": "^3.3.3",
     "lorem-ipsum": "^1.0.1",
     "open": "0.0.5",
-    "serve-static": "^1.7.1"
-  },
-  "dependencies": {
+    "serve-static": "^1.7.1",
     "slugify": "^0.1.0",
     "swig": "^1.4.2"
   }

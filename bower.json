@@ -1,5 +1,6 @@
 {
-  "name": "infinite-scroll-proto",
+  "name": "reading-list",
+  "version": "0.0.1",
   "dependencies": {
     "jquery": "~2.1.1",
     "iscroll-native": "~0.0.2",
