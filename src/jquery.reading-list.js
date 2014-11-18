@@ -143,15 +143,17 @@
    * GET an item from reading list. Returns a promise that resolves when the
    *   response comes back from the server.
    */
-  var retrieveReadingListItem = function ($readingListItem) {
+  var retrieveReadingListItem = function ($readingListItem, callback) {
     // wrap this response stuff so we don't have any problems with var reference
-    return (function ($item) {
+    return (function ($item, callback) {
+      var respCallback = callback || settings.dataRetrievalCallback;
       var href = $item.data('href');
       $item.addClass('loading');
       return $.get(href)
         .done(function (data) {
           // replace all the content in the reading list item, add loaded classes
-          $item.html(data);
+          var html = respCallback(data);
+          $item.html(html);
           $item.removeClass('loading');
           $item.addClass('loaded');
           $item.data('load-status', loadStatus.LOADED);
@@ -168,7 +170,7 @@
           $readingListContainer.trigger('reading-list-start-item-load-done',
             [$item]);
         });
-    })($readingListItem);
+    })($readingListItem, callback);
   };
 
   /**
@@ -176,12 +178,16 @@
    */
   $.fn.readingList = function (options) {
     settings = $.extend({
-      // height from the top and bottom of scrolling container to start loading
+      // height from the bottom of scrolling container to start loading
       loadingThreshold: 300,
       // top boundary of "looking" area, measured from top of window
       viewingThresholdTop: 200,
-      // bottom boundary of "looking" area, measured from bottom of window
+      // bottom boundary of "looking" area, measured from top of window
       viewingThresholdBottom: 250,
+      // reading list data transform callback to change received data to html
+      dataRetrievalCallback: function (data) {
+        return data;
+      }
     }, options);
 
     // find elements that will be used
@@ -199,7 +205,7 @@
       function (e, $item, direction) {
         // attempt to load this if loading hasn't been attempted before
         if (!$item.data('load-status')) {
-          retrieveReadingListItem($item, direction);
+          retrieveReadingListItem($item);
         }
       });
 
