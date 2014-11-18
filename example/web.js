@@ -23,13 +23,24 @@ var makeArticle = function (title, id) {
 // some constants
 var PORT = 3000;
 var HOME_PAGE = 'example.html';
+var SIM_DELAY = 5000;
 
 // set up 3rd party middleware
 app.use(serveStatic('../src', {index: false, extensions: ['js', 'css']}));
 app.use(serveStatic('static', {index: [HOME_PAGE]}));
 app.use(serveStatic('../bower_components', {index: false, extensions: ['html', 'css']}));
 
+// response delay randomizer
+var randomDelay = function (func, args) {
+  var delay = Math.random() * SIM_DELAY;
+  console.log('Delay: ' + delay + 'ms');
+  setTimeout(function () {
+    func.apply(args);
+  }, delay);
+};
+
 app.use('/lists/1', function (req, res, next) {
+
   var readingList = {
     items: [
       {
@@ -93,32 +104,40 @@ app.use('/ad', function (req, res, next) {
 
 // make endpoints for some test articles
 app.use('/article/veniam-exercitation-in-tempor-1', function (req, res, next) {
-  res.end(
-    swig.renderFile('templates/article.html',
-      makeArticle('Veniam Exercitation In Tempor', 1)
-    )
-  );
+  randomDelay(function () {
+    res.end(
+      swig.renderFile('templates/article.html',
+        makeArticle('Veniam Exercitation In Tempor', 1)
+      )
+    );
+  });
 });
 app.use('/article/lorem-officia-duis-2', function (req, res, next) {
-  res.end(
-    swig.renderFile('templates/article.html',
-      makeArticle('Lorem Officia Duis', 2)
-    )
-  );
+  randomDelay(function () {
+    res.end(
+      swig.renderFile('templates/article.html',
+        makeArticle('Lorem Officia Duis', 2)
+      )
+    );
+  });
 });
 app.use('/article/minim-anim-id-anim-3', function (req, res, next) {
-  res.end(
-    swig.renderFile('templates/article.html',
-      makeArticle('Minim Anim id Anim', 3)
-    )
-  );
+  randomDelay(function () {
+    res.end(
+      swig.renderFile('templates/article.html',
+        makeArticle('Minim Anim id Anim', 3)
+      )
+    );
+  });
 });
 app.use('/article/lorem-proident-non-4', function (req, res, next) {
-  res.end(
-    swig.renderFile('templates/article.html',
-      makeArticle('Lorem Proident Non', 4)
-    )
-  );
+  randomDelay(function () {
+    res.end(
+      swig.renderFile('templates/article.html',
+        makeArticle('Lorem Proident Non', 4)
+      )
+    );
+  });
 });
 
 // start server
