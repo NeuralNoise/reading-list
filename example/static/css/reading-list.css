@@ -23,10 +23,7 @@
 
 .reading-list-content {
   display:inline-block;
-  height: 100%;
   margin-left: 300px;         /* note: this value should match sticky-left-nav width */
-  overflow-y: auto;
-  position: fixed;
 }
 
 .reading-list-content .reading-list-items {

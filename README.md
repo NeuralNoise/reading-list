@@ -4,6 +4,12 @@ Why navigate when you don't have to?
 
 ## Setup
 
+Include the CSS and JS you need to make this run:
+```html
+<link rel="stylesheet" type="text/css" href="jquery.reading-list.css">
+<script src="jquery.reading-list.js"></script>
+```
+
 Make your HTML like this:
 ```html
 <div id="readingList">
@@ -70,3 +76,13 @@ Following is a breakdown of the options available for this plugin:
 
 As an additional note, whatever the top item is in the reading list that falls within
 the "looking" area is what is active and will be marked as such in the mini-map.
+
+
+## Running the Example
+If you'd like to see the example, clone down this code, then:
+```bash
+$ cd reading-list
+$ bower install
+$ cd example
+$ node web.js
+```
