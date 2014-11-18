@@ -4,6 +4,9 @@
   var $window = $(window);
   var $document = $(window.document);
 
+  var MOVEMENTS =
+    'scroll touchmove mousedown DOMMouseScroll mousewheel keyup resize';
+
   var loadStatus = {
     NOT_ATTEMPTED: false,
     LOADED: 'loaded',
@@ -278,9 +281,7 @@
             $readingListContent.stop();
           };
           // ensure we can stop the animation if we want
-          $document.on(
-            'scroll touchmove mousedown DOMMouseScroll mousewheel keyup resize',
-            stop);
+          $document.on(MOVEMENTS, stop);
           // stop any running animations and begin a new one
           $readingListContent.stop().animate(
             {
@@ -289,9 +290,7 @@
             1000,
             function () {
               // unbind the scroll stoppage
-              $document.off(
-                'scroll touchmove mousedown DOMMouseScroll mousewheel keyup resize',
-                stop);
+              $document.off(MOVEMENTS, stop);
             });
       });
     });
