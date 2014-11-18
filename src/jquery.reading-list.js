@@ -9,6 +9,7 @@
 
   var loadStatus = {
     NOT_ATTEMPTED: false,
+    LOADING: 'loading',
     LOADED: 'loaded',
     FAILED: 'failed'
   };
@@ -140,7 +141,14 @@
     });
     // found an active item, set it to the active item
     $activeItem = $nowActive;
-  }, 100);
+    // fire an event with percentage of article viewed, from "looking" threshold
+    //  bottom
+    var bounding = $activeItem[0].getBoundingClientRect();
+    var progress = (-bounding.top + settings.viewingThresholdBottom) /
+      bounding.height;
+    $readingListContainer.trigger('reading-list-item-progress',
+      [$activeItem, progress]);
+  }, 10);
 
   /**
    * GET an item from reading list. Returns a promise that resolves when the
@@ -150,6 +158,9 @@
       failCallback) {
     // wrap this response stuff so we don't have any problems with var reference
     return (function ($item, sCallback, fCallback) {
+      // set up a load status so we know we're loading
+      $item.data('load-status', loadStatus.LOADING);
+      // set up vars we'll need
       var success = sCallback || settings.dataRetrievalSuccess;
       var failure = fCallback || settings.dataRetrievalFail;
       var href = $item.data('href');
@@ -191,8 +202,8 @@
     return (function ($readingListItem) {
       // keep promise to resolve once they all come back
       var deferred = $.Deferred();
-      // loop through reading list items and load everything up to and indcluding
-      //  given item
+      // loop through reading list items and load everything up to and
+      //  including given item
       var pos = $readingListItems.index($readingListItem) + 1;
       var loaded = 0;
       var completeCheck = function () {

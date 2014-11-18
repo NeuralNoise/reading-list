@@ -21,8 +21,19 @@
   visibility: visible;
 }
 
+.reading-list-status {
+  margin-left: 300px;         /* note: this value should match sticky-left-nav width */
+  height: 5%;
+}
+
+.reading-list-status .article-progress {
+  background-color: #f0f;
+  width: 0%;
+}
+
 .reading-list-content {
-  display:inline-block;
+  display: inline-block;
+  height: 95%;                /* note: this is a 100 - reading-list-status height */
   margin-left: 300px;         /* note: this value should match sticky-left-nav width */
 }
 
