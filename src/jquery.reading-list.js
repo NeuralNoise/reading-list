@@ -247,11 +247,10 @@
       viewingThresholdBottom: 250,
       // selectors for different parts of reading list
       selectors: {
-        miniMap: '.reading-list-mini-map',
-        miniMapItem: '.reading-list-mini-map-item',
+        miniMapItems: '.reading-list-mini-map-item',
         scrollContainer: '.reading-list-content',
         itemsContainer: '.reading-list-items',
-        item: '.reading-list-item'
+        items: '.reading-list-item'
       },
       // reading list data transform callback to change received data to html
       dataRetrievalSuccess: function ($item, data) {
@@ -273,9 +272,9 @@
     $readingListItemsContainer =
       $readingListContent.find(settings.selectors.itemsContainer);
     $readingListItems =
-      $readingListItemsContainer.find(settings.selectors.item);
+      $readingListItemsContainer.find(settings.selectors.items);
     $readingListMiniMapItems =
-      $(settings.selectors.miniMapItem);
+      $(settings.selectors.miniMapItems);
 
     // set up event to load items
     $readingListContainer.on('reading-list-start-item-load',
