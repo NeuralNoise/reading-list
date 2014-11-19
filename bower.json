@@ -1,6 +1,6 @@
 {
   "name": "reading-list",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "dependencies": {
     "jquery": "~2.1.1",
     "iscroll-native": "~0.0.2",
