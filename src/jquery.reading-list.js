@@ -24,7 +24,6 @@
   var $readingListContent;
   var $readingListItemsContainer;
   var $readingListItems;
-  var $readingListMiniMap;
   var $readingListMiniMapItems;
 
   // iscroll container for mobile
@@ -246,6 +245,14 @@
       viewingThresholdTop: 200,
       // bottom boundary of "looking" area, measured from top of window
       viewingThresholdBottom: 250,
+      // selectors for different parts of reading list
+      selectors: {
+        miniMap: '.reading-list-mini-map',
+        miniMapItem: '.reading-list-mini-map-item',
+        scrollContainer: '.reading-list-content',
+        itemsContainer: '.reading-list-items',
+        item: '.reading-list-item'
+      },
       // reading list data transform callback to change received data to html
       dataRetrievalSuccess: function ($item, data) {
         $item.removeClass('loading');
@@ -261,13 +268,14 @@
 
     // find elements that will be used
     $readingListContainer = this;
-    $readingListContent = $readingListContainer.find('.reading-list-content');
+    $readingListContent =
+      $readingListContainer.find(settings.selectors.scrollContainer);
     $readingListItemsContainer =
-      $readingListContent.find('.reading-list-items');
-    $readingListItems = $readingListItemsContainer.find('.reading-list-item');
-    $readingListMiniMap = $readingListContainer.find('.reading-list-mini-map');
-    $readingListMiniMapItems = $readingListMiniMap
-      .find('.reading-list-mini-map-item');
+      $readingListContent.find(settings.selectors.itemsContainer);
+    $readingListItems =
+      $readingListItemsContainer.find(settings.selectors.item);
+    $readingListMiniMapItems =
+      $(settings.selectors.miniMapItem);
 
     // set up event to load items
     $readingListContainer.on('reading-list-start-item-load',

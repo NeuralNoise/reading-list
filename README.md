@@ -77,11 +77,25 @@ Following is a breakdown of the options available for this plugin:
 | loadingThreshold | Height from the bottom of scrolling container to start loading. |
 | viewingThresholdTop | Top boundary of "looking" area, measured from top of window. |
 | viewingThresholdBottom | Bottom boundary of "looking" area, measured from top of window. |
+| selectors | Customize the selectors used for each reading list component. Note that whatever classes you choose, the layout of those components must be nested properly. |
 | dataRetrievalSuccess | Reading list data transform callback to change received data to HTML. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return the HTML of the reading list item. |
 | dataRetrievalFail | Reading list data failure callback. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return HTML of some error message. |
 
-As an additional note, whatever the top item is in the reading list that falls within
-the "looking" area is what is active and will be marked as such in the mini-map.
+#### Customizing Selectors
+The following selectors can be customized as options of the ```selectors``` option:
+
+| Selector Name | Selector Rules |
+|--------------:|:---------------|
+| scrollContainer | Container that is being scrolled, must be direct child of whatever element the reading list was initialized on. |
+| itemsContainer | Direct child of ```scrollContainer```. |
+| item | Direct children of ```itemsContainer```, the class used for individual reading list items.  |
+| miniMapItems | Selector for mini-map items. |
+
+#### The "Looking" Area
+Whatever the top item is in the reading list that falls within the "looking"
+area is what is active and will be marked as such in the mini-map. For the
+progress bar, the amount "read" is the distance from the top of the article to
+the bottom of the "looking area".
 
 ### Events
 Following are events you can hook into as the page scrolls:
