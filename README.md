@@ -1,6 +1,8 @@
 # Reading List
+[![Bower version](https://badge.fury.io/bo/reading-list.svg)](http://badge.fury.io/bo/reading-list)
 
 Why navigate when you don't have to?
+
 
 ## Setup
 
