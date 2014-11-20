@@ -69,7 +69,7 @@ Whatever contents are inside of the reading list item, which in this example cas
 ```html
 <div class="reading-list-loader">Some text...</div>
 ```
-will be replaced by the
+will be replaced by the content returned by the AJAX call.
 
 ### Options
 Following is a breakdown of the options available for this plugin:
