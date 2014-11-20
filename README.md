@@ -118,7 +118,8 @@ progress bar, the amount "read" is the distance from the top of the article to
 the bottom of the "looking area".
 
 ### Preloading Items
-Any reading list items that are loaded with the page should have the attribute ```data-load-status="loaded"``` to prevent reloading that item.
+Any reading list items that are loaded with the page should have the attribute ```data-load-status="loaded"``` to prevent reloading that item. In order to keep
+styling consistent, the item should also get the ```loaded``` CSS class.
 
 ## Running the Example
 If you'd like to see the example, clone down this code, then:
