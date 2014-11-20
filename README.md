@@ -53,8 +53,8 @@ $(document).on('ready', function () {
   // initialize reading list
   $('#readingList').readingList({
     loadingThreshold: 300,
-    viewingThresholdTop: 200,
-    viewingThresholdBottom: 250,
+    lookingThresholdTop: 200,
+    lookingThresholdBottom: 250,
     dataRetrievalSuccess: function ($item, data) { return data; },
     dataRetrievalFail: function ($item) { return 'fail!'; }
   });
@@ -77,8 +77,10 @@ Following is a breakdown of the options available for this plugin:
 | Option | Notes |
 |--------:|:-------|
 | loadingThreshold | Height from the bottom of scrolling container to start loading. |
-| viewingThresholdTop | Top boundary of "looking" area, measured from top of window. |
-| viewingThresholdBottom | Bottom boundary of "looking" area, measured from top of window. |
+| lookingThresholdTop | Top boundary of "looking" area, measured from top of window. |
+| lookingingThresholdBottom | Bottom boundary of "looking" area, measured from top of window. |
+| eventingDebounce | Time in ms to delay eventing execution on scroll. Use larger browsers when considering slower browsers so that scrolling isn't affected by event triggering. |
+| scrollToSpeed | Time in ms for scroll to event when scrolling to an article. |
 | selectors | Customize the selectors used for each reading list component. Note that whatever classes you choose, the layout of those components must be nested properly. |
 | dataRetrievalSuccess | Reading list data transform callback to change received data to HTML. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return the HTML of the reading list item. |
 | dataRetrievalFail | Reading list data failure callback. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return HTML of some error message. |
@@ -92,6 +94,8 @@ The following selectors can be customized as options of the ```selectors``` opti
 | itemsContainer | Direct child of ```scrollContainer```. |
 | item | Direct children of ```itemsContainer```, the class used for individual reading list items.  |
 | miniMapItems | Selector for mini-map items. |
+
+Note, also, that any styles that come along with the plugin must be applied to the corresponding customized classes here.
 
 ### Events
 Following are events you can hook into as the page scrolls:
