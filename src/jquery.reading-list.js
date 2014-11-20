@@ -336,8 +336,10 @@
     // use item marked as first load or use first item in list
     var $itemToLoad = $firstLoad.length > 0 ?
       $firstLoad : $($readingListItems[0]);
-    // load this first item
-    retrieveListItem($itemToLoad);
+    // load this first item if it does not already have a load status
+    if (!$itemToLoad.data('load-status')) {
+      retrieveListItem($itemToLoad);
+    }
 
     // bind other events
     $readingListContent.on('scroll', eventing);

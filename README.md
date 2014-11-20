@@ -91,12 +91,6 @@ The following selectors can be customized as options of the ```selectors``` opti
 | item | Direct children of ```itemsContainer```, the class used for individual reading list items.  |
 | miniMapItems | Selector for mini-map items. |
 
-#### The "Looking" Area
-Whatever the top item is in the reading list that falls within the "looking"
-area is what is active and will be marked as such in the mini-map. For the
-progress bar, the amount "read" is the distance from the top of the article to
-the bottom of the "looking area".
-
 ### Events
 Following are events you can hook into as the page scrolls:
 
@@ -112,6 +106,17 @@ Following are events you can hook into as the page scrolls:
 | reading-list-start-item-load-done | ```$item``` | ```$item``` is done loading. |
 
 All events are triggered on the container used to build the reading list, so in the example, it would be on the ```#readingList``` element.
+
+## Usage Notes
+
+### The "Looking" Area
+Whatever the top item is in the reading list that falls within the "looking"
+area is what is active and will be marked as such in the mini-map. For the
+progress bar, the amount "read" is the distance from the top of the article to
+the bottom of the "looking area".
+
+### Preloading Items
+Any reading list items that are loaded with the page should have the attribute ```data-load-status="loaded"``` to prevent reloading that item.
 
 ## Running the Example
 If you'd like to see the example, clone down this code, then:
