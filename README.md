@@ -78,10 +78,11 @@ Following is a breakdown of the options available for this plugin:
 |--------:|:-------|
 | loadingThreshold | Height from the bottom of scrolling container to start loading. |
 | lookingThresholdTop | Top boundary of "looking" area, measured from top of window. |
-| lookingingThresholdBottom | Bottom boundary of "looking" area, measured from top of window. |
+| lookingThresholdBottom | Bottom boundary of "looking" area, measured from top of window. |
 | eventingDebounce | Time in ms to delay eventing execution on scroll. Use larger browsers when considering slower browsers so that scrolling isn't affected by event triggering. |
 | scrollToSpeed | Time in ms for scroll to event when scrolling to an article. |
 | selectors | Customize the selectors used for each reading list component. Note that whatever classes you choose, the layout of those components must be nested properly. |
+| addContent | Define this content to add content to the end of the reading list when there are no more items to load. Expected to return a promise that will resolve with the content to append to the end of the list. |
 | dataRetrievalSuccess | Reading list data transform callback to change received data to HTML. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return the HTML of the reading list item. |
 | dataRetrievalFail | Reading list data failure callback. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return HTML of some error message. |
 
@@ -107,9 +108,10 @@ Following are events you can hook into as the page scrolls:
 | reading-list-at-bottom-load-threshold | None | Triggered when the reading list is nearing the bottom, a threshold specified by ```loadingThreshold``` option. |
 | reading-list-start-item-load | ```$item``` ```direction``` | ```$item``` is starting to load, triggered by a scrolling ```direction```. |
 | reading-list-item-in-looking | ```$item``` | ```$item``` is the active item. |
-| reading-list-item-in-looking | ```$item``` | ```$item``` is no longer the active item. |
+| reading-list-item-out-looking | ```$item``` | ```$item``` is no longer the active item. |
 | reading-list-item-progress | ```$item``` ```progress``` | Has viewed ```progress``` ratio of the entire ```$item```. Use to update progress bars. To make ```progress``` a percentage, do ```progress * 100```.  |
 | reading-list-start-item-load-done | ```$item``` | ```$item``` is done loading. |
+| reading-list-out-of-content | None | Reading list has run out of content. Internally, if ```addContent``` is defined it will be used when this event triggers to add new content to the end of the reading list. |
 
 All events are triggered on the container used to build the reading list, so in the example, it would be on the ```#readingList``` element.
 

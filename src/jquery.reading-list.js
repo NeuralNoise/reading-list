@@ -16,13 +16,17 @@
       eventingDebounce: 10,
       // time in ms for scroll to event when scrolling to an article
       scrollToSpeed: 1000,
-      // selectors for different parts of reading list
+      // class names for different parts of reading list
       selectors: {
         miniMapItems: '.reading-list-mini-map-item',
         scrollContainer: '.reading-list-content',
         itemsContainer: '.reading-list-items',
         items: '.reading-list-item'
       },
+      // define this content to add content to the end of the reading list when
+      //  there are no more items to load. expected to return a promise that will
+      //  resolve with the content to append to the end of the list.
+      addContent: false,
       // reading list data transform callback to change received data to html
       dataRetrievalSuccess: function ($item, data) {
         return data;
@@ -133,6 +137,7 @@
       // do event checks on individual items
       var $nowActive;
       var loadingBotCounter = 0;
+      var loadedCounter = 0;
       $readingListItems.each(function (i, item) {
         var $item = $(item);
 
@@ -144,6 +149,9 @@
           $readingListContainer.trigger('reading-list-start-item-load',
             [$item, loadDirection.DOWN]);
           loadingBotCounter++;
+        } else if ($item.data('load-status')) {
+          // this item is loaded, count it
+          loadedCounter++;
         }
 
         // mark the higher up item in the looking area as the one being looked at
@@ -167,15 +175,23 @@
           $nowActive = $item;
         }
       });
+      // check if we've run out of reading list content
+      if (loadedCounter === $readingListItems.length && loadBot) {
+        // everything is loaded, fire event
+        $readingListContainer.trigger('reading-list-out-of-content');
+      }
       // found an active item, set it to the active item
       $activeItem = $nowActive;
-      // fire an event with percentage of article viewed, from "looking" threshold
-      //  bottom
-      var bounding = $activeItem[0].getBoundingClientRect();
-      var progress = (-bounding.top + settings.lookingThresholdBottom) /
-        bounding.height;
-      $readingListContainer.trigger('reading-list-item-progress',
-        [$activeItem, progress]);
+      if ($activeItem && $activeItem.length > 0) {
+        // fire an event with percentage of article viewed, from "looking" threshold
+        //  bottom, ensure this is never over 1.0
+        var bounding = $activeItem[0].getBoundingClientRect();
+        var viewedDist = (-bounding.top + settings.lookingThresholdBottom) /
+          bounding.height;
+        var progress = viewedDist <= 1.0 ? viewedDist : 1.0;
+        $readingListContainer.trigger('reading-list-item-progress',
+          [$activeItem, progress]);
+      }
     }, settings.eventingDebounce);
 
     /**
@@ -266,8 +282,10 @@
       })($readingListItem);
     };
 
+    /**
+     * Setup function for plugin.
+     */
     var setup = function () {
-
       // set up event to load items
       $readingListContainer.on('reading-list-start-item-load',
         function (e, $item, direction) {
@@ -276,6 +294,25 @@
             retrieveListItem($item);
           }
         });
+
+      if (settings.addContent) {
+        // set up event for when reading list is out of content
+        $readingListContainer.on('reading-list-out-of-content', function () {
+          settings.addContent()
+            .done(function (html) {
+              var $item = $(html);
+              // mark this new item as loaded
+              $item.data('load-status', loadStatus.LOADED);
+              // add this new item to the collection of reading list items
+              $readingListItems.add($item);
+              // finally, append item to reading list
+              $readingListItemsContainer.append($item);
+            })
+            .fail(function () {
+              console.log('Add item function failed, content not added to reading list.');
+            });
+        });
+      }
 
       // set up minimap items
       $readingListMiniMapItems.on('click', function (e) {
