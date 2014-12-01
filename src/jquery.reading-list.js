@@ -5,6 +5,14 @@
    * Start reading list jquery plugin construciton.
    */
   $.fn.readingList = function (options) {
+    // get reading list container and ensure it has an element
+    var $readingListContainer = this;
+    if ($readingListContainer.length < 1) {
+      // no reading list container
+      console.error('No element available for reading list, reading list creation failed.');
+      return $readingListContainer;
+    }
+
     var settings = $.extend({
       // height from the bottom of scrolling container to start loading
       loadingThreshold: 300,
@@ -55,7 +63,6 @@
     // find elements we need
     var $window = $(window);
     var $document = $(window.document);
-    var $readingListContainer = this;
     var $readingListContent =
       $readingListContainer.find(settings.selectors.scrollContainer);
     var $readingListItemsContainer =
@@ -389,7 +396,7 @@
 
     // set this thing up and then return original reading list element
     setup();
-    return this;
+    return $readingListContainer;
   };
 
 })(jQuery, IScroll, _);
