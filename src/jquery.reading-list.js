@@ -5,14 +5,8 @@
    * Start reading list jquery plugin construciton.
    */
   $.fn.readingList = function (options) {
-    // get reading list container and ensure it has an element
-    var $readingListContainer = this;
-    if ($readingListContainer.length < 1) {
-      // no reading list container
-      console.error('No element available for reading list, reading list creation failed.');
-      return $readingListContainer;
-    }
 
+    // settings defaults, then extend
     var settings = $.extend({
       // height from the bottom of scrolling container to start loading
       loadingThreshold: 300,
@@ -45,6 +39,7 @@
       }
     }, options);
 
+    // some constants
     var MOVEMENTS =
       'scroll touchmove mousedown DOMMouseScroll mousewheel keyup resize';
 
@@ -60,13 +55,29 @@
       DOWN: 'down'
     };
 
-    // find elements we need
-    var $window = $(window);
-    var $document = $(window.document);
+    // ensure reading list elements we need are available
+    var $readingListContainer = this;
     var $readingListContent =
       $readingListContainer.find(settings.selectors.scrollContainer);
     var $readingListItemsContainer =
       $readingListContent.find(settings.selectors.itemsContainer);
+    if ($readingListContainer.length < 1) {
+      // no reading list container
+      console.error('No element available for reading list, reading list creation failed.');
+      return $readingListContainer;
+    } else if ($readingListContent.length < 1) {
+      // no scroll container
+      console.error('Missing scrolling container, reading list creation failed.');
+      return $readingListContainer;
+    } else if ($readingListItemsContainer.length < 1) {
+      // no items container
+      console.error('Items container not avilable, reading list creation failed.');
+      return $readingListContainer;
+    }
+
+    // find other elements
+    var $window = $(window);
+    var $document = $(window.document);
     var $readingListItems =
       $readingListItemsContainer.find(settings.selectors.items);
     var $readingListMiniMapItems =
