@@ -76,13 +76,6 @@
     var $readingListMiniMapItems =
       $(settings.selectors.miniMapItems);
 
-    // ensure we always have the correct window height, but retrieve it only when
-    //  necessary
-    var windowHeight = $window.height();
-    $window.on('resize', function () {
-      windowHeight = $window.height();
-    });
-
     /**
      * Use an element's bounding box to determine if it's within an area defined
      *  by the top and bot boundaries.
@@ -118,7 +111,8 @@
     var $activeItem;
     var eventing = _.debounce(function () {
       var scrollTop = $readingListContent.scrollTop();
-      var itemsBounding = $readingListItemsContainer[0].getBoundingClientRect();
+      var scrollContainerHeight = $readingListContent.height();
+      var itemsHeight = $readingListItemsContainer.height();
 
       // check min/max scroll
       if (scrollTop <= 0) {
@@ -127,19 +121,15 @@
       }
       // do bot check separate since you can be at the top/bot simultaneously if
       //  one item deep and item is shorter than window
-      if (scrollTop + windowHeight >= $readingListItemsContainer.height() ||
-          itemsBounding.bottom < windowHeight) {
-        // we're at the bottom of the reading list, or bot is above window bot
+      if (scrollTop <= settings.loadingThreshold) {
+        // we're at the bottom of the reading list
         $readingListContent.trigger('reading-list-at-bottom');
       }
 
       // check bottom loading threshold
       var loadBot = false;
-      if (scrollTop + windowHeight >=
-          $readingListItemsContainer.height() - settings.loadingThreshold ||
-          itemsBounding.bottom - settings.loadingThreshold < windowHeight) {
-        // we're in the bottom loading threshold of the reading list, or bot is
-        //  above threshold
+      if (itemsHeight - scrollTop - scrollContainerHeight <= settings.loadingThreshold) {
+        // we're in the bottom loading threshold
         $readingListContent.trigger('reading-list-at-bottom-load-threshold');
         // flag that we need to load something bot
         loadBot = true;
@@ -160,7 +150,7 @@
           $readingListContent.trigger('reading-list-start-item-load',
             [$item, loadDirection.DOWN]);
           loadingBotCounter++;
-        } else if ($item.data('load-status')) {
+        } else if ($item.data('load-status') === loadStatus.LOADED) {
           // this item is loaded, count it
           loadedCounter++;
         }
@@ -318,6 +308,9 @@
               $readingListItems.add($item);
               // finally, append item to reading list
               $readingListItemsContainer.append($item);
+              // let others know a new item has loaded
+              $readingListContent.trigger('reading-list-start-item-load-done',
+                [$item]);
             })
             .fail(function () {
               console.log('Add item function failed, content not added to reading list.');
