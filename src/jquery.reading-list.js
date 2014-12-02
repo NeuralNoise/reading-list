@@ -24,10 +24,15 @@
         itemsContainer: '.reading-list-items',
         items: '.reading-list-item'
       },
-      // define this content to add content to the end of the reading list when
+      // define this function to add content to the end of the reading list when
       //  there are no more items to load. expected to return a promise that will
       //  resolve with the content to append to the end of the list.
       addContent: false,
+      // a list of events that should cause iscroll to refresh. this is
+      //  necessary whenever an event results in a change of the display of the
+      //  reading list, such as showing/hiding the list. these events should
+      //  trigger somewhere in the document.
+      refreshIScrollOn: [],
       // reading list data transform callback to change received data to html
       dataRetrievalSuccess: function ($item, data) {
         return data;
@@ -297,6 +302,10 @@
         });
 
       if (settings.addContent) {
+
+        // placeholder for readinglist stuff accessible outside plugin
+        $readingListContent.readingList = {};
+
         // set up event for when reading list is out of content
         $readingListContent.on('reading-list-out-of-content', function () {
           settings.addContent()
@@ -383,10 +392,17 @@
         var iscroll = (new IScroll($readingListContent[0], {
           useNativeScroll: true
         }));
-        $readingListContent.on('reading-list-start-item-load-done',
-          function ($item) {
-            iscroll.refresh();
-          });
+        var refreshDisp = function () {
+          iscroll.refresh();
+        };
+        // refresh iscroll whenever something is done loading in to list
+        $readingListContent.on('reading-list-start-item-load-done', refreshDisp);
+        if (settings.refreshIScrollOn) {
+          // loop through iscroll refresh events and bind refresher
+          for (var i = 0; i < settings.refreshIScrollOn.length; i++) {
+            $document.on(settings.refreshIScrollOn[i], refreshDisp);
+          }
+        }
       }
 
     };
