@@ -21,7 +21,6 @@
       // class names for different parts of reading list
       selectors: {
         miniMapItems: '.reading-list-mini-map-item',
-        scrollContainer: '.reading-list-content',
         itemsContainer: '.reading-list-items',
         items: '.reading-list-item'
       },
@@ -56,23 +55,17 @@
     };
 
     // ensure reading list elements we need are available
-    var $readingListContainer = this;
-    var $readingListContent =
-      $readingListContainer.find(settings.selectors.scrollContainer);
+    var $readingListContent = this;
     var $readingListItemsContainer =
       $readingListContent.find(settings.selectors.itemsContainer);
-    if ($readingListContainer.length < 1) {
-      // no reading list container
-      console.error('No element available for reading list, reading list creation failed.');
-      return $readingListContainer;
-    } else if ($readingListContent.length < 1) {
+    if ($readingListContent.length < 1) {
       // no scroll container
       console.error('Missing scrolling container, reading list creation failed.');
-      return $readingListContainer;
+      return $readingListContent;
     } else if ($readingListItemsContainer.length < 1) {
       // no items container
       console.error('Items container not avilable, reading list creation failed.');
-      return $readingListContainer;
+      return $readingListContent;
     }
 
     // find other elements
@@ -130,14 +123,14 @@
       // check min/max scroll
       if (scrollTop <= 0) {
         // we're at the top of the reading list
-        $readingListContainer.trigger('reading-list-at-top');
+        $readingListContent.trigger('reading-list-at-top');
       }
       // do bot check separate since you can be at the top/bot simultaneously if
       //  one item deep and item is shorter than window
       if (scrollTop + windowHeight >= $readingListItemsContainer.height() ||
           itemsBounding.bottom < windowHeight) {
         // we're at the bottom of the reading list, or bot is above window bot
-        $readingListContainer.trigger('reading-list-at-bottom');
+        $readingListContent.trigger('reading-list-at-bottom');
       }
 
       // check bottom loading threshold
@@ -147,7 +140,7 @@
           itemsBounding.bottom - settings.loadingThreshold < windowHeight) {
         // we're in the bottom loading threshold of the reading list, or bot is
         //  above threshold
-        $readingListContainer.trigger('reading-list-at-bottom-load-threshold');
+        $readingListContent.trigger('reading-list-at-bottom-load-threshold');
         // flag that we need to load something bot
         loadBot = true;
       }
@@ -164,7 +157,7 @@
             loadingBotCounter < 1 && loadBot &&
             $item.prev().data('load-status') === loadStatus.LOADED) {
           // load something at the bottom
-          $readingListContainer.trigger('reading-list-start-item-load',
+          $readingListContent.trigger('reading-list-start-item-load',
             [$item, loadDirection.DOWN]);
           loadingBotCounter++;
         } else if ($item.data('load-status')) {
@@ -182,12 +175,12 @@
             if ($activeItem) {
               // new item in looking area, set it to the active item
               $activeItem.removeClass('in-looking');
-              $readingListContainer.trigger('reading-list-item-out-looking',
+              $readingListContent.trigger('reading-list-item-out-looking',
                 [$activeItem]);
             }
             // add looking class to active item, trigger event
             $item.addClass('in-looking');
-            $readingListContainer.trigger('reading-list-item-in-looking',
+            $readingListContent.trigger('reading-list-item-in-looking',
               [$item]);
           }
           $nowActive = $item;
@@ -196,7 +189,7 @@
       // check if we've run out of reading list content
       if (loadedCounter === $readingListItems.length && loadBot) {
         // everything is loaded, fire event
-        $readingListContainer.trigger('reading-list-out-of-content');
+        $readingListContent.trigger('reading-list-out-of-content');
       }
       // found an active item, set it to the active item
       $activeItem = $nowActive;
@@ -207,7 +200,7 @@
         var viewedDist = (-bounding.top + settings.lookingThresholdBottom) /
           bounding.height;
         var progress = viewedDist <= 1.0 ? viewedDist : 1.0;
-        $readingListContainer.trigger('reading-list-item-progress',
+        $readingListContent.trigger('reading-list-item-progress',
           [$activeItem, progress]);
       }
     }, settings.eventingDebounce);
@@ -253,7 +246,7 @@
             // do eventing
             eventing();
             // event that tells us something is done loading
-            $readingListContainer.trigger('reading-list-start-item-load-done',
+            $readingListContent.trigger('reading-list-start-item-load-done',
               [$item]);
           });
       })($readingListItem, successCallback, failCallback);
@@ -305,7 +298,7 @@
      */
     var setup = function () {
       // set up event to load items
-      $readingListContainer.on('reading-list-start-item-load',
+      $readingListContent.on('reading-list-start-item-load',
         function (e, $item, direction) {
           // attempt to load this if loading hasn't been attempted before
           if (!$item.data('load-status')) {
@@ -315,7 +308,7 @@
 
       if (settings.addContent) {
         // set up event for when reading list is out of content
-        $readingListContainer.on('reading-list-out-of-content', function () {
+        $readingListContent.on('reading-list-out-of-content', function () {
           settings.addContent()
             .done(function (html) {
               var $item = $(html);
@@ -361,14 +354,14 @@
       });
 
       // set up minimap events
-      $readingListContainer.on('reading-list-item-in-looking',
+      $readingListContent.on('reading-list-item-in-looking',
         function (event, $item) {
           var id = $item.attr('id');
           var $miniMapItem = $readingListMiniMapItems.filter(function () {
             return $(this).data('item-ref') === id;
           }).addClass('active');
         });
-      $readingListContainer.on('reading-list-item-out-looking',
+      $readingListContent.on('reading-list-item-out-looking',
         function (event, $item) {
           var id = $item.attr('id');
           var $miniMapItem = $readingListMiniMapItems.filter(function () {
@@ -397,7 +390,7 @@
         var iscroll = (new IScroll($readingListContent[0], {
           useNativeScroll: true
         }));
-        $readingListContainer.on('reading-list-start-item-load-done',
+        $readingListContent.on('reading-list-start-item-load-done',
           function ($item) {
             iscroll.refresh();
           });
@@ -407,7 +400,7 @@
 
     // set this thing up and then return original reading list element
     setup();
-    return $readingListContainer;
+    return $readingListContent;
   };
 
 })(jQuery, IScroll, _);

@@ -4,7 +4,8 @@
   $(document).on('ready', function () {
 
     // initialize reading list
-    $('#readingList').readingList({
+    $('.reading-list-content').readingList({
+      eventingDebounce: 1,
       addContent: function () {
         var deferred = $.Deferred();
         deferred.resolve('<div>MOAR CONTENT!</div>');
