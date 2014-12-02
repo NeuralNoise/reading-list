@@ -14,8 +14,8 @@
       lookingThresholdTop: 200,
       // bottom boundary of "looking" area, measured from top of window
       lookingThresholdBottom: 250,
-      // debounce in ms for eventing, use larger values if considering slower browsers
-      eventingDebounce: 10,
+      // throttle in ms for eventing, use larger values if considering slower browsers
+      eventingThrottle: 10,
       // time in ms for scroll to event when scrolling to an article
       scrollToSpeed: 1000,
       // class names for different parts of reading list
@@ -106,10 +106,10 @@
     /**
      * Scroll event function. Keeps track of $activeItem which is the item
      *  currently being "looked" at, fires off events related to reading list
-     *  movement. Debounced as many ms as defined in settings.
+     *  movement. Throttled as many ms as defined in settings.
      */
     var $activeItem;
-    var eventing = _.debounce(function () {
+    var eventing = _.throttle(function () {
       var scrollTop = $readingListContent.scrollTop();
       var scrollContainerHeight = $readingListContent.height();
       var itemsHeight = $readingListItemsContainer.height();
@@ -193,7 +193,7 @@
         $readingListContent.trigger('reading-list-item-progress',
           [$activeItem, progress]);
       }
-    }, settings.eventingDebounce);
+    }, settings.eventingThrottle);
 
     /**
      * GET an item from reading list. Returns a promise that resolves when the

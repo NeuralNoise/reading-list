@@ -5,7 +5,7 @@
 
     // initialize reading list
     $('.reading-list-content').readingList({
-      eventingDebounce: 1,
+      eventingThrottle: 10,
       addContent: function () {
         var deferred = $.Deferred();
         deferred.resolve('<div>MOAR CONTENT!</div>');
