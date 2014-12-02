@@ -90,7 +90,7 @@ The following selectors can be customized as options of the ```selectors``` opti
 | Selector Name | Selector Rules |
 |--------------:|:---------------|
 | itemsContainer | Direct child of element used to create reading list. |
-| item | Direct children of ```itemsContainer```, the class used for individual reading list items.  |
+| items | Direct children of ```itemsContainer```, the class used for individual reading list items.  |
 | miniMapItems | Selector for mini-map elements. Minimap elements can be anywhere on the page as long as they can be selected with this selector and have the ```data-item-ref``` attribute.|
 
 Note, also, that any styles that come along with the plugin must be applied to the corresponding customized classes here.
