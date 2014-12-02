@@ -78,7 +78,7 @@
 
     /**
      * Use an element's bounding box to determine if it's within an area defined
-     *  by the top and bot boundaries.
+     *  by the top and bot boundaries. This is relative to the window!
      */
     var elementBoundingInsideArea = function (el, top, bot) {
       // check if element bounding box is within area
