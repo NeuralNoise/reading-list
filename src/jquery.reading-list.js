@@ -135,7 +135,7 @@
       var loadBot = false;
       if (itemsHeight - scrollTop - scrollContainerHeight <= settings.loadingThreshold) {
         // we're in the bottom loading threshold
-        $readingListContent.trigger('reading-list-at-bottom-load-threshold');
+        $readingListContent.trigger('reading-list-at-bottom-load-threshold', $activeItem);
         // flag that we need to load something bot
         loadBot = true;
       }
