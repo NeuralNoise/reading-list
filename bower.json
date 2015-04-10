@@ -6,7 +6,8 @@
     "src/jquery.reading-list.js"
   ],
   "ignore": [
-    "example"
+    "example",
+    "README.md"
   ],
   "dependencies": {
     "jquery": "~2.1.1",

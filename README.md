@@ -84,6 +84,7 @@ Following is a breakdown of the options available for this plugin:
 | ```refreshIScrollOn``` | A list of event names that, when triggered, will change the display of the reading list (such as show/hide). This will allow the plugin to detect when these events occur and refresh the iScroll container. |
 | ```dataRetrievalSuccess``` | Reading list data transform callback to change received data to HTML. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return the HTML of the reading list item. |
 | ```dataRetrievalFail``` | Reading list data failure callback. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return HTML of some error message. |
+| ```scrollContainerHeight``` | Set this to use a custom value for scroll container height in calculations, should be a function that returns an integer which is the height of the container being scrolled. Needed in cases, like were reading list is entire document and the window should be used for height calculations vs. document height. |
 
 #### Customizing Selectors
 The following selectors can be customized as options of the ```selectors``` option:
