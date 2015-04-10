@@ -19,11 +19,9 @@
       // time in ms for scroll to event when scrolling to an article
       scrollToSpeed: 1000,
       // class names for different parts of reading list
-      selectors: {
-        miniMapItems: '.reading-list-mini-map-item',
-        itemsContainer: '.reading-list-items',
-        items: '.reading-list-item'
-      },
+      selectorsMiniMapItems: '.reading-list-mini-map-item',
+      selectorsItemsContainer: '.reading-list-items',
+      selectorsItems: '.reading-list-item',
       // define this function to add content to the end of the reading list when
       //  there are no more items to load. expected to return a promise that will
       //  resolve with the content to append to the end of the list.
@@ -40,7 +38,13 @@
       // reading list data failure callback, return html to replace item contents
       dataRetrievalFail: function ($item) {
         return '';
-      }
+      },
+      // set this to use a custom value for scroll container height in calculations,
+      //  should be a function that returns an integer which is the height of the
+      //  container being scrolled. Needed in cases, like were reading list is
+      //  entire document and the window should be used for height calculations
+      //  vs. document height.
+      scrollContainerHeight: null
     }, options);
 
     // some constants
@@ -62,7 +66,7 @@
     // ensure reading list elements we need are available
     var $readingListContent = this;
     var $readingListItemsContainer =
-      $readingListContent.find(settings.selectors.itemsContainer);
+      $readingListContent.find(settings.selectorsItemsContainer);
     if ($readingListContent.length < 1) {
       // no scroll container
       console.error('Missing scrolling container, reading list creation failed.');
@@ -76,10 +80,11 @@
     // find other elements
     var $window = $(window);
     var $document = $(window.document);
+    var $body = $(window.document.body);
     var $readingListItems =
-      $readingListItemsContainer.find(settings.selectors.items);
+      $readingListItemsContainer.find(settings.selectorsItems);
     var $readingListMiniMapItems =
-      $(settings.selectors.miniMapItems);
+      $(settings.selectorsMiniMapItems);
 
     /**
      * Use an element's bounding box to determine if it's within an area defined
@@ -108,6 +113,12 @@
       return elementBoundingInsideArea(el, topThreshold, botThreshold);
     };
 
+    // figure out what to use for scroll height calculations
+    var getScrollContainerHeight =
+        $.isFunction(settings.scrollContainerHeight) ?
+          settings.scrollContainerHeight :
+          function () { return $readingListContent.height(); };
+
     /**
      * Scroll event function. Keeps track of $activeItem which is the item
      *  currently being "looked" at, fires off events related to reading list
@@ -115,8 +126,10 @@
      */
     var $activeItem;
     var eventing = _.throttle(function () {
+
       var scrollTop = $readingListContent.scrollTop();
-      var scrollContainerHeight = $readingListContent.height();
+      var scrollContainerHeight = getScrollContainerHeight();
+
       var itemsHeight = $readingListItemsContainer.height();
 
       // check min/max scroll
@@ -334,6 +347,7 @@
         e.preventDefault();
         // find the item to scroll to
         var itemRef = $this.data('item-ref');
+
         var $item = $readingListItems.filter('#' + itemRef);
         // retrieve everything on the way to our item, then scroll to it
         retrieveListItemsTo($item).always(function ($readingListItem) {
@@ -342,16 +356,16 @@
             };
             // ensure we can stop the animation if we want
             $document.on(MOVEMENTS, stop);
+
             // stop any running animations and begin a new one
-            $readingListContent.stop().animate(
-              {
-                scrollTop: $readingListItem.position().top
-              },
-              settings.scrollToSpeed,
-              function () {
-                // unbind the scroll stoppage
-                $document.off(MOVEMENTS, stop);
-              });
+            $readingListContent.stop().animate({
+              scrollTop: $readingListItem.position().top
+            },
+            settings.scrollToSpeed,
+            function () {
+              // unbind the scroll stoppage
+              $document.off(MOVEMENTS, stop);
+            });
         });
       });
 
@@ -359,14 +373,14 @@
       $readingListContent.on('reading-list-item-in-looking',
         function (event, $item) {
           var id = $item.attr('id');
-          var $miniMapItem = $readingListMiniMapItems.filter(function () {
+          $readingListMiniMapItems.filter(function () {
             return $(this).data('item-ref') === id;
           }).addClass('active');
         });
       $readingListContent.on('reading-list-item-out-looking',
         function (event, $item) {
           var id = $item.attr('id');
-          var $miniMapItem = $readingListMiniMapItems.filter(function () {
+          $readingListMiniMapItems.filter(function () {
             return $(this).data('item-ref') === id;
           }).removeClass('active');
         });
@@ -383,8 +397,8 @@
         retrieveListItem($itemToLoad);
       }
 
-      // bind other events
       $readingListContent.on('scroll', eventing);
+
       $window.on('resize', eventing);
 
       // do iscroll if we're on mobile
