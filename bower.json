@@ -6,6 +6,7 @@
     "src/jquery.reading-list.js"
   ],
   "ignore": [
+    ".gitignore",
     "example",
     "README.md"
   ],
