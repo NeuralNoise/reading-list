@@ -1,6 +1,6 @@
 {
   "name": "reading-list",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "main": [
     "src/jquery.reading-list.css",
     "src/jquery.reading-list.js"
