@@ -18,7 +18,8 @@ module.exports = function(config) {
     ],
 
     preprocessors: {
-      '{bower_components|src}/*.js': ['browserify']
+      'bower_components/**.js': ['browserify'],
+      'src/*.js': ['browserify']
     },
 
     reporters: ['progress'],
@@ -34,6 +35,16 @@ module.exports = function(config) {
     browsers: [
       'Chrome'
     ],
+
+    plugins: [
+      'karma-mocha',
+      'karma-chrome-launcher',
+      'karma-browserify'
+    ],
+
+    browserify: {
+      debug: true,
+    },
 
     singleRun: false
   });
