@@ -1,3 +1,5 @@
+require('jQuery');
+
 (function ($, IScroll, _) {
   'use strict';
 

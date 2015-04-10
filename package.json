@@ -1,0 +1,28 @@
+{
+  "name": "reading-list",
+  "version": "0.0.14",
+  "description": "Infinite scrolling for websites with a lot of content and not a lot of navigation.",
+  "directories": {
+    "example": "example"
+  },
+  "devDependencies": {
+    "karma": "^0.12.31",
+    "karma-browserify": "^4.1.2",
+    "karma-chrome-launcher": "^0.1.7",
+    "karma-mocha": "^0.1.10",
+    "mocha": "^2.2.4"
+  },
+  "scripts": {
+    "test": "./node_modules/karma/bin/karma start ./karma.conf.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/theonion/reading-list.git"
+  },
+  "author": "Webtech <webtech@theonion.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/theonion/reading-list/issues"
+  },
+  "homepage": "https://github.com/theonion/reading-list"
+}
