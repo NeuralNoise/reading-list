@@ -6,7 +6,8 @@ module.exports = function(config) {
 
     frameworks: [
       'browserify',
-      'mocha'
+      'mocha',
+      'source-map-support'
     ],
 
     files: [
@@ -14,7 +15,7 @@ module.exports = function(config) {
     ],
 
     preprocessors: {
-      'src/!(*.spec).js': [
+      'src/*.js': [
         'browserify',
         'coverage'
       ]
@@ -46,7 +47,8 @@ module.exports = function(config) {
       'karma-browserify',
       'karma-chrome-launcher',
       'karma-coverage',
-      'karma-mocha'
+      'karma-mocha',
+      'karma-source-map-support'
     ],
 
     browserify: {
@@ -54,8 +56,10 @@ module.exports = function(config) {
       paths: [
         'bower_components/iscroll-native/src/',
         'bower_components/jquery/dist/',
-        'bower_components/lodash/dist/'
+        'bower_components/lodash/dist/',
+        'src/'
       ],
+      // use istanbul for the coverage tool so that coverage report has correct lines
       transform: ['browserify-istanbul']
     },
 

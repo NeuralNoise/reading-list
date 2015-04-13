@@ -1,9 +1,59 @@
-var jQuery = require('jquery');
+'use strict';
+
+var $ = require('jquery');
 var IScroll = require('iscroll');
 var _ = require('lodash');
 
-(function ($, IScroll, _) {
-  'use strict';
+var ReadingList = function (options) {
+  // settings defaults, then extend
+  this.settings = $.extend({
+    // height from the bottom of scrolling container to start loading
+    loadingThreshold: 300,
+    // top boundary of "looking" area, measured from top of window
+    lookingThresholdTop: 200,
+    // bottom boundary of "looking" area, measured from top of window
+    lookingThresholdBottom: 250,
+    // throttle in ms for eventing, use larger values if considering slower browsers
+    eventingThrottle: 10,
+    // time in ms for scroll to event when scrolling to an article
+    scrollToSpeed: 1000,
+    // class names for different parts of reading list
+    selectorsMiniMapItems: '.reading-list-mini-map-item',
+    selectorsItemsContainer: '.reading-list-items',
+    selectorsItems: '.reading-list-item',
+    // define this function to add content to the end of the reading list when
+    //  there are no more items to load. expected to return a promise that will
+    //  resolve with the content to append to the end of the list.
+    addContent: false,
+    // a list of events that should cause iscroll to refresh. this is
+    //  necessary whenever an event results in a change of the display of the
+    //  reading list, such as showing/hiding the list. these events should
+    //  trigger somewhere in the document.
+    refreshIScrollOn: [],
+    // reading list data transform callback to change received data to html
+    dataRetrievalSuccess: function ($item, data) {
+      return data;
+    },
+    // reading list data failure callback, return html to replace item contents
+    dataRetrievalFail: function ($item) {
+      return '';
+    },
+    // set this to use a custom value for scroll container height in calculations,
+    //  should be a function that returns an integer which is the height of the
+    //  container being scrolled. Needed in cases, like were reading list is
+    //  entire document and the window should be used for height calculations
+    //  vs. document height.
+    scrollContainerHeight: null
+  }, options);
+};
+
+module.exports = ReadingList;
+
+
+
+
+
+
 
   /**
    * Start reading list jquery plugin construciton.
@@ -429,5 +479,3 @@ var _ = require('lodash');
     setup();
     return $readingListContent;
   };
-
-})(jQuery, IScroll, _);

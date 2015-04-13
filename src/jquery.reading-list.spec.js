@@ -1,16 +1,21 @@
 
 describe('Reading list', function () {
 
+  var ReadingList = require('jquery.reading-list');
+
   it('should just fail here', function () {
 
-  // TODO : fill this in
-    throw 'Not implemented yet.';
+    var readingList = new ReadingList({});
+
+
+// TODO : fill this in
+  throw new Error('Not implemented yet.');
   });
 
   it('should also fail here', function () {
 
-  // TODO : fill this in
-    throw 'Not implemented yet.';
+// TODO : fill this in
+  throw new Error('Not implemented yet.');
   });
 
 });
