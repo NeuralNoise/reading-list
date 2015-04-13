@@ -1,21 +1,29 @@
 
 describe('Reading list', function () {
 
-  var ReadingList = require('jquery.reading-list');
+  it('should initialize via a selected jquery element', function () {
 
-  it('should just fail here', function () {
+    var $readingList = $(
+      '<div>' +
+        '<div class="reading-list-items"></div>' +
+      '</div>'
+    );
 
-    var readingList = new ReadingList({});
+    $readingList.readingList();
 
+    $readingList.readingListReady.should.equal(true);
+  });
+
+  it('should not initialize when an jquery element selection is empty', function () {
 
 // TODO : fill this in
   throw new Error('Not implemented yet.');
   });
 
-  it('should also fail here', function () {
+  it('should not initialize when reading list element is missing an items container', function () {
 
 // TODO : fill this in
-  throw new Error('Not implemented yet.');
+    throw new Error('Not implemented yet.');
   });
 
 });

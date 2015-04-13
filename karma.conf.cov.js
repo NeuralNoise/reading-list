@@ -11,18 +11,24 @@ module.exports = function(config) {
 
     files: [
       // bower deps
-      'bower_components/jquery/dist/jquery.js',
-      'bower_components/detect-mobile-browser-tablet-support/detectmobilebrowser.js',
       'bower_components/iscroll-native/src/iscroll.js',
+      'bower_components/jquery/dist/jquery.js',
       'bower_components/lodash/dist/lodash.js',
 
       // everything else
       'src/*.js'
     ],
 
-    reporters: [
-      'progress'
-    ],
+    reporters: ['coverage'],
+
+    preprocessors: {
+      'src/*.js': ['coverage']
+    },
+
+    coverageReporter: {
+      type: 'html',
+      dir: 'test-output/coverage'
+    },
 
     port: 9876,
 
