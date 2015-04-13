@@ -7,4 +7,10 @@ describe('Reading list', function () {
     throw 'Not implemented yet.';
   });
 
+  it('should also fail here', function () {
+
+  // TODO : fill this in
+    throw 'Not implemented yet.';
+  });
+
 });

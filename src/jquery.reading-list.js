@@ -1,6 +1,6 @@
-var jQuery = require('../bower_components/jquery/dist/jquery');
-var IScroll = require('../bower_components/iscroll-native/src/iscroll');
-var _ = require('../bower_components/lodash/dist/lodash');
+var jQuery = require('jquery');
+var IScroll = require('iscroll');
+var _ = require('lodash');
 
 (function ($, IScroll, _) {
   'use strict';

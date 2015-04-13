@@ -10,19 +10,25 @@ module.exports = function(config) {
     ],
 
     files: [
-      // bower stuff
-      'bower_components/jquery/dist/jquery.js',
-
-      // everything else
       'src/*.js'
     ],
 
     preprocessors: {
-      'bower_components/**.js': ['browserify'],
-      'src/*.js': ['browserify']
+      'src/!(*.spec).js': [
+        'browserify',
+        'coverage'
+      ]
     },
 
-    reporters: ['progress'],
+    reporters: [
+      'coverage',
+      'progress'
+    ],
+
+    coverageReporter: {
+      type: 'html',
+      dir: 'test-output/coverage'
+    },
 
     port: 9876,
 
@@ -37,13 +43,20 @@ module.exports = function(config) {
     ],
 
     plugins: [
-      'karma-mocha',
+      'karma-browserify',
       'karma-chrome-launcher',
-      'karma-browserify'
+      'karma-coverage',
+      'karma-mocha'
     ],
 
     browserify: {
       debug: true,
+      paths: [
+        'bower_components/iscroll-native/src/',
+        'bower_components/jquery/dist/',
+        'bower_components/lodash/dist/'
+      ],
+      transform: ['browserify-istanbul']
     },
 
     singleRun: false
