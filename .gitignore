@@ -4,3 +4,4 @@ node_modules/
 
 # testing junk
 test-output/
+npm-debug.log

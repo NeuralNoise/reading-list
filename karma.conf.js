@@ -6,7 +6,8 @@ module.exports = function(config) {
 
     frameworks: [
       'chai',
-      'mocha'
+      'mocha',
+      'sinon'
     ],
 
     files: [
@@ -21,8 +22,15 @@ module.exports = function(config) {
     ],
 
     reporters: [
-      'progress'
+      'mocha'
     ],
+
+    client: {
+      captureConsole: true,
+      mocha: {
+        bail: true
+      }
+    },
 
     port: 9876,
 

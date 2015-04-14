@@ -63,18 +63,16 @@
       DOWN: 'down'
     };
 
-    // ensure reading list elements we need are available
+    // ensure reading list elements we need are available, fail otherwise
     var $readingListContent = this;
     var $readingListItemsContainer =
       $readingListContent.find(settings.selectorsItemsContainer);
     if ($readingListContent.length < 1) {
       // no scroll container
-      console.error('Missing scrolling container, reading list creation failed.');
-      return $readingListContent;
+      throw new Error('Missing scrolling container, reading list creation failed.');
     } else if ($readingListItemsContainer.length < 1) {
       // no items container
-      console.error('Items container not available, reading list creation failed.');
-      return $readingListContent;
+      throw new Error('Items container not available, reading list creation failed.');
     }
 
     // find other elements
@@ -245,7 +243,8 @@
             html = failure($item);
             status = loadStatus.FAILED;
             $item.addClass('load-failed');
-          }).always(function () {
+          })
+          .always(function () {
             $item.data('load-status', status);
             if (html) {
               // add html and resolve promise so we know html is for sure on page
@@ -417,6 +416,8 @@
             $document.on(settings.refreshIScrollOn[i], refreshDisp);
           }
         }
+
+        $readingListContent.iscrollRef = iscroll;
       }
 
       // put up a flag once we're done setting up
