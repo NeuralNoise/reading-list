@@ -28,7 +28,7 @@ describe('Reading list', function () {
     it('works via a selected jquery element', function () {
       var $constructedReadingList = $validReadingList.asReadingList();
 
-      $validReadingList.readingList.ready.should.equal(true);
+      $validReadingList.readingList.ready.should.be.true;
       $constructedReadingList.should.equal($validReadingList);
     });
 
@@ -46,7 +46,24 @@ describe('Reading list', function () {
       expect($readingList.readingList).to.not.exist;
     });
 
-    it('should load everything up to and including an item marked with a load-to attribute', function () {
+    it('should load the first item', function () {
+      var url = '/something1';
+      var $item = $('<div class="item" href="' + url + '"></div>');
+
+      $validReadingList.find('.reading-list-items').append($item);
+
+      var retrieveSpy = sinon.spy(ReadingList.prototype, 'retrieveListItem');
+
+      var readingList = new ReadingList($validReadingList, {
+        selectorsItems: '.item'
+      });
+
+      expect(retrieveSpy.calledWith(sinon.match(function ($arg) {
+        return $arg.is($item);
+      }))).to.be.true;
+    });
+
+    it('should load everything up to and including an item marked with data-load-to="true" attribute', function () {
       var url1 = '/something1';
       var url2 = '/something2';
       var url3 = '/something3';
@@ -68,7 +85,7 @@ describe('Reading list', function () {
 
       expect(retrieveSpy.calledWith(sinon.match(function ($arg) {
         return $arg.is($item3);
-      }))).to.equal(true);
+      }))).to.be.true;
     });
   });
 
@@ -122,19 +139,32 @@ describe('Reading list', function () {
   });
 
   describe('mobile support', function () {
+    var mobileSandbox;
 
     beforeEach(function () {
-      $.browser.mobile = true;
+      mobileSandbox = sinon.sandbox.create();
+
+      var browserMock = mobileSandbox.stub($.browser);
+      browserMock.mobile = true;
     });
 
     afterEach(function () {
-      $.browser.mobile = false;
+      mobileSandbox.restore();
     });
 
     it('should use iscroll', function () {
-      $validReadingList.asReadingList();
+      var iscrollMock = mobileSandbox.stub(window, 'IScroll');
 
-      expect($validReadingList.iscrollRef).to.exist;
+      var readingList = new ReadingList($validReadingList, {});
+
+      iscrollMock.calledWithNew().should.be.true;
+      readingList.iscrollRef.should.exist;
+    });
+
+    it('should refresh iscroll on select events', function () {
+
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
     });
   });
 

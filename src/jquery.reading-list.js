@@ -64,6 +64,13 @@ var ReadingList = function ($element, options) {
     scrollContainerHeight: null
   }, options);
 
+  this.setup();
+};
+
+/**
+ * Setup function.
+ */
+ReadingList.prototype.setup = function () {
   // ensure reading list elements we need are available, fail otherwise
   this.$itemsContainer = this.$container.find(this.settings.selectorsItemsContainer);
   if (this.$container.length < 1) {
@@ -137,7 +144,7 @@ ReadingList.prototype.initialLoad = function () {
  * Using iScroll for reading list.
  */
 ReadingList.prototype.setupIScroll = function () {
-  var iscroll = (new IScroll(this.$container[0], { useNativeScroll: true }));
+  var iscroll = new IScroll(this.$container[0], { useNativeScroll: true });
 
   var refreshDisp = function () {
     iscroll.refresh();
