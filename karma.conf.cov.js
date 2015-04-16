@@ -18,7 +18,7 @@ module.exports = function(config) {
       'bower_components/lodash/dist/lodash.js',
 
       // everything else
-      'src/*.js'
+      'src/*.{js,css}'
     ],
 
     reporters: [

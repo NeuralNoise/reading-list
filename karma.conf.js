@@ -5,9 +5,11 @@ module.exports = function(config) {
     basePath: '.',
 
     frameworks: [
+      'browserify',
       'chai',
       'mocha',
-      'sinon'
+      'sinon',
+      'source-map-support'
     ],
 
     files: [
@@ -18,17 +20,28 @@ module.exports = function(config) {
       'bower_components/lodash/dist/lodash.js',
 
       // everything else
-      'src/*.js'
+      'src/jquery.reading-list.spec.js'
     ],
+
+    preprocessors: {
+      'src/*.spec.js': ['browserify']
+    },
 
     reporters: [
       'mocha'
     ],
 
+    browserify: {
+      debug: true,
+      paths: [
+        'src/'
+      ]
+    },
+
     client: {
       captureConsole: true,
       mocha: {
-        bail: true
+        bail: false
       }
     },
 

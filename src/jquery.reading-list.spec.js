@@ -2,64 +2,122 @@
 
 describe('Reading list', function () {
 
+  var ReadingList;
   var $validReadingList;
+  var $readingListHolder = $('<div>');
+
+  $(window.document.body).append($readingListHolder);
 
   beforeEach(function () {
+    ReadingList = require('jquery.reading-list.js');
+
     $validReadingList = $(
-      '<div>' +
+      '<div class="reading-list-content">' +
         '<div class="reading-list-items"></div>' +
       '</div>'
     );
+    $readingListHolder.append($validReadingList);
+  });
+
+  afterEach(function () {
+    $readingListHolder.empty();
   });
 
   describe('initialization', function () {
 
     it('works via a selected jquery element', function () {
-      var $constructedReadingList = $validReadingList.readingList();
+      var $constructedReadingList = $validReadingList.asReadingList();
 
-      $validReadingList.readingListReady.should.equal(true);
+      $validReadingList.readingList.ready.should.equal(true);
       $constructedReadingList.should.equal($validReadingList);
     });
 
     it('fails with an error when an jquery element selection is empty', function () {
       var $readingList = $();
 
-      expect($readingList.readingList).to.throw(Error);
-      expect($readingList.readingListReady).to.not.exist;
+      expect($readingList.asReadingList).to.throw(Error);
+      expect($readingList.readingList).to.not.exist;
     });
 
     it('fails with an error when reading list element is missing an items container', function () {
       var $readingList = $('<div></div>');
 
-      expect($readingList.readingList).to.throw(Error);
-      expect($readingList.readingListReady).to.not.exist;
+      expect($readingList.asReadingList).to.throw(Error);
+      expect($readingList.readingList).to.not.exist;
+    });
+
+    it('should load everything up to and including an item marked with a load-to attribute', function () {
+      var url1 = '/something1';
+      var url2 = '/something2';
+      var url3 = '/something3';
+
+      var $item1 = $('<div class="item" href="' + url1 + '"></div>');
+      var $item2 = $('<div class="item" href="' + url2 + '"></div>');
+      var $item3 = $('<div class="item" href="' + url3 + '" data-load-to="true"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1)
+        .append($item2)
+        .append($item3);
+
+      var retrieveSpy = sinon.spy(ReadingList.prototype, 'retrieveListItemsTo');
+
+      var readingList = new ReadingList($validReadingList, {
+        selectorsItems: '.item'
+      });
+
+      expect(retrieveSpy.calledWith(sinon.match(function ($arg) {
+        return $arg.is($item3);
+      }))).to.equal(true);
     });
   });
 
-  describe('events', function () {
-// TODO : don't forget to check all the done, fail, always logic
+  describe('has events for', function () {
+    var doGET;
 
-
-    it('should fire an event when at the top of the list', function () {
-      var url = '/something/something';
-      var firedCallback = false;
-
-      var doGET = sinon.stub($, 'get');
+    beforeEach(function () {
+      doGET = sinon.stub($, 'get');
       var deferred = $.Deferred();
       deferred.resolve();
       doGET.returns(deferred.promise());
+    });
 
-      $validReadingList.append('<div href="' + url + '" style="height: 500px"></div>');
-
-      $validReadingList.on('reading-list-at-top', function () {
-        firedCallback = true;
-      });
-
-      $validReadingList.readingList();
-
+    afterEach(function () {
       doGET.restore();
+    });
 
-      firedCallback.should.equal(true);
+    it('when at the top of the list', function () {
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
+    });
+
+    it('when at the bottom of the list', function () {
+
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
+    });
+
+    it('when past the loading threshold', function () {
+
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
+    });
+
+    it('when an item starts to load', function () {
+
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
+    });
+
+    it('when an item falls into the view', function () {
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
+    });
+
+    it('when an item falls out of view', function () {
+
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
     });
   });
 
@@ -74,7 +132,7 @@ describe('Reading list', function () {
     });
 
     it('should use iscroll', function () {
-      $validReadingList.readingList();
+      $validReadingList.asReadingList();
 
       expect($validReadingList.iscrollRef).to.exist;
     });
