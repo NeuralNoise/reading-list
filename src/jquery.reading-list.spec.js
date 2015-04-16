@@ -120,7 +120,7 @@ describe('Reading list', function () {
       throw new Error('Not implemented yet.');
     });
 
-    it('when an item starts to load', function () {
+    it('when an item starts loading', function () {
 
     // TODO : fill this in
       throw new Error('Not implemented yet.');
@@ -132,6 +132,45 @@ describe('Reading list', function () {
     });
 
     it('when an item falls out of view', function () {
+
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
+    });
+
+    it('showing how much of an item has been viewed', function () {
+
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
+    });
+
+    it('when an item is done loading ', function () {
+
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
+    });
+
+    it('when the reading list is out of content', function () {
+
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
+    });
+  });
+
+  describe('item retrieval', function () {
+
+    it('should prepare item element for loading', function () {
+
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
+    });
+
+    it('should update item element on success', function () {
+
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
+    });
+
+    it('should update item element on failure', function () {
 
     // TODO : fill this in
       throw new Error('Not implemented yet.');
@@ -159,6 +198,12 @@ describe('Reading list', function () {
 
       iscrollMock.calledWithNew().should.be.true;
       readingList.iscrollRef.should.exist;
+    });
+
+    it('should refresh iscroll when an item is done loading', function () {
+
+    // TODO : fill this in
+      throw new Error('Not implemented yet.');
     });
 
     it('should refresh iscroll on select events', function () {
