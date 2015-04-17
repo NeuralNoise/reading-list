@@ -26,7 +26,7 @@ var HOME_PAGE = 'example.html';
 var SIM_DELAY = 5000;
 
 // set up 3rd party middleware
-app.use(serveStatic('../src', {index: false, extensions: ['js', 'css']}));
+app.use(serveStatic('../dist', {index: false, extensions: ['js', 'css']}));
 app.use(serveStatic('static', {index: [HOME_PAGE]}));
 app.use(serveStatic('../bower_components', {index: false, extensions: ['html', 'css']}));
 

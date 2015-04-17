@@ -137,7 +137,5 @@ environment.
 If you'd like to see the example, clone down this code, then:
 ```bash
 $ cd reading-list
-$ bower install
-$ cd example
-$ node web.js
+$ npm run-script example
 ```

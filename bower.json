@@ -2,8 +2,8 @@
   "name": "reading-list",
   "version": "0.0.14",
   "main": [
-    "src/jquery.reading-list.css",
-    "src/jquery.reading-list.js"
+    "dist/jquery.reading-list.css",
+    "dist/jquery.reading-list.js"
   ],
   "ignore": [
     ".gitignore",

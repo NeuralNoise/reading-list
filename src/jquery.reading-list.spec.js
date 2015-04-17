@@ -26,24 +26,26 @@ describe('Reading list', function () {
   describe('initialization', function () {
 
     it('works via a selected jquery element', function () {
-      var $constructedReadingList = $validReadingList.asReadingList();
+      var $constructedReadingList = $validReadingList.readingList();
 
-      $validReadingList.readingList.ready.should.be.true;
+      var readingList = $validReadingList.data('pluginReadingList');
+
+      readingList.ready.should.be.true;
       $constructedReadingList.should.equal($validReadingList);
     });
 
     it('fails with an error when an jquery element selection is empty', function () {
       var $readingList = $();
 
-      expect($readingList.asReadingList).to.throw(Error);
-      expect($readingList.readingList).to.not.exist;
+      expect($readingList.readingList).to.throw(Error);
+      expect($readingList.data('plugin_readingList')).to.be.undefined;
     });
 
     it('fails with an error when reading list element is missing an items container', function () {
       var $readingList = $('<div></div>');
 
-      expect($readingList.asReadingList).to.throw(Error);
-      expect($readingList.readingList).to.not.exist;
+      expect($readingList.readingList).to.throw(Error);
+      expect($readingList.data('plugin_readingList')).to.be.undefined;
     });
 
     it('should load the first item', function () {
@@ -90,91 +92,133 @@ describe('Reading list', function () {
   });
 
   describe('has events for', function () {
-    var doGET;
+    var readingList;
+    var sandbox;
 
     beforeEach(function () {
-      doGET = sinon.stub($, 'get');
-      var deferred = $.Deferred();
-      deferred.resolve();
-      doGET.returns(deferred.promise());
+      sandbox = sinon.sandbox.create();
+
+      // don't bother with setup since we just need to test the eventing function
+      sandbox.stub(ReadingList.prototype, 'setup');
+      readingList = new ReadingList($validReadingList);
     });
 
     afterEach(function () {
-      doGET.restore();
+      sandbox.restore();
     });
 
-    it('when at the top of the list', function () {
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
+    describe('entire reading list', function () {
+      var trigger;
+
+      beforeEach(function () {
+        sandbox.stub(ReadingList.prototype, 'itemEventing');
+
+        trigger = sandbox.spy(readingList.$container, 'trigger');
+      });
+
+      it('when at the top of the list', function () {
+        // note: we're at the top of the list when scroll top is 0
+
+        var scrollTop = sandbox.stub(readingList.$container, 'scrollTop');
+
+        // scroll down and ensure reading list at top does not fire
+        scrollTop.returns(100);
+        readingList.unthrottledEventing();
+
+        // scroll top and ensure reading list at top event does fire
+        scrollTop.returns(0);
+        readingList.unthrottledEventing();
+
+        trigger.withArgs('reading-list-at-top').callCount.should.equal(1);
+      });
+
+      it('when at the bottom of the list', function () {
+        // note: we're at the bottom of the list when scrollHeight = height + scrollTop
+        //  or scrollHeight - height - scrollTop = 0
+
+        var height = sandbox.stub(readingList, 'getScrollContainerHeight');
+        var scrollTop = sandbox.stub(readingList.$container, 'scrollTop');
+
+        readingList.$container[0] = {scrollHeight: 1000};
+        height.returns(300);
+
+        // scroll to middle, event should not fire
+        scrollTop.returns(300);
+        readingList.unthrottledEventing();
+
+        // scroll to bottom, event should fire
+        scrollTop.returns(700);
+        readingList.unthrottledEventing();
+
+        trigger.withArgs('reading-list-at-bottom').callCount.should.equal(1);
+      });
+
+      it('when past the loading threshold', function () {
+
+
+      // TODO : fill this in
+        throw new Error('Not implemented yet.');
+      });
+
+      it('when the reading list is out of content', function () {
+
+      // TODO : fill this in
+        throw new Error('Not implemented yet.');
+      });
     });
 
-    it('when at the bottom of the list', function () {
+    describe('an individual item', function () {
 
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
-    });
+      it('when it starts loading', function () {
 
-    it('when past the loading threshold', function () {
+      // TODO : fill this in
+        throw new Error('Not implemented yet.');
+      });
 
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
-    });
+      it('when it falls into the view', function () {
+      // TODO : fill this in
+        throw new Error('Not implemented yet.');
+      });
 
-    it('when an item starts loading', function () {
+      it('when it falls out of view', function () {
 
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
-    });
+      // TODO : fill this in
+        throw new Error('Not implemented yet.');
+      });
 
-    it('when an item falls into the view', function () {
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
-    });
+      it('showing what percentage of it has been viewed', function () {
 
-    it('when an item falls out of view', function () {
+      // TODO : fill this in
+        throw new Error('Not implemented yet.');
+      });
 
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
-    });
+      it('when it is done loading ', function () {
 
-    it('showing how much of an item has been viewed', function () {
-
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
-    });
-
-    it('when an item is done loading ', function () {
-
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
-    });
-
-    it('when the reading list is out of content', function () {
-
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
+      // TODO : fill this in
+        throw new Error('Not implemented yet.');
+      });
     });
   });
 
   describe('item retrieval', function () {
 
-    it('should prepare item element for loading', function () {
-
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
-    });
-
-    it('should update item element on success', function () {
-
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
-    });
-
-    it('should update item element on failure', function () {
-
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
-    });
+    // it('should prepare item element for loading', function () {
+    //
+    // // TODO : fill this in
+    //   throw new Error('Not implemented yet.');
+    // });
+    //
+    // it('should update item element on success', function () {
+    //
+    // // TODO : fill this in
+    //   throw new Error('Not implemented yet.');
+    // });
+    //
+    // it('should update item element on failure', function () {
+    //
+    // // TODO : fill this in
+    //   throw new Error('Not implemented yet.');
+    // });
   });
 
   describe('mobile support', function () {
@@ -200,17 +244,17 @@ describe('Reading list', function () {
       readingList.iscrollRef.should.exist;
     });
 
-    it('should refresh iscroll when an item is done loading', function () {
-
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
-    });
-
-    it('should refresh iscroll on select events', function () {
-
-    // TODO : fill this in
-      throw new Error('Not implemented yet.');
-    });
+    // it('should refresh iscroll when an item is done loading', function () {
+    //
+    // // TODO : fill this in
+    //   throw new Error('Not implemented yet.');
+    // });
+    //
+    // it('should refresh iscroll on select events', function () {
+    //
+    // // TODO : fill this in
+    //   throw new Error('Not implemented yet.');
+    // });
   });
 
 });
