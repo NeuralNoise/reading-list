@@ -92,23 +92,23 @@ ReadingList.prototype.setup = function () {
   this.$miniMapItems = $(this.settings.selectorsMiniMapItems);
 
   // set up minimap item click
-  this.$miniMapItems.on('click', this.miniMapItemClicked.bind(this));
+  this.$miniMapItems.on('click', this.miniMapItemClicked);
 
   // set up some default events
-  this.$container.on('reading-list-start-item-load', this.startItemLoad.bind(this));
-  this.$container.on('reading-list-item-in-looking', this.miniMapItemActivate.bind(this));
-  this.$container.on('reading-list-item-out-looking', this.miniMapItemDeactivate.bind(this));
+  this.$container.on('reading-list-start-item-load', this.startItemLoad);
+  this.$container.on('reading-list-item-in-looking', this.miniMapItemActivate);
+  this.$container.on('reading-list-item-out-looking', this.miniMapItemDeactivate);
   if (this.settings.addContent) {
     // set up event for when reading list is out of content
-    this.$container.on('reading-list-out-of-content', this.addContent.bind(this));
+    this.$container.on('reading-list-out-of-content', this.addContent);
   }
 
   // do initial load
   this.initialLoad();
 
   // events to do this logic on
-  this.$container.on('scroll', this.eventing.bind(this));
-  $window.on('resize', this.eventing.bind(this));
+  this.$container.on('scroll', this.eventing);
+  $window.on('resize', this.eventing);
 
   // do iscroll if we're on mobile
   if ($.browser.mobile) {
@@ -202,7 +202,7 @@ ReadingList.prototype.getScrollContainerHeight = function () {
 /**
  * Eventing for indiviaul items.
  */
-ReadingList.prototype.itemEventing = function (i, $item, itemAlreadyActive, loadBot,
+ReadingList.prototype.itemEventing = function ($item, itemAlreadyActive, loadBot,
     loadingBotCounter, loadedCounter) {
 
   var isNowActive = false;
@@ -247,7 +247,7 @@ ReadingList.prototype.itemEventing = function (i, $item, itemAlreadyActive, load
 /**
  * Scroll event function. Keeps track of $activeItem which is the item
  *  currently being "looked" at, fires off events related to reading list
- *  movement. Throttled as many ms as defined in settings.
+ *  movement. This is the unthrottled version that shouldn't be used directly.
  */
 ReadingList.prototype.unthrottledEventing = function () {
 
@@ -284,7 +284,7 @@ ReadingList.prototype.unthrottledEventing = function () {
   var loadedCounter = 0;
   this.$listItems.each((function (i, item) {
     var $item = $(item);
-    var isActive = this.itemEventing(i, $item, $nowActive, loadBot, loadingBotCounter, loadedCounter);
+    var isActive = this.itemEventing($item, $nowActive, loadBot, loadingBotCounter, loadedCounter);
     if (isActive) {
       $nowActive = $item;
     }
@@ -324,81 +324,78 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem, successCall
   // indicate loading is occuring
   $readingListItem.addClass('loading');
 
-  // wrap this response stuff so we don't have any problems with var reference
-  var self = this;
-  return (function ($item, sCallback, fCallback) {
-    // do get request, return it as a promise
-    var html;
-    var status;
+  // do get request, return it as a promise
+  var html;
+  var status;
 
-    return $.get(href)
-      .done(function (data) {
-        // get html from success callback, deal with it
-        html = success($item, data);
-        status = loadStatus.LOADED;
-        $item.removeClass('loading');
-        $item.addClass('loaded');
-      })
-      .fail(function () {
-        // get html from failure callback, deal with it
-        html = failure($item);
-        status = loadStatus.FAILED;
-        $item.addClass('load-failed');
-      })
-      .always(function () {
-        $item.data('loadStatus', status);
-        if (html) {
-          // add html and resolve promise so we know html is for sure on page
-          $item.html(html);
-        }
-        // do eventing
-        self.eventing();
-        // event that tells us something is done loading
-        self.$container.trigger('reading-list-start-item-load-done', [$item]);
-      });
-  })($readingListItem, success, failure);
+  return $.get(href)
+    .done(function (data) {
+      // get html from success callback, deal with it
+      html = success($readingListItem, data);
+      status = loadStatus.LOADED;
+      $readingListItem.removeClass('loading');
+      $readingListItem.addClass('loaded');
+    })
+    .fail(function () {
+      // get html from failure callback, deal with it
+      html = failure($readingListItem);
+      status = loadStatus.FAILED;
+      $readingListItem.addClass('load-failed');
+    })
+    .always((function () {
+      $readingListItem.data('loadStatus', status);
+      if (html) {
+        // add html and resolve promise so we know html is for sure on page
+        $readingListItem.html(html);
+      }
+      // do eventing
+      this.eventing();
+      // event that tells us something is done loading
+      this.$container.trigger('reading-list-start-item-load-done', [$readingListItem]);
+    }).bind(this));
 };
 
 /**
  * Load up all the items on the way to given reading list item.
+ *
+ * @returns {Promise} resolves with the item scrolled to in a jQuery container.
  */
 ReadingList.prototype.retrieveListItemsTo = function ($readingListItem) {
-  // wrap this response stuff so we don't have any problems with var reference
+  // keep promise to resolve once they all come back
+  var deferred = $.Deferred();
+  // loop through reading list items and load everything up to and
+  //  including given item
+  var pos = this.$listItems.index($readingListItem) + 1;
+  var loaded = 0;
+  var completeCheck = function () {
+    loaded++;
+    if (pos === loaded &&
+        deferred.state() !== 'resolved') {
+      // we're done loading,resolve our promise
+      deferred.resolve($readingListItem);
+    }
+  };
+
   var self = this;
-  return (function ($readingListItem) {
-    // keep promise to resolve once they all come back
-    var deferred = $.Deferred();
-    // loop through reading list items and load everything up to and
-    //  including given item
-    var pos = self.$listItems.index($readingListItem) + 1;
-    var loaded = 0;
-    var completeCheck = function () {
-      loaded++;
-      if (pos === loaded &&
-          deferred.state() !== 'resolved') {
-        // we're done loading,resolve our promise
-        deferred.resolve($readingListItem);
-      }
-    };
-    self.$listItems.each(function () {
-      var $item = $(this);
-      // start loading item
-      if (!$item.data('loadStatus')) {
-        // hasn't been loaded yet, attempt to load it
-        self.retrieveListItem($item).always(completeCheck);
-      } else {
-        // already loaded
-        completeCheck();
-      }
-      // check if we have our item that we want to stop at
-      if ($readingListItem.is($item)) {
-        // found our item, stop loadings
-        return false;
-      }
-    });
-    // return promise that resolves when all items come back
-    return deferred.promise();
-  })($readingListItem);
+  this.$listItems.each(function () {
+    var $item = $(this);
+    // start loading item
+    if (!$item.data('loadStatus')) {
+      // hasn't been loaded yet, attempt to load it
+      self.retrieveListItem($item).always(completeCheck);
+    } else {
+      // already loaded
+      completeCheck();
+    }
+    // check if we have our item that we want to stop at
+    if ($readingListItem.is($item)) {
+      // found our item, stop loadings
+      return false;
+    }
+  });
+
+  // return promise that resolves when all items come back
+  return deferred.promise();
 };
 
 /**
@@ -412,25 +409,41 @@ ReadingList.prototype.startItemLoad = function (e, $item, direction) {
 };
 
 /**
+ * Add an item with given HTML to reading list.
+ *
+ * @param {String} html - html of item to append to reading list.
+ * @returns {Object} newly added item wrapped in a jQuery object.
+ */
+ReadingList.prototype.appendItem = function (html) {
+  var $item = $(html);
+  // mark this new item as loaded
+  $item.data('loadStatus', loadStatus.LOADED);
+  // add this new item to the collection of reading list items
+  this.$listItems.add($item);
+  // finally, append item to reading list
+  this.$itemsContainer.append($item);
+  // let others know a new item has loaded
+  this.$container.trigger('reading-list-start-item-load-done', [$item]);
+
+  return $item;
+};
+
+/**
  * Adds content to end of reading list based on given addContent function.
  */
 ReadingList.prototype.addContent = function () {
-  var self = this;
   this.settings.addContent()
-    .done(function (html) {
-      var $item = $(html);
-      // mark this new item as loaded
-      $item.data('loadStatus', loadStatus.LOADED);
-      // add this new item to the collection of reading list items
-      self.$listItems.add($item);
-      // finally, append item to reading list
-      self.$itemsContainer.append($item);
-      // let others know a new item has loaded
-      self.$container.trigger('reading-list-start-item-load-done', [$item]);
-    })
+    .done(this.appendItem)
     .fail(function () {
       console.log('Add item function failed, content not added to reading list.');
     });
+};
+
+/**
+ * Stop animations being done on container.
+ */
+ReadingList.prototype.stopContainerAnimation = function () {
+  return this.$container.stop();
 };
 
 /**
@@ -443,29 +456,32 @@ ReadingList.prototype.miniMapItemClicked = function (e) {
   // find the item to scroll to
   var itemRef = $miniMapitem.data('itemRef');
 
-  var $item = this.$listItems.filter('#' + itemRef);
   // retrieve everything on the way to our item, then scroll to it
-  var self = this;
-  this.retrieveListItemsTo($item).always(function ($readingListItem) {
-    var stop = function () {
-      self.stop();
-    };
+  var $item = this.$listItems.filter('#' + itemRef);
+  this.retrieveListItemsTo($item)
+    .always((function ($readingListItem) {
 
-    // ensure we can stop the animation if we want
-    $document.on(MOVEMENTS, stop);
+      // ensure we can stop the animation if we want
+      $document.on(MOVEMENTS, this.stopContainerAnimation);
 
-    // stop any running animations and begin a new one
-    self.stop().animate({
-      scrollTop: $readingListItem.position().top
-    },
-    self.settings.scrollToSpeed,
-    function () {
-      // unbind the scroll stoppage
-      $document.off(MOVEMENTS, stop);
-    });
-  });
+      // stop any running animations and begin a new one
+      this.stopContainerAnimation().animate({
+        scrollTop: $readingListItem.position().top
+      },
+      self.settings.scrollToSpeed,
+      function () {
+        // unbind the scroll stoppage
+        $document.off(MOVEMENTS, this.stopContainerAnimation);
+      });
+    }).bind(this));
 };
 
+/**
+ * Given a reading list item, find the corresponding minimap item(s).
+ *
+ * @param {jQuery} item to find minimap items for.
+ * @returns {jQuery} minimap items that reference given item.
+ */
 ReadingList.prototype.miniMapFindByItem = function ($item) {
   var id = $item.attr('id');
   return this.$miniMapItems.filter(function () {
@@ -473,10 +489,22 @@ ReadingList.prototype.miniMapFindByItem = function ($item) {
   });
 };
 
+/**
+ * Activate the minimap items associated with given item.
+ *
+ * @param {Event} e - event that triggered this call.
+ * @param {jQuery} $item - item to find minimap items for.
+ */
 ReadingList.prototype.miniMapItemActivate = function (e, $item) {
   this.miniMapFindByItem($item).addClass('active');
 };
 
+/**
+ * Deactivate the minimap items associated with given item.
+ *
+ * @param {Event} e - event that triggered this call.
+ * @param {jQuery} $item - item to find minimap items for.
+ */
 ReadingList.prototype.miniMapItemDeactivate = function (e, $item) {
   this.miniMapFindByItem($item).removeClass('active');
 };

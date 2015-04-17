@@ -17,7 +17,7 @@ module.exports = function(config) {
       'bower_components/jquery/dist/jquery.js',
       'bower_components/detect-mobile-browser-tablet-support/detectmobilebrowser.js',
       'bower_components/iscroll-native/src/iscroll.js',
-      'bower_components/lodash/dist/lodash.js',
+      'bower_components/lodash/lodash.js',
 
       // everything else
       'src/jquery.reading-list.spec.js'

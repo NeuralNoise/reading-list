@@ -15,6 +15,7 @@
     "jquery": "~2.1.1",
     "iscroll-native": "~0.0.2",
     "detect-mobile-browser-tablet-support": "~0.0.2",
-    "lodash": "~2.4.1"
-  }
+    "lodash": "~3.7.0"
+  },
+  "devDependencies": {}
 }
