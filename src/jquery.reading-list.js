@@ -203,14 +203,20 @@ ReadingList.prototype.getScrollContainerHeight = function () {
 /**
  * Scroll event function. Keeps track of $activeItem which is the item
  *  currently being "looked" at, fires off events related to reading list
- *  movement. This is the unthrottled version that shouldn't be used directly.
+ *  movement.
+ *
+ * This is the unthrottled version that shouldn't be used directly.
  */
 ReadingList.prototype.unthrottledEventing = function () {
 
+  // given:
+  //  x = scrollTotalHeight      -> entire height of scrollable area
+  //  y = scrollContainerHeight  -> visible height of scrollable area
+  //  z = scrollTop              -> current scroll location relative to total scrollable height
+  //  a = loadingThreshold       -> distance from bottom of scrollable area to begin loading
   var scrollTop = this.$container.scrollTop();
   var scrollContainerHeight = this.getScrollContainerHeight();
-
-  var itemsHeight = this.$itemsContainer.height();
+  var scrollTotalHeight = this.$container[0].scrollHeight;
 
   // check min/max scroll
   if (scrollTop <= 0) {
@@ -221,19 +227,19 @@ ReadingList.prototype.unthrottledEventing = function () {
   // do bot check separate since you can be at the top/bot simultaneously if
   //  one item deep and item is shorter than window
   //
-  // this.$container[0].scrollHeight -> entire height of scrollable area
-  // this.getScrollContainerHeight   -> visible height of scrollable area
-  // scrollTop                       -> current scroll location relative to total scrollable height
-  if (this.$container[0].scrollHeight - this.getScrollContainerHeight() - scrollTop <= 0) {
+  // iff x <= z + y then bottom of reading list
+  if (scrollTotalHeight <= scrollTop + scrollContainerHeight) {
     // we're at the bottom of the reading list
     this.$container.trigger('reading-list-at-bottom');
   }
 
   // check bottom loading threshold
+  //
+  // iff x - z - y <= a then past loading threshold
   var loadBot = false;
-  if (itemsHeight - scrollTop - scrollContainerHeight <= this.settings.loadingThreshold) {
+  if (scrollTotalHeight - scrollTop - scrollContainerHeight <= this.settings.loadingThreshold) {
     // we're in the bottom loading threshold
-    this.$container.trigger('reading-list-at-bottom-load-threshold', this.$activeItem);
+    this.$container.trigger('reading-list-at-bottom-load-threshold');
     // flag that we need to load something bot
     loadBot = true;
   }
@@ -242,22 +248,29 @@ ReadingList.prototype.unthrottledEventing = function () {
   var $nowActive;
   var loadingBotCounter = 0;
   var loadedCounter = 0;
+  // maximum number of items to load down at a time
+  var loadingBotMax = 1;
   this.$listItems.each((function (i, item) {
     var $item = $(item);
 
-    // check if this is below a loaded item and we're loading down
+    // check if this is below a loaded item and we're loading down, check the
+    // previous item so that everything always loads in order
     if (!$item.data('loadStatus') &&
-        loadingBotCounter < 1 && loadBot &&
+        loadingBotCounter < loadingBotMax && loadBot &&
         $item.prev().data('loadStatus') === loadStatus.LOADED) {
-      // load something at the bottom
+      // fire event telling loading to start
       this.$container.trigger('reading-list-start-item-load', [$item, loadDirection.DOWN]);
+      // this item is going to be loading, count it
       loadingBotCounter++;
     } else if ($item.data('loadStatus') === loadStatus.LOADED) {
-      // this item is loaded, count it
+      // this item is already loaded, count it
       loadedCounter++;
     }
 
-    // mark the higher up item in the looking area as the one being looked at
+    // if nothing is active yet, check if it's in the viewing area, this effectively
+    //  means that items higher up in the list take priority of being visible, e.g.
+    //  given two reading list items in the viewing area, the top one will be marked
+    //  as currently being read
     if (!$nowActive) {
       var inLooking = this.withinLookingArea($item[0]);
       if(inLooking) {
@@ -286,7 +299,7 @@ ReadingList.prototype.unthrottledEventing = function () {
     this.$container.trigger('reading-list-out-of-content');
   }
 
-  // found an active item, set it to the active item
+  // check if there's an active item, fire progress events if so
   this.$activeItem = $nowActive;
   if (this.$activeItem && this.$activeItem.length > 0) {
     // fire an event with percentage of article viewed, from "looking" threshold

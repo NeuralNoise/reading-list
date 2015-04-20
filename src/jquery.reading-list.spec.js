@@ -111,7 +111,8 @@ describe('Reading list', function () {
       var trigger;
 
       beforeEach(function () {
-        sandbox.stub(ReadingList.prototype, 'itemEventing');
+        // skip individual item eventing
+        sandbox.stub(readingList.$listItems, 'each');
 
         trigger = sandbox.spy(readingList.$container, 'trigger');
       });
@@ -136,11 +137,12 @@ describe('Reading list', function () {
         // note: we're at the bottom of the list when scrollHeight = height + scrollTop
         //  or scrollHeight - height - scrollTop = 0
 
-        var height = sandbox.stub(readingList, 'getScrollContainerHeight');
         var scrollTop = sandbox.stub(readingList.$container, 'scrollTop');
 
+        readingList.settings.scrollContainerHeight = function () {
+          return 300;
+        };
         readingList.$container[0] = {scrollHeight: 1000};
-        height.returns(300);
 
         // scroll to middle, event should not fire
         scrollTop.returns(300);
@@ -154,16 +156,57 @@ describe('Reading list', function () {
       });
 
       it('when past the loading threshold', function () {
+        // note: we're past the loading threshold when
+        //  total scroll area - scrollTop - visible scroll area <= loadingThreshold
 
+        var scrollTop = sandbox.stub(readingList.$container, 'scrollTop');
 
-      // TODO : fill this in
-        throw new Error('Not implemented yet.');
+        readingList.settings.scrollContainerHeight = function () {
+          return 300;
+        };
+        readingList.settings.loadingThreshold = 300;
+        readingList.$container[0] = {scrollHeight: 1000};
+
+        // prevent out of content event from firing
+        sandbox.stub(readingList.$listItems, 'length', 5);
+
+        // scroll to a point above loading threshold, should not fire
+        scrollTop.returns(300);
+        readingList.unthrottledEventing();
+
+        // scroll past threshold, should fire
+        scrollTop.returns(600);
+        readingList.unthrottledEventing();
+
+        trigger.withArgs('reading-list-at-bottom-load-threshold').callCount.should.equal(1);
+        trigger.withArgs('reading-list-out-of-content').callCount.should.equal(0);
       });
 
       it('when the reading list is out of content', function () {
+        // note: we're out of content when all reading list items have been loaded and
+        //  we've gone past the bottom load threshold
 
-      // TODO : fill this in
-        throw new Error('Not implemented yet.');
+        var scrollTop = sandbox.stub(readingList.$container, 'scrollTop');
+
+        readingList.settings.scrollContainerHeight = function () {
+          return 300;
+        };
+        readingList.settings.loadingThreshold = 300;
+        readingList.$container[0] = {scrollHeight: 1000};
+
+        // prevent out of content event from firing
+        sandbox.stub(readingList.$listItems, 'length', 0);
+
+        // scroll to a point above loading threshold, should not fire
+        scrollTop.returns(300);
+        readingList.unthrottledEventing();
+
+        // scroll past threshold, should fire
+        scrollTop.returns(600);
+        readingList.unthrottledEventing();
+
+        trigger.withArgs('reading-list-at-bottom-load-threshold').callCount.should.equal(1);
+        trigger.withArgs('reading-list-out-of-content').callCount.should.equal(1);
       });
     });
 
