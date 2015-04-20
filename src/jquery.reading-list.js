@@ -334,47 +334,48 @@ ReadingList.prototype.unthrottledEventing = function () {
  * GET an item from reading list. Returns a promise that resolves when the
  *   response comes back from the server and html is loaded in to the page.
  */
-ReadingList.prototype.retrieveListItem = function ($readingListItem, successCallback,
-    failCallback) {
+ReadingList.prototype.retrieveListItem = function ($readingListItem) {
 
   // set up a load status so we know we're loading
   $readingListItem.data('loadStatus', loadStatus.LOADING);
-  // set up vars we'll need
-  var success = successCallback || this.settings.dataRetrievalSuccess;
-  var failure = failCallback || this.settings.dataRetrievalFail;
-  var href = $readingListItem.data('href');
+
   // indicate loading is occuring
   $readingListItem.addClass('loading');
 
   // do get request, return it as a promise
   var html;
   var status;
-
-  return $.get(href)
+  var self = this;
+  return $.get($readingListItem.data('href'))
     .done(function (data) {
       // get html from success callback, deal with it
-      html = success($readingListItem, data);
+      html = self.settings.dataRetrievalSuccess($readingListItem, data);
       status = loadStatus.LOADED;
       $readingListItem.removeClass('loading');
       $readingListItem.addClass('loaded');
     })
     .fail(function () {
       // get html from failure callback, deal with it
-      html = failure($readingListItem);
+      html = self.settings.dataRetrievalFail($readingListItem);
       status = loadStatus.FAILED;
+      $readingListItem.removeClass('loading');
       $readingListItem.addClass('load-failed');
     })
-    .always((function () {
+    .always(function () {
+      // set load status depending on response
       $readingListItem.data('loadStatus', status);
+
+      // set html if any was provided
       if (html) {
         // add html and resolve promise so we know html is for sure on page
         $readingListItem.html(html);
       }
+
       // do eventing
-      this.eventing();
+      self.eventing();
       // event that tells us something is done loading
-      this.$container.trigger('reading-list-start-item-load-done', [$readingListItem]);
-    }).bind(this));
+      self.$container.trigger('reading-list-start-item-load-done', [$readingListItem]);
+    });
 };
 
 /**

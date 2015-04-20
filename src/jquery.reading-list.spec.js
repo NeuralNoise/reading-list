@@ -2,9 +2,11 @@
 
 describe('Reading list', function () {
 
-  var ReadingList;
-  var $validReadingList;
   var $readingListHolder = $('<div>');
+  var $validReadingList;
+  var ReadingList;
+  var sandbox;
+  var server;
 
   var jqueryMatcher = function ($ele) {
     return sinon.match(function ($arg) {
@@ -23,10 +25,18 @@ describe('Reading list', function () {
       '</div>'
     );
     $readingListHolder.append($validReadingList);
+
+    server = sinon.fakeServer.create();
+    server.respondWith('no response set up');
+
+    // sandbox for everything
+    sandbox = sinon.sandbox.create();
   });
 
   afterEach(function () {
     $readingListHolder.empty();
+    sandbox.restore();
+    server.restore();
   });
 
   describe('initialization', function () {
@@ -97,15 +107,12 @@ describe('Reading list', function () {
 
   describe('has scrolling-realated events for', function () {
     var readingList;
-    var sandbox;
     var trigger;
     var $item1;
     var $item2;
     var $item3;
 
     beforeEach(function () {
-      sandbox = sinon.sandbox.create();
-
       // set up some test items
       $item1 = $('<div id="item1" class="reading-list-item"></div>');
       $item2 = $('<div id="item2" class="reading-list-item"></div>');
@@ -121,10 +128,6 @@ describe('Reading list', function () {
       sandbox.stub(ReadingList.prototype, 'setup');
       readingList = new ReadingList($validReadingList);
       trigger = sandbox.spy(readingList.$container, 'trigger');
-    });
-
-    afterEach(function () {
-      sandbox.restore();
     });
 
     describe('entire reading list', function () {
@@ -357,48 +360,110 @@ describe('Reading list', function () {
   });
 
   describe('item retrieval', function () {
+    var $item1;
+    var doGET;
+    var href1 = '/something';
+    var readingList;
+    var trigger;
 
-    // it('should prepare item element for loading', function () {
-    //
-    // // TODO : fill this in
-    //   throw new Error('Not implemented yet.');
-    // });
-    //
-    // it('should update item element on success', function () {
-    //
-    // // TODO : fill this in
-    //   throw new Error('Not implemented yet.');
-    // });
-    //
-    // it('should update item element on failure', function () {
-    //
-    // // TODO : fill this in
-    //   throw new Error('Not implemented yet.');
-    // });
+    beforeEach(function () {
+      // set up some test items
+      $item1 = $('<div id="item1" data-href="' + href1 + '" class="reading-list-item"></div>');
+      $validReadingList.find('.reading-list-items').append($item1);
 
-    // it('should fire an event when complete', function () {
-    //
-    // // TODO : fill this in
-    //   throw new Error('Not implemented yet.');
-    // });
+      sandbox.stub(ReadingList.prototype, 'setup');
+
+      readingList = new ReadingList($validReadingList);
+      trigger = sandbox.spy(readingList.$container, 'trigger');
+
+      readingList.eventing = sandbox.stub();
+
+      doGET = sandbox.stub($, 'get');
+    });
+
+    it('should prepare item element for loading', function () {
+      var deferred = $.Deferred();
+      doGET.returns(deferred.promise());
+
+      readingList.retrieveListItem($item1);
+
+      $item1.data('loadStatus').should.equal('loading');
+      $item1.hasClass('loading').should.be.true;
+    });
+
+    it('should update item element on success', function () {
+      var responseContent = '<div>some html content</div>';
+      var success = sandbox.stub();
+
+      readingList.settings.dataRetrievalSuccess = success;
+      success.returns(responseContent);
+
+      var deferred = $.Deferred();
+      deferred.resolve(responseContent);
+      doGET.returns(deferred.promise());
+
+      // do call we're going to test
+      readingList.retrieveListItem($item1);
+
+      // check that everything is in place for the success call
+      success.callCount.should.equal(1);
+      expect(jqueryMatcher($item1).test(success.args[0][0])).to.be.true;
+      success.args[0][1].should.equal(responseContent);
+
+      $item1.hasClass('loading').should.be.false;
+      $item1.hasClass('loaded').should.be.true;
+      $item1.data('loadStatus').should.equal('loaded');
+      $item1.html().should.equal(responseContent);
+      readingList.eventing.callCount.should.equal(1);
+
+      // check load done event
+      var events = trigger.withArgs('reading-list-start-item-load-done');
+      events.callCount.should.equal(1);
+      expect(jqueryMatcher($item1).test(events.args[0][1][0])).to.be.true;
+    });
+
+    it('should update item element on failure', function () {
+      var responseContent = '<div>some html content</div>';
+      var fail = sandbox.stub();
+
+      readingList.settings.dataRetrievalFail = fail;
+      fail.returns(responseContent);
+
+      var deferred = $.Deferred();
+      deferred.reject(responseContent);
+      doGET.returns(deferred.promise());
+
+      // do call we're going to test
+      readingList.retrieveListItem($item1);
+
+      // check that everything is in place for the success call
+      fail.callCount.should.equal(1);
+      expect(jqueryMatcher($item1).test(fail.args[0][0])).to.be.true;
+
+      $item1.hasClass('loading').should.be.false;
+      $item1.hasClass('load-failed').should.be.true;
+      $item1.data('loadStatus').should.equal('failed');
+      $item1.html().should.equal(responseContent);
+      readingList.eventing.callCount.should.equal(1);
+
+      // check load done event
+      var events = trigger.withArgs('reading-list-start-item-load-done');
+      events.callCount.should.equal(1);
+      expect(jqueryMatcher($item1).test(events.args[0][1][0])).to.be.true;
+    });
+
   });
 
   describe('mobile support', function () {
     var mobileSandbox;
 
     beforeEach(function () {
-      mobileSandbox = sinon.sandbox.create();
-
-      var browserMock = mobileSandbox.stub($.browser);
+      var browserMock = sandbox.stub($.browser);
       browserMock.mobile = true;
     });
 
-    afterEach(function () {
-      mobileSandbox.restore();
-    });
-
     it('should use iscroll', function () {
-      var iscrollMock = mobileSandbox.stub(window, 'IScroll');
+      var iscrollMock = sandbox.stub(window, 'IScroll');
 
       var readingList = new ReadingList($validReadingList, {});
 
