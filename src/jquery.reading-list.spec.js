@@ -491,18 +491,53 @@ describe('Reading list', function () {
   });
 
   describe('misc functions', function () {
+    var readingList;
 
-    // it('should have a test for elements being in looking area', function () {
-    //
-    // // TODO : fill this in
-    //   throw new Error('Not implemented yet.');
-    // });
-    //
-    // it('should have a test for bounding boxes being in a particular area', function () {
-    //
-    // // TODO : fill this in
-    //   throw new Error('Not implemented yet.');
-    // });
+    beforeEach(function () {
+      // don't bother with setup since we just need to test the calculating function
+      sandbox.stub(ReadingList.prototype, 'setup');
+      readingList = new ReadingList($validReadingList);
+    });
+
+    it('should have a test for elements being in looking area', function () {
+      var elementBoundingInsideArea = sandbox.stub(readingList, 'elementBoundingInsideArea');
+      var el = {};
+
+      readingList.settings.lookingThresholdTop = 200;
+      readingList.settings.lookingThresholdBottom = 500;
+
+      readingList.withinLookingArea(el);
+
+      elementBoundingInsideArea.withArgs(
+        el,
+        readingList.settings.lookingThresholdTop,
+        readingList.settings.lookingThresholdBottom).callCount.should.equal(1);
+    });
+
+    it('should have a test for bounding boxes being in a particular area', function () {
+      var el = {};
+      el.getBoundingClientRect = sandbox.stub();
+
+      // totally above box
+      el.getBoundingClientRect.returns({top: -500, bottom: 100});
+      readingList.elementBoundingInsideArea(el, 200, 500).should.be.false;
+
+      // bottom inside box
+      el.getBoundingClientRect.returns({top: -500, bottom: 300});
+      readingList.elementBoundingInsideArea(el, 200, 500).should.be.true;
+
+      // totally inside box
+      el.getBoundingClientRect.returns({top: 300, bottom: 400});
+      readingList.elementBoundingInsideArea(el, 200, 500).should.be.true;
+
+      // top inside box
+      el.getBoundingClientRect.returns({top: 300, bottom: 600});
+      readingList.elementBoundingInsideArea(el, 200, 500).should.be.true;
+
+      // totally below box
+      el.getBoundingClientRect.returns({top: 600, bottom: 800});
+      readingList.elementBoundingInsideArea(el, 200, 500).should.be.false;
+    });
   });
 
 });
