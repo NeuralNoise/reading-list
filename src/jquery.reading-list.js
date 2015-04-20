@@ -145,11 +145,11 @@ ReadingList.prototype.initialLoad = function () {
  * Using iScroll for reading list.
  */
 ReadingList.prototype.setupIScroll = function () {
-  var iscroll = new IScroll(this.$container[0], { useNativeScroll: true });
+  this.iscrollRef = new IScroll(this.$container[0], { useNativeScroll: true });
 
-  var refreshDisp = function () {
-    iscroll.refresh();
-  };
+  var refreshDisp = (function () {
+    this.iscrollRef.refresh();
+  }).bind(this);
 
   // refresh iscroll whenever something is done loading in to list
   this.$container.on('reading-list-start-item-load-done', refreshDisp);
@@ -160,8 +160,6 @@ ReadingList.prototype.setupIScroll = function () {
       $document.on(this.settings.refreshIScrollOn[i], refreshDisp);
     }
   }
-
-  this.iscrollRef = iscroll;
 };
 
 /**
