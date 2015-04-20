@@ -95,7 +95,7 @@ describe('Reading list', function () {
     });
   });
 
-  describe('has events for', function () {
+  describe('has scrolling-realated events for', function () {
     var readingList;
     var sandbox;
     var trigger;
@@ -267,6 +267,7 @@ describe('Reading list', function () {
         // check the arguments that will be given to callbacks for this event
         var callbackArgs = events.args[0][1];
         expect(jqueryMatcher($item2).test(callbackArgs[0])).to.be.true;
+
         expect(jqueryMatcher($item2).test(readingList.$activeItem)).to.be.true;
         $item2.hasClass('in-looking').should.be.true;
       });
@@ -290,21 +291,67 @@ describe('Reading list', function () {
         // check the arguments that will be given to callbacks for this event
         var callbackArgs = events.args[0][1];
         expect(jqueryMatcher($item2).test(callbackArgs[0])).to.be.true;
+
         expect(jqueryMatcher($item2).test(readingList.$activeItem)).to.be.false;
         expect(jqueryMatcher($item3).test(readingList.$activeItem)).to.be.true;
         $item2.hasClass('in-looking').should.be.false;
       });
 
       it('showing what percentage of it has been viewed', function () {
+        // stub out within looking area function to test separately
+        var withinLookingArea = sandbox.stub(readingList, 'withinLookingArea');
 
-      // TODO : fill this in
-        throw new Error('Not implemented yet.');
-      });
+        // pretend item2 is in the looking area
+        readingList.$activeItem = $item1;
+        withinLookingArea.withArgs($item1[0]).returns(true);
 
-      it('when it is done loading ', function () {
+        // stub out bounding client rect function
+        var getBoundingClientRect = sandbox.stub(readingList.$activeItem[0], 'getBoundingClientRect');
 
-      // TODO : fill this in
-        throw new Error('Not implemented yet.');
+        // keep some constants for these calculations
+        readingList.settings.lookingThresholdBottom = 300;
+        var boundingHeight = 1500;
+
+        // 0% viewed
+        getBoundingClientRect.returns({
+          top: 300,
+          height: boundingHeight
+        });
+        readingList.itemEventing(true);
+
+        // 45% viewed
+        getBoundingClientRect.returns({
+          top: -375,
+          height: boundingHeight
+        });
+        readingList.itemEventing(true);
+
+        // 100% viewed and now passing bottom of item, really over 100%, but should
+        //  be capped at 100%
+        getBoundingClientRect.returns({
+          top: -1500,
+          height: boundingHeight
+        });
+        readingList.itemEventing(true);
+
+        // sort out trigger calls
+        var events = trigger.withArgs('reading-list-item-progress');
+        events.callCount.should.equal(3);
+
+        // check 0% call
+        var callbackArgs1 = events.args[0][1];
+        expect(jqueryMatcher($item1).test(callbackArgs1[0])).to.be.true;
+        expect(callbackArgs1[1]).to.equal(0);
+
+        // check 45% call
+        var callbackArgs2 = events.args[1][1];
+        expect(jqueryMatcher($item1).test(callbackArgs2[0])).to.be.true;
+        expect(callbackArgs2[1]).to.equal(0.45);
+
+        // check over 100% call
+        var callbackArgs3 = events.args[2][1];
+        expect(jqueryMatcher($item1).test(callbackArgs3[0])).to.be.true;
+        expect(callbackArgs3[1]).to.equal(1.0);
       });
     });
   });
@@ -324,6 +371,12 @@ describe('Reading list', function () {
     // });
     //
     // it('should update item element on failure', function () {
+    //
+    // // TODO : fill this in
+    //   throw new Error('Not implemented yet.');
+    // });
+
+    // it('should fire an event when complete', function () {
     //
     // // TODO : fill this in
     //   throw new Error('Not implemented yet.');

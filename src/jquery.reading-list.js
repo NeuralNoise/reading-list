@@ -251,7 +251,7 @@ ReadingList.prototype.itemEventing = function (loadBot) {
         this.$container.trigger('reading-list-item-in-looking', [$item]);
       }
 
-      // set the now active item to item
+      // set the now active item to this item
       $nowActive = $item;
     }
   }).bind(this));
@@ -259,12 +259,18 @@ ReadingList.prototype.itemEventing = function (loadBot) {
   // check if there's an active item, fire progress events if so
   this.$activeItem = $nowActive;
   if (this.$activeItem && this.$activeItem.length > 0) {
-    // fire an event with percentage of article viewed, from "looking" threshold
-    //  bottom, ensure this is never over 1.0
+    // fire an event with percentage of article viewed
+    //
+    // given:
+    //  t = bounding.top            -> top of item relative to viewport, t < 0 in cases we care about
+    //  x = lookingThresholdBottom  -> dist from top of window to bottom of looking area
+    //  h = bounding.height         -> total rendered height of item
+    //
+    // p = (-t + x) / h = ratio viewed, max(p) = 1.0
     var bounding = this.$activeItem[0].getBoundingClientRect();
-    var viewedDist = (-bounding.top + this.settings.lookingThresholdBottom) /
+    var ratioViewed = (-bounding.top + this.settings.lookingThresholdBottom) /
       bounding.height;
-    var progress = viewedDist <= 1.0 ? viewedDist : 1.0;
+    var progress = ratioViewed <= 1.0 ? ratioViewed : 1.0;
     this.$container.trigger('reading-list-item-progress', [this.$activeItem, progress]);
   }
 
