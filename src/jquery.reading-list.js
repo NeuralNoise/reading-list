@@ -201,6 +201,77 @@ ReadingList.prototype.getScrollContainerHeight = function () {
 };
 
 /**
+ * Item event loop for use inside main eventing function.
+ *
+ * @param {Boolean} loadBot - set to true if next item down needs to load.
+ * @returns {Number} count of loaded items.
+ */
+ReadingList.prototype.itemEventing = function (loadBot) {
+  // do event checks on individual items
+  var $nowActive;
+  var loadingBotCounter = 0;
+  var loadedCounter = 0;
+  // maximum number of items to load down at a time
+  var loadingBotMax = 1;
+  this.$listItems.each((function (i, item) {
+    var $item = $(item);
+
+    // check if this is below a loaded item and we're loading down, check the
+    // previous item so that everything always loads in order
+    if (!$item.data('loadStatus') &&
+        loadingBotCounter < loadingBotMax && loadBot &&
+        $item.prev().data('loadStatus') === loadStatus.LOADED) {
+      // fire event telling loading to start
+      this.$container.trigger('reading-list-start-item-load', [$item, loadDirection.DOWN]);
+      // this item is going to be loading, count it
+      loadingBotCounter++;
+    } else if ($item.data('loadStatus') === loadStatus.LOADED) {
+      // this item is already loaded, count it
+      loadedCounter++;
+    }
+
+    // if nothing is active yet, check if it's in the viewing area, this effectively
+    //  means that items higher up in the list take priority of being visible, e.g.
+    //  given two reading list items in the viewing area, the top one will be marked
+    //  as currently being read
+    if (!$nowActive && this.withinLookingArea($item[0])) {
+
+      // in looking area, and we haven't assigned a now active item yet
+      if (!$item.is(this.$activeItem)) {
+        // this is not the currently active item, so we'll want to fire off
+        //  events to indicate the change
+        if (this.$activeItem) {
+          // previously active item gets an event for no longer being active
+          this.$activeItem.removeClass('in-looking');
+          this.$container.trigger('reading-list-item-out-looking', [this.$activeItem]);
+        }
+
+        // add looking class to active item, trigger event
+        $item.addClass('in-looking');
+        this.$container.trigger('reading-list-item-in-looking', [$item]);
+      }
+
+      // set the now active item to item
+      $nowActive = $item;
+    }
+  }).bind(this));
+
+  // check if there's an active item, fire progress events if so
+  this.$activeItem = $nowActive;
+  if (this.$activeItem && this.$activeItem.length > 0) {
+    // fire an event with percentage of article viewed, from "looking" threshold
+    //  bottom, ensure this is never over 1.0
+    var bounding = this.$activeItem[0].getBoundingClientRect();
+    var viewedDist = (-bounding.top + this.settings.lookingThresholdBottom) /
+      bounding.height;
+    var progress = viewedDist <= 1.0 ? viewedDist : 1.0;
+    this.$container.trigger('reading-list-item-progress', [this.$activeItem, progress]);
+  }
+
+  return loadedCounter;
+};
+
+/**
  * Scroll event function. Keeps track of $activeItem which is the item
  *  currently being "looked" at, fires off events related to reading list
  *  movement.
@@ -244,71 +315,12 @@ ReadingList.prototype.unthrottledEventing = function () {
     loadBot = true;
   }
 
-  // do event checks on individual items
-  var $nowActive;
-  var loadingBotCounter = 0;
-  var loadedCounter = 0;
-  // maximum number of items to load down at a time
-  var loadingBotMax = 1;
-  this.$listItems.each((function (i, item) {
-    var $item = $(item);
-
-    // check if this is below a loaded item and we're loading down, check the
-    // previous item so that everything always loads in order
-    if (!$item.data('loadStatus') &&
-        loadingBotCounter < loadingBotMax && loadBot &&
-        $item.prev().data('loadStatus') === loadStatus.LOADED) {
-      // fire event telling loading to start
-      this.$container.trigger('reading-list-start-item-load', [$item, loadDirection.DOWN]);
-      // this item is going to be loading, count it
-      loadingBotCounter++;
-    } else if ($item.data('loadStatus') === loadStatus.LOADED) {
-      // this item is already loaded, count it
-      loadedCounter++;
-    }
-
-    // if nothing is active yet, check if it's in the viewing area, this effectively
-    //  means that items higher up in the list take priority of being visible, e.g.
-    //  given two reading list items in the viewing area, the top one will be marked
-    //  as currently being read
-    if (!$nowActive) {
-      var inLooking = this.withinLookingArea($item[0]);
-      if(inLooking) {
-        // in looking area, and we haven't assigned a now active item yet
-        if (!$item.is(this.$activeItem)) {
-          // this is not the currently active item, so we'll want to fire off
-          //  events and things
-          if (this.$activeItem) {
-            // new item in looking area, set it to the active item
-            this.$activeItem.removeClass('in-looking');
-            this.$container.trigger('reading-list-item-out-looking', [this.$activeItem]);
-          }
-          // add looking class to active item, trigger event
-          $item.addClass('in-looking');
-          this.$container.trigger('reading-list-item-in-looking', [$item]);
-        }
-
-        $nowActive = $item;
-      }
-    }
-  }).bind(this));
+  var itemsLoaded = this.itemEventing(loadBot);
 
   // check if we've run out of reading list content
-  if (loadedCounter === this.$listItems.length && loadBot) {
+  if (itemsLoaded === this.$listItems.length && loadBot) {
     // everything is loaded, fire event
     this.$container.trigger('reading-list-out-of-content');
-  }
-
-  // check if there's an active item, fire progress events if so
-  this.$activeItem = $nowActive;
-  if (this.$activeItem && this.$activeItem.length > 0) {
-    // fire an event with percentage of article viewed, from "looking" threshold
-    //  bottom, ensure this is never over 1.0
-    var bounding = this.$activeItem[0].getBoundingClientRect();
-    var viewedDist = (-bounding.top + this.settings.lookingThresholdBottom) /
-      bounding.height;
-    var progress = viewedDist <= 1.0 ? viewedDist : 1.0;
-    this.$container.trigger('reading-list-item-progress', [this.$activeItem, progress]);
   }
 };
 

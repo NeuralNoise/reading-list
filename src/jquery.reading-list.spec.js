@@ -6,6 +6,12 @@ describe('Reading list', function () {
   var $validReadingList;
   var $readingListHolder = $('<div>');
 
+  var jqueryMatcher = function ($ele) {
+    return sinon.match(function ($arg) {
+      return $arg.is($ele);
+    }, 'jquery object similarity');
+  };
+
   $(window.document.body).append($readingListHolder);
 
   beforeEach(function () {
@@ -85,22 +91,36 @@ describe('Reading list', function () {
         selectorsItems: '.item'
       });
 
-      expect(retrieveSpy.calledWith(sinon.match(function ($arg) {
-        return $arg.is($item3);
-      }))).to.be.true;
+      expect(retrieveSpy.calledWith(jqueryMatcher($item3))).to.be.true;
     });
   });
 
   describe('has events for', function () {
     var readingList;
     var sandbox;
+    var trigger;
+    var $item1;
+    var $item2;
+    var $item3;
 
     beforeEach(function () {
       sandbox = sinon.sandbox.create();
 
+      // set up some test items
+      $item1 = $('<div id="item1" class="reading-list-item"></div>');
+      $item2 = $('<div id="item2" class="reading-list-item"></div>');
+      $item3 = $('<div id="item3" class="reading-list-item"></div>');
+      $validReadingList.find('.reading-list-items')
+        .append($item1)
+        .append($item2)
+        .append($item3);
+      // pretend first item is loaded
+      $item1.data('loadStatus', 'loaded');
+
       // don't bother with setup since we just need to test the eventing function
       sandbox.stub(ReadingList.prototype, 'setup');
       readingList = new ReadingList($validReadingList);
+      trigger = sandbox.spy(readingList.$container, 'trigger');
     });
 
     afterEach(function () {
@@ -108,13 +128,11 @@ describe('Reading list', function () {
     });
 
     describe('entire reading list', function () {
-      var trigger;
+      var itemEventing;
 
       beforeEach(function () {
         // skip individual item eventing
-        sandbox.stub(readingList.$listItems, 'each');
-
-        trigger = sandbox.spy(readingList.$container, 'trigger');
+        itemEventing = sandbox.stub(ReadingList.prototype, 'itemEventing');
       });
 
       it('when at the top of the list', function () {
@@ -168,6 +186,7 @@ describe('Reading list', function () {
         readingList.$container[0] = {scrollHeight: 1000};
 
         // prevent out of content event from firing
+        itemEventing.returns(4);
         sandbox.stub(readingList.$listItems, 'length', 5);
 
         // scroll to a point above loading threshold, should not fire
@@ -194,8 +213,9 @@ describe('Reading list', function () {
         readingList.settings.loadingThreshold = 300;
         readingList.$container[0] = {scrollHeight: 1000};
 
-        // prevent out of content event from firing
-        sandbox.stub(readingList.$listItems, 'length', 0);
+        // cause out of content event to fire
+        itemEventing.returns(5);
+        sandbox.stub(readingList.$listItems, 'length', 5);
 
         // scroll to a point above loading threshold, should not fire
         scrollTop.returns(300);
@@ -213,20 +233,66 @@ describe('Reading list', function () {
     describe('an individual item', function () {
 
       it('when it starts loading', function () {
+        // do eventing for items
+        var loaded = readingList.itemEventing(true);
 
-      // TODO : fill this in
-        throw new Error('Not implemented yet.');
+        // sort out trigger calls
+        var events = trigger.withArgs('reading-list-start-item-load');
+        events.callCount.should.equal(1);
+
+        // check the arguments that will be given to callbacks for this event
+        var callbackArgs = events.args[0][1];
+        expect(jqueryMatcher($item2).test(callbackArgs[0])).to.be.true;
+        callbackArgs[1].should.equal('down');
+
+        // only 1 item was previously loaded
+        loaded.should.equal(1);
       });
 
       it('when it falls into the view', function () {
-      // TODO : fill this in
-        throw new Error('Not implemented yet.');
+        // stub out within looking area function to test separately
+        var withinLookingArea = sandbox.stub(readingList, 'withinLookingArea');
+
+        // pretend item2 is in the looking area
+        readingList.$activeItem = $item1;
+        withinLookingArea.withArgs($item2[0]).returns(true);
+
+        // do item eventing
+        readingList.itemEventing(true);
+
+        // sort out trigger calls
+        var events = trigger.withArgs('reading-list-item-in-looking');
+        events.callCount.should.equal(1);
+
+        // check the arguments that will be given to callbacks for this event
+        var callbackArgs = events.args[0][1];
+        expect(jqueryMatcher($item2).test(callbackArgs[0])).to.be.true;
+        expect(jqueryMatcher($item2).test(readingList.$activeItem)).to.be.true;
+        $item2.hasClass('in-looking').should.be.true;
       });
 
       it('when it falls out of view', function () {
+        // stub out within looking area function to test separately
+        var withinLookingArea = sandbox.stub(readingList, 'withinLookingArea');
 
-      // TODO : fill this in
-        throw new Error('Not implemented yet.');
+        // pretend item2 has moved out of looking area, and item3 has moved in
+        readingList.$activeItem = $item2;
+        withinLookingArea.withArgs($item2[0]).returns(false);
+        withinLookingArea.withArgs($item3[0]).returns(true);
+
+        // do item eventing
+        readingList.itemEventing(true);
+
+        // sort out trigger calls
+        var events = trigger.withArgs('reading-list-item-out-looking');
+        events.callCount.should.equal(1);
+
+        // check the arguments that will be given to callbacks for this event
+        var callbackArgs = events.args[0][1];
+        expect(jqueryMatcher($item2).test(callbackArgs[0])).to.be.true;
+        expect(jqueryMatcher($item2).test(readingList.$activeItem)).to.be.false;
+        expect(jqueryMatcher($item3).test(readingList.$activeItem)).to.be.true;
+        $item2.hasClass('in-looking').should.be.false;
       });
 
       it('showing what percentage of it has been viewed', function () {
@@ -294,6 +360,21 @@ describe('Reading list', function () {
     // });
     //
     // it('should refresh iscroll on select events', function () {
+    //
+    // // TODO : fill this in
+    //   throw new Error('Not implemented yet.');
+    // });
+  });
+
+  describe('misc functions', function () {
+
+    // it('should have a test for elements being in looking area', function () {
+    //
+    // // TODO : fill this in
+    //   throw new Error('Not implemented yet.');
+    // });
+    //
+    // it('should have a test for bounding boxes being in a particular area', function () {
     //
     // // TODO : fill this in
     //   throw new Error('Not implemented yet.');
