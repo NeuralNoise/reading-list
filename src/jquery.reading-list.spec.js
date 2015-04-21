@@ -54,14 +54,14 @@ describe('Reading list', function () {
       var $readingList = $();
 
       expect($readingList.readingList).to.throw(Error);
-      expect($readingList.data('plugin_readingList')).to.be.undefined;
+      expect($readingList.data('pluginReadingList')).to.be.undefined;
     });
 
     it('fails with an error when reading list element is missing an items container', function () {
       var $readingList = $('<div></div>');
 
       expect($readingList.readingList).to.throw(Error);
-      expect($readingList.data('plugin_readingList')).to.be.undefined;
+      expect($readingList.data('pluginReadingList')).to.be.undefined;
     });
 
     it('should load the first item', function () {
@@ -487,6 +487,25 @@ describe('Reading list', function () {
       $(document).trigger(testEventName);
 
       readingList.iscrollRef.refresh.callCount.should.equal(1);
+    });
+  });
+
+  describe('config options', function () {
+
+    it('should call out of content function when defined', function () {
+      var addContent = sandbox.stub();
+
+      var deferred = $.Deferred();
+      deferred.resolve();
+      addContent.returns(deferred.promise());
+
+      var readingList = new ReadingList($validReadingList, {
+        addContent: addContent
+      });
+
+      readingList.$container.trigger('reading-list-out-of-content');
+
+      addContent.callCount.should.equal(1);
     });
   });
 
