@@ -27,8 +27,8 @@
     "test": "./node_modules/karma/bin/karma start ./testing/karma.conf.js",
     "cov": "./node_modules/karma/bin/karma start ./testing/karma.conf.cov.js",
     "build-prepare": "rm -rf dist && mkdir dist",
-    "build-copy": "cp src/jquery.reading-list.css dist/",
-    "build-tasks": "./node_modules/browserify/bin/cmd.js src/jquery.reading-list.js -o dist/jquery.reading-list.js",
+    "build-copy": "cp src/jquery.reading-list.css dist/ && cp src/jquery.reading-list.js dist/",
+    "build-tasks": "./node_modules/.bin/browserify src/jquery.reading-list.js -o dist/jquery.reading-list.browserify-shim.js",
     "build": "npm run-script build-prepare && npm run-script build-copy && npm run-script build-tasks",
     "example": "npm run-script build && bower install && (cd example && node web.js)"
   },
