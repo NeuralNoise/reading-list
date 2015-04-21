@@ -1,8 +1,7 @@
 
-module.exports = function(config) {
-  config.set({
-
-    basePath: '.',
+module.exports = function (config) {
+  return {
+    basePath: '..',
 
     frameworks: [
       'browserify',
@@ -58,5 +57,5 @@ module.exports = function(config) {
     ],
 
     singleRun: false
-  });
+  };
 };

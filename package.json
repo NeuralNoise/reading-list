@@ -7,13 +7,14 @@
   },
   "devDependencies": {
     "browserify": "^9.0.8",
+    "browserify-istanbul": "^0.2.1",
     "browserify-shim": "^3.8.5",
     "chai": "^2.2.0",
     "karma": "^0.12.31",
     "karma-browserify": "^4.1.2",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^0.1.7",
-    "karma-coverage": "^0.2.7",
+    "karma-coverage": "0.2.6",
     "karma-mocha": "^0.1.10",
     "karma-mocha-debug": "^0.1.2",
     "karma-mocha-reporter": "^1.0.2",
@@ -23,15 +24,12 @@
     "sinon": "^1.14.1"
   },
   "scripts": {
-    "test": "./node_modules/karma/bin/karma start ./karma.conf.js",
-
-    "cov": "./node_modules/karma/bin/karma start ./karma.conf.cov.js",
-
+    "test": "./node_modules/karma/bin/karma start ./testing/karma.conf.js",
+    "cov": "./node_modules/karma/bin/karma start ./testing/karma.conf.cov.js",
     "build-prepare": "rm -rf dist && mkdir dist",
     "build-copy": "cp src/jquery.reading-list.css dist/",
     "build-tasks": "./node_modules/browserify/bin/cmd.js src/jquery.reading-list.js -o dist/jquery.reading-list.js",
     "build": "npm run-script build-prepare && npm run-script build-copy && npm run-script build-tasks",
-
     "example": "npm run-script build && bower install && (cd example && node web.js)"
   },
   "repository": {
@@ -45,7 +43,9 @@
   },
   "homepage": "https://github.com/theonion/reading-list",
   "browserify": {
-    "transform": ["browserify-shim"]
+    "transform": [
+      "browserify-shim"
+    ]
   },
   "browserify-shim": {
     "./src/jquery.reading-list.js": "ReadingList"
