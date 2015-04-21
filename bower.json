@@ -1,12 +1,13 @@
 {
   "name": "reading-list",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "main": [
-    "src/jquery.reading-list.css",
-    "src/jquery.reading-list.js"
+    "dist/jquery.reading-list.css",
+    "dist/jquery.reading-list.js"
   ],
   "ignore": [
     ".gitignore",
+    ".jshintrc",
     "example",
     "README.md"
   ],
@@ -14,6 +15,7 @@
     "jquery": "~2.1.1",
     "iscroll-native": "~0.0.2",
     "detect-mobile-browser-tablet-support": "~0.0.2",
-    "lodash": "~2.4.1"
-  }
+    "lodash": "~3.7.0"
+  },
+  "devDependencies": {}
 }

@@ -1,0 +1,53 @@
+{
+  "name": "reading-list",
+  "version": "0.0.15",
+  "description": "Infinite scrolling for websites with a lot of content and not a lot of navigation.",
+  "directories": {
+    "example": "example"
+  },
+  "devDependencies": {
+    "browserify": "^9.0.8",
+    "browserify-istanbul": "^0.2.1",
+    "browserify-shim": "^3.8.5",
+    "chai": "^2.2.0",
+    "karma": "^0.12.31",
+    "karma-browserify": "^4.1.2",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^0.1.7",
+    "karma-coverage": "0.2.6",
+    "karma-mocha": "^0.1.10",
+    "karma-mocha-debug": "^0.1.2",
+    "karma-mocha-reporter": "^1.0.2",
+    "karma-sinon": "^1.0.4",
+    "karma-source-map-support": "^1.0.0",
+    "mocha": "^2.2.4",
+    "sinon": "^1.14.1"
+  },
+  "scripts": {
+    "test": "./node_modules/karma/bin/karma start ./testing/karma.conf.js",
+    "cov": "./node_modules/karma/bin/karma start ./testing/karma.conf.cov.js",
+    "build-prepare": "rm -rf dist && mkdir dist",
+    "build-copy": "cp src/jquery.reading-list.css dist/",
+    "build-tasks": "./node_modules/browserify/bin/cmd.js src/jquery.reading-list.js -o dist/jquery.reading-list.js",
+    "build": "npm run-script build-prepare && npm run-script build-copy && npm run-script build-tasks",
+    "example": "npm run-script build && bower install && (cd example && node web.js)"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/theonion/reading-list.git"
+  },
+  "author": "Webtech <webtech@theonion.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/theonion/reading-list/issues"
+  },
+  "homepage": "https://github.com/theonion/reading-list",
+  "browserify": {
+    "transform": [
+      "browserify-shim"
+    ]
+  },
+  "browserify-shim": {
+    "./src/jquery.reading-list.js": "ReadingList"
+  }
+}

@@ -106,8 +106,8 @@ Following are events you can hook into as the page scrolls:
 | ```reading-list-at-bottom``` | None | Fires when reading list hits the bottom. |
 | ```reading-list-at-bottom-load-threshold``` | None | Triggered when the reading list is nearing the bottom, a threshold specified by ```loadingThreshold``` option. |
 | ```reading-list-start-item-load``` | ```$item``` ```direction``` | ```$item``` is starting to load, triggered by a scrolling ```direction```. |
-| ```reading-list-item-in-looking``` | ```$item``` | ```$item``` is the active item. |
-| ```reading-list-item-out-looking``` | ```$item``` | ```$item``` is no longer the active item. |
+| ```reading-list-item-in-looking``` | ```$item``` | ```$item``` has entered the looking area and is the active item. |
+| ```reading-list-item-out-looking``` | ```$item``` | ```$item``` has fallen out of the looking area and is no longer the active item. |
 | ```reading-list-item-progress``` | ```$item``` ```progress``` | Has viewed ```progress``` ratio of the entire ```$item```. Use to update progress bars. To make ```progress``` a percentage, do ```progress * 100```.  |
 | ```reading-list-start-item-load-done``` | ```$item``` | ```$item``` is done loading. |
 | ```reading-list-out-of-content``` | None | Reading list has run out of content. Internally, if ```addContent``` is defined it will be used when this event triggers to add new content to the end of the reading list. |
@@ -137,7 +137,5 @@ environment.
 If you'd like to see the example, clone down this code, then:
 ```bash
 $ cd reading-list
-$ bower install
-$ cd example
-$ node web.js
+$ npm run-script example
 ```

@@ -17,7 +17,7 @@
   visibility: hidden;
 }
 
-.reading-list-left-nav .reading-list-mini-map .reading-list-mini-map-item.active .nav-viewing-indicator {
+.reading-list-left-nav .reading-list-mini-map .reading-list-mini-map-item.reading-list-active .nav-viewing-indicator {
   visibility: visible;
 }
 
@@ -41,11 +41,11 @@
   margin: 30px 0px 30px;
 }
 
-.reading-list-content .reading-list-items .reading-list-item.loading {
+.reading-list-content .reading-list-items .reading-list-item.reading-list-loading {
   background-color: #0af;
 }
 
-.reading-list-content .reading-list-items .reading-list-item.load-failed {
+.reading-list-content .reading-list-items .reading-list-item.reading-list-load-failed {
   background-color: #f00;
 }
 
