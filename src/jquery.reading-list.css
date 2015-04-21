@@ -13,8 +13,8 @@
   display: none;
 }
 
-.reading-list-content .reading-list-items .reading-list-item.loading,
-.reading-list-content .reading-list-items .reading-list-item.loaded,
-.reading-list-content .reading-list-items .reading-list-item.load-failed {
+.reading-list-content .reading-list-items .reading-list-item.reading-list-loading,
+.reading-list-content .reading-list-items .reading-list-item.reading-list-loaded,
+.reading-list-content .reading-list-items .reading-list-item.reading-list-load-failed {
   display: block;
 }

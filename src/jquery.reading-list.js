@@ -240,12 +240,12 @@ ReadingList.prototype.itemEventing = function (loadBot) {
         //  events to indicate the change
         if (this.$activeItem) {
           // previously active item gets an event for no longer being active
-          this.$activeItem.removeClass('in-looking');
+          this.$activeItem.removeClass('reading-list-in-looking');
           this.$container.trigger('reading-list-item-out-looking', [this.$activeItem]);
         }
 
         // add looking class to active item, trigger event
-        $item.addClass('in-looking');
+        $item.addClass('reading-list-in-looking');
         this.$container.trigger('reading-list-item-in-looking', [$item]);
       }
 
@@ -338,7 +338,7 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
   $readingListItem.data('loadStatus', loadStatus.LOADING);
 
   // indicate loading is occuring
-  $readingListItem.addClass('loading');
+  $readingListItem.addClass('reading-list-loading');
 
   // do get request, return it as a promise
   var html;
@@ -349,15 +349,15 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
       // get html from success callback, deal with it
       html = self.settings.dataRetrievalSuccess($readingListItem, data);
       status = loadStatus.LOADED;
-      $readingListItem.removeClass('loading');
-      $readingListItem.addClass('loaded');
+      $readingListItem.removeClass('reading-list-loading');
+      $readingListItem.addClass('reading-list-loaded');
     })
     .fail(function () {
       // get html from failure callback, deal with it
       html = self.settings.dataRetrievalFail($readingListItem);
       status = loadStatus.FAILED;
-      $readingListItem.removeClass('loading');
-      $readingListItem.addClass('load-failed');
+      $readingListItem.removeClass('reading-list-loading');
+      $readingListItem.addClass('reading-list-load-failed');
     })
     .always(function () {
       // set load status depending on response
@@ -517,7 +517,7 @@ ReadingList.prototype.miniMapFindByItem = function ($item) {
  * @param {jQuery} $item - item to find minimap items for.
  */
 ReadingList.prototype.miniMapItemActivate = function (e, $item) {
-  this.miniMapFindByItem($item).addClass('active');
+  this.miniMapFindByItem($item).addClass('reading-list-active');
 };
 
 /**
@@ -527,7 +527,7 @@ ReadingList.prototype.miniMapItemActivate = function (e, $item) {
  * @param {jQuery} $item - item to find minimap items for.
  */
 ReadingList.prototype.miniMapItemDeactivate = function (e, $item) {
-  this.miniMapFindByItem($item).removeClass('active');
+  this.miniMapFindByItem($item).removeClass('reading-list-active');
 };
 
 /**

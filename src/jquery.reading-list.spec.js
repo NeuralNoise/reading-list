@@ -272,7 +272,7 @@ describe('Reading list', function () {
         expect(jqueryMatcher($item2).test(callbackArgs[0])).to.be.true;
 
         expect(jqueryMatcher($item2).test(readingList.$activeItem)).to.be.true;
-        $item2.hasClass('in-looking').should.be.true;
+        $item2.hasClass('reading-list-in-looking').should.be.true;
       });
 
       it('when it falls out of view', function () {
@@ -297,7 +297,7 @@ describe('Reading list', function () {
 
         expect(jqueryMatcher($item2).test(readingList.$activeItem)).to.be.false;
         expect(jqueryMatcher($item3).test(readingList.$activeItem)).to.be.true;
-        $item2.hasClass('in-looking').should.be.false;
+        $item2.hasClass('reading-list-in-looking').should.be.false;
       });
 
       it('showing what percentage of it has been viewed', function () {
@@ -388,7 +388,7 @@ describe('Reading list', function () {
       readingList.retrieveListItem($item1);
 
       $item1.data('loadStatus').should.equal('loading');
-      $item1.hasClass('loading').should.be.true;
+      $item1.hasClass('reading-list-loading').should.be.true;
     });
 
     it('should update item element on success', function () {
@@ -410,8 +410,8 @@ describe('Reading list', function () {
       expect(jqueryMatcher($item1).test(success.args[0][0])).to.be.true;
       success.args[0][1].should.equal(responseContent);
 
-      $item1.hasClass('loading').should.be.false;
-      $item1.hasClass('loaded').should.be.true;
+      $item1.hasClass('reading-list-loading').should.be.false;
+      $item1.hasClass('reading-list-loaded').should.be.true;
       $item1.data('loadStatus').should.equal('loaded');
       $item1.html().should.equal(responseContent);
       readingList.eventing.callCount.should.equal(1);
@@ -440,8 +440,8 @@ describe('Reading list', function () {
       fail.callCount.should.equal(1);
       expect(jqueryMatcher($item1).test(fail.args[0][0])).to.be.true;
 
-      $item1.hasClass('loading').should.be.false;
-      $item1.hasClass('load-failed').should.be.true;
+      $item1.hasClass('reading-list-loading').should.be.false;
+      $item1.hasClass('reading-list-load-failed').should.be.true;
       $item1.data('loadStatus').should.equal('failed');
       $item1.html().should.equal(responseContent);
       readingList.eventing.callCount.should.equal(1);
@@ -536,7 +536,7 @@ describe('Reading list', function () {
 
       // totally below box
       el.getBoundingClientRect.returns({top: 600, bottom: 800});
-      readingList.elementBoundingInsideArea(el, 200, 500).should.be.false;
+      readingList.elementBoundingInsideArea(el, 200, 500).should.be.false ;
     });
   });
 
