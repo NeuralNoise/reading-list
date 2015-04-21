@@ -9,6 +9,8 @@
     ".gitignore",
     ".jshintrc",
     "example",
+    "src",
+    "testing",
     "README.md"
   ],
   "dependencies": {
