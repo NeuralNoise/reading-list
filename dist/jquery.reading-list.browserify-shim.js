@@ -131,6 +131,9 @@ ReadingList.prototype.setup = function () {
 
   // put up a flag once we're done setting up
   this.ready = true;
+
+  // braodcast that setup is done
+  this.$container.trigger('reading-list-ready');
 };
 
 /**
@@ -563,7 +566,6 @@ ReadingList.prototype.miniMapItemDeactivate = function (e, $item) {
  * Wrapper to contain reading list logic inside a subobject of jquery element.
  */
 var createReadingList = function (options) {
-
   // note: 'this' refers to the jquery object wrapping the reading list element
   this.each(function () {
     var $this = $(this);

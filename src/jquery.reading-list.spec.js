@@ -42,12 +42,15 @@ describe('Reading list', function () {
   describe('initialization', function () {
 
     it('works via a selected jquery element', function () {
+      var readyEvent = sandbox.spy($.fn, 'trigger').withArgs('reading-list-ready');
+
       var $constructedReadingList = $validReadingList.readingList();
 
       var readingList = $validReadingList.data('pluginReadingList');
 
-      readingList.ready.should.be.true;
       $constructedReadingList.should.equal($validReadingList);
+      readingList.ready.should.be.true;
+      readyEvent.calledOnce.should.be.true;
     });
 
     it('fails with an error when an jquery element selection is empty', function () {
