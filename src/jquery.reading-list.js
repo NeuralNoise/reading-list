@@ -66,7 +66,12 @@ var ReadingList = function ($element, options) {
     //   be a function that returns an integer which is the total scrollable height
     //   of the scroll container. Needed in cases such as when the reading list is
     //   entire document and the body should be used for scroll total height calculations.
-    scrollTotalHeight: null
+    scrollTotalHeight: null,
+    // set this to use a custom container for scrolling animation. A jQuery object
+    //  that encapsulates the element that scrolling will occur on. Needed in cases
+    //  such as when the reading list is entire document and the body should be used
+    //  for scroll animations.
+    scrollAnimationContainer: null
   }, options);
 
   // ensure reading list elements we need are available, fail otherwise
@@ -478,7 +483,7 @@ ReadingList.prototype.addContent = function () {
  * Stop animations being done on container.
  */
 ReadingList.prototype.stopContainerAnimation = function () {
-  return this.$container.stop();
+  return (scrollAnimationContainer || this.$container).stop();
 };
 
 /**
