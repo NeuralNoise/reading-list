@@ -4,7 +4,7 @@
 
 // some constants
 var MOVEMENTS =
-  'scroll touchmove mousedown DOMMouseScroll mousewheel keyup resize';
+  'touchmove mousedown DOMMouseScroll mousewheel keyup resize';
 
 var loadStatus = {
   NOT_ATTEMPTED: false,
