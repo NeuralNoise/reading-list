@@ -61,7 +61,12 @@ var ReadingList = function ($element, options) {
     //  container being scrolled. Needed in cases, like were reading list is
     //  entire document and the window should be used for height calculations
     //  vs. document height.
-    scrollContainerHeight: null
+    scrollContainerHeight: null,
+    // set this to use a custom value for scroll total height in calculations. Should
+    //   be a function that returns an integer which is the total scrollable height
+    //   of the scroll container. Needed in cases such as when the reading list is
+    //   entire document and the body should be used for scroll total height calculations.
+    scrollTotalHeight: null
   }, options);
 
   // ensure reading list elements we need are available, fail otherwise
@@ -199,6 +204,15 @@ ReadingList.prototype.getScrollContainerHeight = function () {
 };
 
 /**
+ * Figure out what to use for scroll total height calculations.
+ */
+ReadingList.prototype.getScrollTotalHeight = function () {
+  return $.isFunction(this.settings.scrollTotalHeight) ?
+    this.settings.scrollTotalHeight() :
+    this.$container[0].scrollHeight;
+};
+
+/**
  * Item event loop for use inside main eventing function.
  *
  * @param {Boolean} loadBot - set to true if next item down needs to load.
@@ -291,7 +305,7 @@ ReadingList.prototype.unthrottledEventing = function () {
   //  a = loadingThreshold       -> distance from bottom of scrollable area to begin loading
   var scrollTop = this.$container.scrollTop();
   var scrollContainerHeight = this.getScrollContainerHeight();
-  var scrollTotalHeight = this.$container[0].scrollHeight;
+  var scrollTotalHeight = this.getScrollTotalHeight();
 
   // check min/max scroll
   if (scrollTop <= 0) {
@@ -468,6 +482,27 @@ ReadingList.prototype.stopContainerAnimation = function () {
 };
 
 /**
+ * Scroll to a given item.
+ *
+ * @param {jQuery} $item - item to scroll to.
+ */
+ReadingList.prototype.scrollToItem = function ($item) {
+
+  // ensure the animation stops when user interaction occurs
+  $document.on(MOVEMENTS, this.stopContainerAnimation.bind(this));
+
+  // stop any running animations and begin a new one
+  this.stopContainerAnimation().animate({
+    scrollTop: $item.position().top
+  },
+  this.settings.scrollToSpeed,
+  (function () {
+    // unbind the scroll stoppage
+    $document.off(MOVEMENTS, this.stopContainerAnimation.bind(this));
+  }).bind(this));
+};
+
+/**
  * Event for clicks of minimap items.
  */
 ReadingList.prototype.miniMapItemClicked = function (e) {
@@ -480,21 +515,7 @@ ReadingList.prototype.miniMapItemClicked = function (e) {
   // retrieve everything on the way to our item, then scroll to it
   var $item = this.$listItems.filter('#' + itemRef);
   this.retrieveListItemsTo($item)
-    .always((function ($readingListItem) {
-
-      // ensure we can stop the animation if we want
-      $document.on(MOVEMENTS, this.stopContainerAnimation.bind(this));
-
-      // stop any running animations and begin a new one
-      this.stopContainerAnimation().animate({
-        scrollTop: $readingListItem.position().top
-      },
-      this.settings.scrollToSpeed,
-      (function () {
-        // unbind the scroll stoppage
-        $document.off(MOVEMENTS, this.stopContainerAnimation.bind(this));
-      }).bind(this));
-    }).bind(this));
+    .always(this.scrollToItem.bind(this));
 };
 
 /**

@@ -58,11 +58,11 @@ var ReadingList = function ($element, options) {
     },
     // set this to use a custom value for scroll container height in calculations,
     //  should be a function that returns an integer which is the height of the
-    //  container being scrolled. Needed in cases such as when the reading list is
+    //  container being scrolled. Needed in cases, like were reading list is
     //  entire document and the window should be used for height calculations
     //  vs. document height.
     scrollContainerHeight: null,
-    // set this to use a custom value for scroll total height in calcuations. Should
+    // set this to use a custom value for scroll total height in calculations. Should
     //   be a function that returns an integer which is the total scrollable height
     //   of the scroll container. Needed in cases such as when the reading list is
     //   entire document and the body should be used for scroll total height calculations.
@@ -482,6 +482,27 @@ ReadingList.prototype.stopContainerAnimation = function () {
 };
 
 /**
+ * Scroll to a given item.
+ *
+ * @param {jQuery} $item - item to scroll to.
+ */
+ReadingList.prototype.scrollToItem = function ($item) {
+
+  // ensure the animation stops when user interaction occurs
+  $document.on(MOVEMENTS, this.stopContainerAnimation.bind(this));
+
+  // stop any running animations and begin a new one
+  this.stopContainerAnimation().animate({
+    scrollTop: $item.position().top
+  },
+  this.settings.scrollToSpeed,
+  (function () {
+    // unbind the scroll stoppage
+    $document.off(MOVEMENTS, this.stopContainerAnimation.bind(this));
+  }).bind(this));
+};
+
+/**
  * Event for clicks of minimap items.
  */
 ReadingList.prototype.miniMapItemClicked = function (e) {
@@ -494,21 +515,7 @@ ReadingList.prototype.miniMapItemClicked = function (e) {
   // retrieve everything on the way to our item, then scroll to it
   var $item = this.$listItems.filter('#' + itemRef);
   this.retrieveListItemsTo($item)
-    .always((function ($readingListItem) {
-
-      // ensure we can stop the animation if we want
-      $document.on(MOVEMENTS, this.stopContainerAnimation.bind(this));
-
-      // stop any running animations and begin a new one
-      this.stopContainerAnimation().animate({
-        scrollTop: $readingListItem.position().top
-      },
-      this.settings.scrollToSpeed,
-      (function () {
-        // unbind the scroll stoppage
-        $document.off(MOVEMENTS, this.stopContainerAnimation.bind(this));
-      }).bind(this));
-    }).bind(this));
+    .always(this.scrollToItem.bind(this));
 };
 
 /**

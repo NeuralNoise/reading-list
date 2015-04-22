@@ -518,6 +518,26 @@ describe('Reading list', function () {
       readingList = new ReadingList($validReadingList);
     });
 
+    it('should have a way to scroll to a given item', function () {
+      var stop = sandbox.spy(readingList.$container, 'stop');
+      var animate = sandbox.spy(readingList.$container, 'animate');
+
+      var $item1 = $('<div id="item1" class="reading-list-item"></div>');
+      var $item2 = $('<div id="item2" class="reading-list-item"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1)
+        .append($item2);
+
+      readingList.settings.scrollToSpeed = 0;
+
+      readingList.scrollToItem($item2);
+
+      stop.calledOnce.should.be.true;
+      animate.calledOnce.should.be.true;
+      animate.args[0][0].scrollTop.should.equal($item2.position().top);
+    });
+
     it('should have a test for elements being in looking area', function () {
       var elementBoundingInsideArea = sandbox.stub(readingList, 'elementBoundingInsideArea');
       var el = {};
