@@ -510,6 +510,61 @@ describe('Reading list', function () {
 
       addContent.callCount.should.equal(1);
     });
+
+    it('should prevent bubbling when noEventBubbling is true', function () {
+
+      sandbox.stub(ReadingList.prototype, 'miniMapItemActivate');
+      sandbox.stub(ReadingList.prototype, 'miniMapItemDeactivate');
+      sandbox.stub(ReadingList.prototype, 'setupIScroll');
+      sandbox.stub(ReadingList.prototype, 'startItemLoad');
+      sandbox.stub(ReadingList.prototype, 'initialLoad');
+      sandbox.stub(ReadingList.prototype, 'unthrottledEventing');
+
+      var readingList = new ReadingList($validReadingList, {
+        noEventBubbling: true
+      });
+      var callback = sandbox.spy();
+      var docCallback = sandbox.spy();
+
+      readingList.$container.on(
+        'reading-list-ready ' +
+        'reading-list-at-top ' +
+        'reading-list-at-bottom ' +
+        'reading-list-at-bottom-load-threshold ' +
+        'reading-list-out-of-content ' +
+        'reading-list-start-item-load ' +
+        'reading-list-item-in-looking ' +
+        'reading-list-item-out-looking ' +
+        'reading-list-item-progress ' +
+        'reading-list-start-item-load-done',
+        callback);
+      $(document).on(
+        'reading-list-ready ' +
+        'reading-list-at-top ' +
+        'reading-list-at-bottom ' +
+        'reading-list-at-bottom-load-threshold ' +
+        'reading-list-out-of-content ' +
+        'reading-list-start-item-load ' +
+        'reading-list-item-in-looking ' +
+        'reading-list-item-out-looking ' +
+        'reading-list-item-progress ' +
+        'reading-list-start-item-load-done',
+        docCallback);
+
+      readingList.$container.trigger('reading-list-ready');
+      readingList.$container.trigger('reading-list-at-top');
+      readingList.$container.trigger('reading-list-at-bottom');
+      readingList.$container.trigger('reading-list-at-bottom-load-threshold');
+      readingList.$container.trigger('reading-list-out-of-content');
+      readingList.$container.trigger('reading-list-start-item-load');
+      readingList.$container.trigger('reading-list-item-in-looking');
+      readingList.$container.trigger('reading-list-item-out-looking');
+      readingList.$container.trigger('reading-list-item-progress');
+      readingList.$container.trigger('reading-list-start-item-load-done');
+
+      callback.callCount.should.equal(10);
+      docCallback.callCount.should.equal(0);
+    });
   });
 
   describe('misc functions', function () {

@@ -87,6 +87,7 @@ Following is a breakdown of the options available for this plugin:
 | ```scrollContainerHeight``` | Set this to use a custom value for scroll container height in calculations, should be a function that returns an integer which is the height of the container being scrolled. Needed in cases, like were reading list is entire document and the window should be used for height calculations vs. document height. |
 | ```scrollTotalHeight``` | Set this to use a custom value for scroll total height in calculations. Should be a function that returns an integer which is the total scrollable height of the scroll container. Needed in cases such as when the reading list is entire document and the body should be used for scroll total height calculations. |
 | ```scrollAnimationContainer``` | Set this to use a custom container for scrolling animation. A jQuery object that encapsulates the element that scrolling will occur on. Needed in cases such as when the reading list is entire document and the body should be used for scroll animations. |
+| ```noEventBubbling```| Set to true to stop events from bubbling up the DOM tree, in which case, any event listeners must attach to the reading list element itself. This **must** be set to true for any reading lists that are nested inside another reading list! |
 
 #### Customizing Selectors
 The following selectors can be customized as options of the ```selectors``` option:

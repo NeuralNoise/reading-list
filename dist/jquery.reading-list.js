@@ -71,7 +71,11 @@ var ReadingList = function ($element, options) {
     //  that encapsulates the element that scrolling will occur on. Needed in cases
     //  such as when the reading list is entire document and the body should be used
     //  for scroll animations.
-    scrollAnimationContainer: null
+    scrollAnimationContainer: null,
+    // set to true to stop events from bubbling up the DOM tree, in which case, any
+    //  event listeners must attach to the reading list element itself. This **must**
+    //  be set to true for any reading lists that are nested inside another reading list!
+    noEventBubbling: false
   }, options);
 
   // ensure reading list elements we need are available, fail otherwise
@@ -105,7 +109,25 @@ ReadingList.prototype.setup = function () {
   // set up minimap item click
   this.$miniMapItems.on('click', this.miniMapItemClicked.bind(this));
 
-  // set up some default events
+  if (this.settings.noEventBubbling) {
+    // don't bubble events up the dom tree, listeners must attach to the original container
+    this.$container.on(
+      'reading-list-ready ' +
+      'reading-list-at-top ' +
+      'reading-list-at-bottom ' +
+      'reading-list-at-bottom-load-threshold ' +
+      'reading-list-out-of-content ' +
+      'reading-list-start-item-load ' +
+      'reading-list-item-in-looking ' +
+      'reading-list-item-out-looking ' +
+      'reading-list-item-progress ' +
+      'reading-list-start-item-load-done',
+      function (e) {
+        e.stopPropagation();
+      });
+  }
+
+  // set up some default event callbacks
   this.$container.on('reading-list-start-item-load', this.startItemLoad.bind(this));
   this.$container.on('reading-list-item-in-looking', this.miniMapItemActivate.bind(this));
   this.$container.on('reading-list-item-out-looking', this.miniMapItemDeactivate.bind(this));
