@@ -158,7 +158,7 @@ ReadingList.prototype.initialLoad = function () {
  * Using iScroll for reading list.
  */
 ReadingList.prototype.setupIScroll = function () {
-  this.iscrollRef = new IScroll(this.$container[0], { useNativeScroll: true });
+  this.iscrollRef = new IScroll(this.getScrollAnimationContainer()[0], { useNativeScroll: true });
 
   var refreshDisp = (function () {
     this.iscrollRef.refresh();
@@ -218,6 +218,13 @@ ReadingList.prototype.getScrollTotalHeight = function () {
   return $.isFunction(this.settings.scrollTotalHeight) ?
     this.settings.scrollTotalHeight() :
     this.$container[0].scrollHeight;
+};
+
+/**
+ * Figure out what the scroll animation container should be.
+ */
+ReadingList.prototype.getScrollAnimationContainer = function () {
+  return (this.settings.scrollAnimationContainer || this.$container);
 };
 
 /**
@@ -486,7 +493,7 @@ ReadingList.prototype.addContent = function () {
  * Stop animations being done on container.
  */
 ReadingList.prototype.stopContainerAnimation = function () {
-  return (this.settings.scrollAnimationContainer || this.$container).stop();
+  return this.getScrollAnimationContainer().stop();
 };
 
 /**

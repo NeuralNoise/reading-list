@@ -77,7 +77,7 @@ Following is a breakdown of the options available for this plugin:
 | ```loadingThreshold``` | Height from the bottom of scrolling container to start loading. |
 | ```lookingThresholdTop``` | Top boundary of "looking" area, measured from top of window. |
 | ```lookingThresholdBottom``` | Bottom boundary of "looking" area, measured from top of window. |
-| ```eventingThrottle``` | Time in ms to delay eventing execution on scroll. Use larger browsers when considering slower browsers so that scrolling isn't affected by event triggering. |
+| ```eventingThrottle``` | Time in ms to delay eventing execution on scroll. Use larger values when considering slower browsers so that scrolling isn't affected by event triggering. |
 | ```scrollToSpeed``` | Time in ms for scroll to event when scrolling to an article. |
 | ```selectors``` | Customize the selectors used for each reading list component. Note that whatever classes you choose, the layout of those components must be nested properly. |
 | ```addContent``` | Define this content to add content to the end of the reading list when there are no more items to load. Expected to return a promise that will resolve with the content to append to the end of the list. |
