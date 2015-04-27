@@ -1,6 +1,6 @@
 {
   "name": "reading-list",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "description": "Infinite scrolling for websites with a lot of content and not a lot of navigation.",
   "directories": {
     "example": "example"
