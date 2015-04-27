@@ -43,7 +43,7 @@ var ReadingList = function ($element, options) {
     selectorsItemsContainer: '.reading-list-items',
     selectorsItems: '.reading-list-item',
     // define this function to add content to the end of the reading list when
-    //  there are no more items to load. expected to return a promise that will
+    //  there are no more items to load. Expected to return a promise that will
     //  resolve with the content to append to the end of the list.
     addContent: false,
     // a list of events that should cause iscroll to refresh. this is
@@ -78,7 +78,10 @@ var ReadingList = function ($element, options) {
     // set to true to stop events from bubbling up the DOM tree, in which case, any
     //  event listeners must attach to the reading list element itself. This **must**
     //  be set to true for any reading lists that are nested inside another reading list!
-    noEventBubbling: false
+    noEventBubbling: false,
+    // set to a function that will fire when the reading list is ready. Reading list
+    //  object will be passed in as first argument.
+    onReady: null
   }, options);
 
   // ensure reading list elements we need are available, fail otherwise
@@ -115,7 +118,6 @@ ReadingList.prototype.setup = function () {
   if (this.settings.noEventBubbling) {
     // don't bubble events up the dom tree, listeners must attach to the original container
     this.$container.on(
-      'reading-list-ready ' +
       'reading-list-at-top ' +
       'reading-list-at-bottom ' +
       'reading-list-at-bottom-load-threshold ' +
@@ -154,8 +156,10 @@ ReadingList.prototype.setup = function () {
   // put up a flag once we're done setting up
   this.ready = true;
 
-  // braodcast that setup is done
-  this.$container.trigger('reading-list-ready');
+  if (this.settings.onReady) {
+    // a ready callback function was provided, call it
+    this.settings.onReady(this);
+  }
 };
 
 /**

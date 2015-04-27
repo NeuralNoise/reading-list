@@ -42,15 +42,12 @@ describe('Reading list', function () {
   describe('initialization', function () {
 
     it('works via a selected jquery element', function () {
-      var readyEvent = sandbox.spy($.fn, 'trigger').withArgs('reading-list-ready');
-
       var $constructedReadingList = $validReadingList.readingList();
 
       var readingList = $validReadingList.data('pluginReadingList');
 
       $constructedReadingList.should.equal($validReadingList);
       readingList.ready.should.be.true;
-      readyEvent.calledOnce.should.be.true;
     });
 
     it('fails with an error when an jquery element selection is empty', function () {
@@ -73,7 +70,7 @@ describe('Reading list', function () {
 
       $validReadingList.find('.reading-list-items').append($item);
 
-      var retrieveSpy = sinon.spy(ReadingList.prototype, 'retrieveListItem');
+      var retrieveSpy = sandbox.spy(ReadingList.prototype, 'retrieveListItem');
 
       var readingList = new ReadingList($validReadingList, {
         selectorsItems: '.item'
@@ -98,13 +95,24 @@ describe('Reading list', function () {
         .append($item2)
         .append($item3);
 
-      var retrieveSpy = sinon.spy(ReadingList.prototype, 'retrieveListItemsTo');
+      var retrieveSpy = sandbox.spy(ReadingList.prototype, 'retrieveListItemsTo');
 
       var readingList = new ReadingList($validReadingList, {
         selectorsItems: '.item'
       });
 
       expect(retrieveSpy.calledWith(jqueryMatcher($item3))).to.be.true;
+    });
+
+    it('should call onReady function if provided', function () {
+      var onReady = sandbox.stub();
+
+      var readingList = new ReadingList($validReadingList, {
+        onReady: onReady
+      });
+
+      onReady.called.should.be.true;
+      onReady.args[0][0].should.equal(readingList);
     });
   });
 
@@ -527,7 +535,6 @@ describe('Reading list', function () {
       var docCallback = sandbox.spy();
 
       readingList.$container.on(
-        'reading-list-ready ' +
         'reading-list-at-top ' +
         'reading-list-at-bottom ' +
         'reading-list-at-bottom-load-threshold ' +
@@ -539,7 +546,6 @@ describe('Reading list', function () {
         'reading-list-start-item-load-done',
         callback);
       $(document).on(
-        'reading-list-ready ' +
         'reading-list-at-top ' +
         'reading-list-at-bottom ' +
         'reading-list-at-bottom-load-threshold ' +
@@ -551,7 +557,6 @@ describe('Reading list', function () {
         'reading-list-start-item-load-done',
         docCallback);
 
-      readingList.$container.trigger('reading-list-ready');
       readingList.$container.trigger('reading-list-at-top');
       readingList.$container.trigger('reading-list-at-bottom');
       readingList.$container.trigger('reading-list-at-bottom-load-threshold');
@@ -562,7 +567,7 @@ describe('Reading list', function () {
       readingList.$container.trigger('reading-list-item-progress');
       readingList.$container.trigger('reading-list-start-item-load-done');
 
-      callback.callCount.should.equal(10);
+      callback.callCount.should.equal(9);
       docCallback.callCount.should.equal(0);
     });
   });

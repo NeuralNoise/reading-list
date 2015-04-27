@@ -88,6 +88,7 @@ Following is a breakdown of the options available for this plugin:
 | ```scrollTotalHeight``` | Set this to use a custom value for scroll total height in calculations. Should be a function that returns an integer which is the total scrollable height of the scroll container. Needed in cases such as when the reading list is entire document and the body should be used for scroll total height calculations. |
 | ```scrollAnimationContainer``` | Set this to use a custom container for scrolling animation. A jQuery object that encapsulates the element that scrolling will occur on. Needed in cases such as when the reading list is entire document and the body should be used for scroll animations. |
 | ```noEventBubbling```| Set to true to stop events from bubbling up the DOM tree, in which case, any event listeners must attach to the reading list element itself. This **must** be set to true for any reading lists that are nested inside another reading list! |
+| ```onReady``` | Set to a function that will fire when the reading list is ready. Reading list object will be passed in as first argument. |
 
 #### Customizing Selectors
 The following selectors can be customized as options of the ```selectors``` option:
@@ -108,7 +109,6 @@ Events applicable to the state of the entire reading list:
 
 | Name | Arguments | Notes |
 |-----:|:----------|:------|
-| ```reading-list-ready```| None | Fires when reading list setup is complete. |
 | ```reading-list-at-top``` | None | Fires when reading list hits the top. |
 | ```reading-list-at-bottom``` | None | Fires when reading list hits the bottom. |
 | ```reading-list-at-bottom-load-threshold``` | None | Triggered when the reading list is nearing the bottom, a threshold specified by ```loadingThreshold``` option. |
