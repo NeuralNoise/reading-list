@@ -1,0 +1,36 @@
+.DS_Store
+node_modules/
+_site/
+Gemfile.lock
+
+# testing junk
+test-output/
+npm-debug.log
+
+# start selectively ignoring stuff in bower_components
+bower_components/*
+
+# include detect mobile
+!bower_components/detect-mobile-browser-tablet-support
+bower_components/detect-mobile-browser-tablet-support/*
+!bower_components/detect-mobile-browser-tablet-support/detectmobilebrowser.js
+
+# include iscroll native
+!bower_components/iscroll-native
+bower_components/iscroll-native/*
+!bower_components/iscroll-native/src
+
+# include jquery
+!bower_components/jquery
+bower_components/jquery/*
+!bower_components/jquery/dist
+
+# include lodash
+!bower_components/lodash
+bower_components/lodash/*
+!bower_components/lodash/lodash.min.js
+
+# include reading list files
+!bower_components/reading-list
+bower_components/reading-list/*
+!bower_components/reading-list/dist

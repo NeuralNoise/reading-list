@@ -1,0 +1,16 @@
+body {
+  padding: 0;
+}
+
+.reading-list-content {
+  padding-right: 20px;
+  width: inherit;
+}
+
+.reading-list-mini-map-item {
+  cursor: pointer;
+}
+
+.reading-list-mini-map-item.sub-item {
+  margin-left: 10px;
+}

@@ -1,0 +1,13 @@
+{
+  "name": "reading-list-gh-page",
+  "version": "0.0.0",
+  "homepage": "https://github.com/theonion/reading-list",
+  "authors": [
+    "Webtech <webtech@theonion.com>"
+  ],
+  "description": "Github page for reading-list project",
+  "license": "MIT",
+  "dependencies": {
+    "reading-list": "0.0.26"
+  }
+}
