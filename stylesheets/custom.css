@@ -7,8 +7,20 @@ body {
   width: inherit;
 }
 
+.reading-list-content .reading-list-items {
+  padding-bottom: 600px;
+}
+
 .reading-list-mini-map-item {
   cursor: pointer;
+}
+
+.reading-list-mini-map-item .mini-map-active-icon {
+  visibility: hidden;
+}
+
+.reading-list-mini-map-item.reading-list-active .mini-map-active-icon {
+  visibility: visible;
 }
 
 .reading-list-mini-map-item.sub-item {

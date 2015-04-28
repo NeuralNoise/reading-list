@@ -1,7 +1,7 @@
 ---
 ---
 
-### Setup
+## Setup
 
 Include the CSS and JS you need to make this run:
 {% highlight html %}
