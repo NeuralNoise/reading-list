@@ -163,19 +163,22 @@ ReadingList.prototype.setup = function () {
  * Initial item loading function to use when reading list is setup.
  */
 ReadingList.prototype.initialLoad = function () {
-  // check if some item in list has been marked with load-first, use to load
-  var $firstLoad = this.$listItems.filter(function () {
-    return $(this).data('loadTo');
-  });
+  
+  if (this.$listItems.length > 0) {
+    // check if some item in list has been marked with load-first, use to load
+    var $firstLoad = this.$listItems.filter(function () {
+      return $(this).data('loadTo');
+    });
 
-  if ($firstLoad.length > 0) {
-    // found an item to load first, retrieve everything up to that point
-    this.retrieveListItemsTo($firstLoad);
-  } else {
-    // no first load specified, just load first item
-    $itemToLoad = $(this.$listItems[0]);
-    if (!$itemToLoad.data('loadStatus')) {
-      this.retrieveListItem($itemToLoad);
+    if ($firstLoad.length > 0) {
+      // found an item to load first, retrieve everything up to that point
+      this.retrieveListItemsTo($firstLoad);
+    } else {
+      // no first load specified, just load first item
+      $itemToLoad = this.$listItems.first();
+      if (!$itemToLoad.data('loadStatus')) {
+        this.retrieveListItem($itemToLoad);
+      }
     }
   }
 };
