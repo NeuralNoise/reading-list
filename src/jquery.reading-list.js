@@ -163,7 +163,7 @@ ReadingList.prototype.setup = function () {
  * Initial item loading function to use when reading list is setup.
  */
 ReadingList.prototype.initialLoad = function () {
-  
+
   if (this.$listItems.length > 0) {
     // check if some item in list has been marked with load-first, use to load
     var $firstLoad = this.$listItems.filter(function () {
@@ -529,15 +529,16 @@ ReadingList.prototype.stopContainerAnimation = function () {
  * Scroll to a given item.
  *
  * @param {jQuery} $item - item to scroll to.
+ * @param {Number} addPx - additional number of pixels to scroll.
  */
-ReadingList.prototype.scrollToItem = function ($item) {
+ReadingList.prototype.scrollToItem = function ($item, addPx) {
 
   // ensure the animation stops when user interaction occurs
   $document.on(MOVEMENTS, this.stopContainerAnimation.bind(this));
 
   // stop any running animations and begin a new one
   this.stopContainerAnimation().animate({
-    scrollTop: $item.position().top
+    scrollTop: $item.position().top + (addPx || 0)
   },
   this.settings.scrollToSpeed,
   (function () {
