@@ -46,11 +46,6 @@ var ReadingList = function ($element, options) {
     //  there are no more items to load. Expected to return a promise that will
     //  resolve with the content to append to the end of the list.
     addContent: false,
-    // a list of events that should cause iscroll to refresh. this is
-    //  necessary whenever an event results in a change of the display of the
-    //  reading list, such as showing/hiding the list. these events should
-    //  trigger somewhere in the document.
-    refreshIScrollOn: [],
     // reading list data transform callback to change received data to html
     dataRetrievalSuccess: function ($item, data) {
       return data;
@@ -148,11 +143,6 @@ ReadingList.prototype.setup = function () {
   this.$container.on('scroll', this.eventing.bind(this));
   $window.on('resize', this.eventing.bind(this));
 
-  // do iscroll if we're on mobile
-  if ($.browser.mobile) {
-    this.setupIScroll();
-  }
-
   // put up a flag once we're done setting up
   this.ready = true;
 
@@ -182,27 +172,6 @@ ReadingList.prototype.initialLoad = function () {
       if (!$itemToLoad.data('loadStatus')) {
         this.retrieveListItem($itemToLoad);
       }
-    }
-  }
-};
-
-/**
- * Using iScroll for reading list.
- */
-ReadingList.prototype.setupIScroll = function () {
-  this.iscrollRef = new IScroll(this.getScrollAnimationContainer()[0], { useNativeScroll: true });
-
-  var refreshDisp = (function () {
-    this.iscrollRef.refresh();
-  }).bind(this);
-
-  // refresh iscroll whenever something is done loading in to list
-  this.$container.on('reading-list-start-item-load-done', refreshDisp);
-  if (this.settings.refreshIScrollOn) {
-    // loop through iscroll refresh events and bind refresher
-    var i;
-    for (i = 0; i < this.settings.refreshIScrollOn.length; i++) {
-      $document.on(this.settings.refreshIScrollOn[i], refreshDisp);
     }
   }
 };

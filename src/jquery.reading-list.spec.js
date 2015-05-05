@@ -465,42 +465,6 @@ describe('Reading list', function () {
 
   });
 
-  describe('mobile support', function () {
-    var iscrollMock;
-    var readingList;
-    var testEventName = 'some-event';
-
-    beforeEach(function () {
-      var browserMock = sandbox.stub($.browser);
-      browserMock.mobile = true;
-
-      iscrollMock = sandbox.stub(window, 'IScroll');
-
-      readingList = new ReadingList($validReadingList, {
-        refreshIScrollOn: [testEventName]
-      });
-
-      readingList.iscrollRef.refresh = sandbox.stub();
-    });
-
-    it('should use iscroll', function () {
-      iscrollMock.calledWithNew().should.be.true;
-      readingList.iscrollRef.should.exist;
-    });
-
-    it('should refresh iscroll when an item is done loading', function () {
-      readingList.$container.trigger('reading-list-start-item-load-done');
-
-      readingList.iscrollRef.refresh.callCount.should.equal(1);
-    });
-
-    it('should refresh iscroll on select events', function () {
-      $(document).trigger(testEventName);
-
-      readingList.iscrollRef.refresh.callCount.should.equal(1);
-    });
-  });
-
   describe('config options', function () {
 
     it('should call out of content function when defined', function () {
@@ -523,7 +487,6 @@ describe('Reading list', function () {
 
       sandbox.stub(ReadingList.prototype, 'miniMapItemActivate');
       sandbox.stub(ReadingList.prototype, 'miniMapItemDeactivate');
-      sandbox.stub(ReadingList.prototype, 'setupIScroll');
       sandbox.stub(ReadingList.prototype, 'startItemLoad');
       sandbox.stub(ReadingList.prototype, 'initialLoad');
       sandbox.stub(ReadingList.prototype, 'unthrottledEventing');

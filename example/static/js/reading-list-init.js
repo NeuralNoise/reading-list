@@ -1,4 +1,4 @@
-(function (window, $, IScroll) {
+(function (window, $) {
   'use strict';
 
   $(document).on('ready', function () {
@@ -18,4 +18,4 @@
 
   });
 
-})(window, $, IScroll);
+})(window, $);
