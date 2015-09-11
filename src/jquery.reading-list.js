@@ -517,10 +517,11 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
       actualScrollTop = $item.position().top + (addPx || 0);
       tween.now = (actualScrollTop / predictedScrollTop) * tween.now;
     },
-    complete: (function () {
+    complete: function () {
       // unbind the scroll stoppage
       $document.off(MOVEMENTS, this.stopContainerAnimation.bind(this));
-    }).bind(this));
+    }.bind(this)
+  });
 };
 
 /**
