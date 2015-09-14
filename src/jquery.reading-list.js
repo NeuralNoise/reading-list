@@ -119,7 +119,7 @@ ReadingList.prototype.setup = function () {
       'reading-list-item-out-looking ' +
       'reading-list-item-progress ' +
       'reading-list-start-item-load-done ' +
-      'reading-list-start-scroll-t ' +
+      'reading-list-start-scroll-to ' +
       'reading-list-end-scroll-to',
       function (e) {
         e.stopPropagation();
@@ -508,7 +508,7 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
   // ensure the animation stops when user interaction occurs
   $document.on(MOVEMENTS, stopContainerAnimation);
 
-  this.$container.trigger('reading-list-start-scroll', [$item]);
+  this.$container.trigger('reading-list-start-scroll-to', [$item]);
   // stop any running animations and begin a new one
   this.stopContainerAnimation().animate({
     scrollTop: $item.position().top + (addPx || 0)
@@ -517,7 +517,7 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
   (function () {
     // unbind the scroll stoppage
     $document.off(MOVEMENTS, stopContainerAnimation);
-    this.$container.trigger('reading-list-end-scroll', [$item]);
+    this.$container.trigger('reading-list-end-scroll-to', [$item]);
   }).bind(this));
 };
 
