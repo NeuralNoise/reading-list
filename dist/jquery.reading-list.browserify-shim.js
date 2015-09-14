@@ -504,19 +504,78 @@ ReadingList.prototype.stopContainerAnimation = function () {
  * @param {Number} addPx - additional number of pixels to scroll.
  */
 ReadingList.prototype.scrollToItem = function ($item, addPx) {
+  function findItemPosition () {
+    return $item.position().top + (addPx || 0);
+  }
+
+  // We need to handle image loading. On slower connections
+  // betty will load images after the reading list animated scrolling
+  // has completed. Between the end of the animation and any user-initiated
+  // motion events, it makes sense to keep the animation container
+  // locked to the top of the item.
+  //
+  // On fast connections, images may load DURING the animation itself.
+  // We need to update the animation on the fly to end up in the correct
+  // end location.
+  //
+  // For images that load after the animation:
+  //
+  // * Bind to img load events when the animation is completed
+  //      When they load, set the scrollTop of the animation container
+  //      to the new top position of the $item
+  // * Unbind img load events when a MOVEMENT event is triggered.
+  //
+  // For images that load during the animation:
+  //
+  // * At each step of the animation, determine the ratio of:
+  //      ratio = top of $item NOW / top of $item at start of animation
+  //      multiply this ratio * the current animation tween value.
+  //
+  //      EX: half way through the animation, the top has changed from 100px to 150px
+  //        ratio = 150px / 100px == 150%
+  //        tween.now == 50px (half of the original 100px target)
+  //        tween.now * ratio == 75px
+  //
+  //      This calculation is carried out every step of the way until the final animation
+  //      converges at the new target value of 150px;
+  function doLockToItemTop (event) {
+    if (lockToItemTop) {
+      animationContainer.scrollTop(findItemPosition());
+      requestAnimationFrame(doLockToItemTop);
+    }
+  }
+
+  var predictedScrollTop = findItemPosition();
+  var actualScrollTop = predictedScrollTop;
+  var stopContainerAnimation = this.stopContainerAnimation.bind(this);
+  var animationContainer = this.getScrollAnimationContainer();
+  var lockToItemTop = true;
 
   // ensure the animation stops when user interaction occurs
-  $document.on(MOVEMENTS, this.stopContainerAnimation.bind(this));
+  $document.on(MOVEMENTS, stopContainerAnimation);
 
   // stop any running animations and begin a new one
   this.stopContainerAnimation().animate({
-    scrollTop: $item.position().top + (addPx || 0)
+    scrollTop: predictedScrollTop,
   },
-  this.settings.scrollToSpeed,
-  (function () {
-    // unbind the scroll stoppage
-    $document.off(MOVEMENTS, this.stopContainerAnimation.bind(this));
-  }).bind(this));
+  {
+    duration: this.settings.scrollToSpeed,
+    step: function (now, tween) {
+      // images may load during the animation
+      actualScrollTop = findItemPosition();
+      tween.now = (actualScrollTop / predictedScrollTop) * tween.now;
+    },
+    complete: function () {
+      // unbind the scroll stoppage
+      $document.off(MOVEMENTS, stopContainerAnimation);
+
+      // img load handler binding/unbinding
+      doLockToItemTop();
+      $document.one(MOVEMENTS, function () {
+        lockToItemTop = false;
+      });
+    }.bind(this)
+  });
 };
 
 /**
