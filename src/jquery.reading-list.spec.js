@@ -250,8 +250,8 @@ describe('Reading list', function () {
 
         readingList.scrollToItem($item3);
 
-        trigger.withArgs('reading-list-start-scroll').callCount.should.equal(1);
-        trigger.withArgs('reading-list-end-scroll').callCount.should.equal(1);
+        trigger.withArgs('reading-list-start-scroll-to').callCount.should.equal(1);
+        trigger.withArgs('reading-list-end-scroll-to').callCount.should.equal(1);
       });
     });
 
@@ -518,8 +518,8 @@ describe('Reading list', function () {
         'reading-list-item-out-looking ' +
         'reading-list-item-progress ' +
         'reading-list-start-item-load-done ' +
-        'reading-list-start-scroll ' +
-        'reading-list-end-scroll',
+        'reading-list-start-scroll-to ' +
+        'reading-list-end-scroll-to',
         callback);
       $(document).on(
         'reading-list-at-top ' +
@@ -531,8 +531,8 @@ describe('Reading list', function () {
         'reading-list-item-out-looking ' +
         'reading-list-item-progress ' +
         'reading-list-start-item-load-done ' +
-        'reading-list-start-scroll ' +
-        'reading-list-end-scroll',
+        'reading-list-start-scroll-to ' +
+        'reading-list-end-scroll-to',
         docCallback);
 
       readingList.$container.trigger('reading-list-at-top');
@@ -544,8 +544,8 @@ describe('Reading list', function () {
       readingList.$container.trigger('reading-list-item-out-looking');
       readingList.$container.trigger('reading-list-item-progress');
       readingList.$container.trigger('reading-list-start-item-load-done');
-      readingList.$container.trigger('reading-list-start-scroll');
-      readingList.$container.trigger('reading-list-end-scroll');
+      readingList.$container.trigger('reading-list-start-scroll-to');
+      readingList.$container.trigger('reading-list-end-scroll-to');
 
       callback.callCount.should.equal(11);
       docCallback.callCount.should.equal(0);

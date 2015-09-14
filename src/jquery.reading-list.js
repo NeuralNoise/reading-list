@@ -119,8 +119,8 @@ ReadingList.prototype.setup = function () {
       'reading-list-item-out-looking ' +
       'reading-list-item-progress ' +
       'reading-list-start-item-load-done ' +
-      'reading-list-start-scroll ' +
-      'reading-list-end-scroll',
+      'reading-list-start-scroll-t ' +
+      'reading-list-end-scroll-to',
       function (e) {
         e.stopPropagation();
       });
