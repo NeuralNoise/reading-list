@@ -503,9 +503,10 @@ ReadingList.prototype.stopContainerAnimation = function () {
 ReadingList.prototype.scrollToItem = function ($item, addPx) {
   var predictedScrollTop = $item.position().top + (addPx || 0);
   var actualScrollTop = predictedScrollTop;
+  var stopContainerAnimation = this.stopContainerAnimation.bind(this);
 
   // ensure the animation stops when user interaction occurs
-  $document.on(MOVEMENTS, this.stopContainerAnimation.bind(this));
+  $document.on(MOVEMENTS, stopContainerAnimation);
 
   // stop any running animations and begin a new one
   this.stopContainerAnimation().animate({
@@ -519,7 +520,7 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
     },
     complete: function () {
       // unbind the scroll stoppage
-      $document.off(MOVEMENTS, this.stopContainerAnimation.bind(this));
+      $document.off(MOVEMENTS, stopContainerAnimation);
     }.bind(this)
   });
 };
