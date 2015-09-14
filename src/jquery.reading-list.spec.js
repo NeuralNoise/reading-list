@@ -678,10 +678,4 @@ describe('Reading list', function () {
     });
   });
 
-  describe('edge cases', function () {
-    var readingList;
-
-
-  });
-
 });
