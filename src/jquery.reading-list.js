@@ -118,7 +118,9 @@ ReadingList.prototype.setup = function () {
       'reading-list-item-in-looking ' +
       'reading-list-item-out-looking ' +
       'reading-list-item-progress ' +
-      'reading-list-start-item-load-done',
+      'reading-list-start-item-load-done ' +
+      'reading-list-start-scroll-to ' +
+      'reading-list-end-scroll-to',
       function (e) {
         e.stopPropagation();
       });
@@ -501,10 +503,12 @@ ReadingList.prototype.stopContainerAnimation = function () {
  * @param {Number} addPx - additional number of pixels to scroll.
  */
 ReadingList.prototype.scrollToItem = function ($item, addPx) {
+  var stopContainerAnimation = this.stopContainerAnimation.bind(this);
 
   // ensure the animation stops when user interaction occurs
-  $document.on(MOVEMENTS, this.stopContainerAnimation.bind(this));
+  $document.on(MOVEMENTS, stopContainerAnimation);
 
+  this.$container.trigger('reading-list-start-scroll-to', [$item]);
   // stop any running animations and begin a new one
   this.stopContainerAnimation().animate({
     scrollTop: $item.position().top + (addPx || 0)
@@ -512,7 +516,8 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
   this.settings.scrollToSpeed,
   (function () {
     // unbind the scroll stoppage
-    $document.off(MOVEMENTS, this.stopContainerAnimation.bind(this));
+    $document.off(MOVEMENTS, stopContainerAnimation);
+    this.$container.trigger('reading-list-end-scroll-to', [$item]);
   }).bind(this));
 };
 

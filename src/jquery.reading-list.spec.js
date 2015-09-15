@@ -242,6 +242,17 @@ describe('Reading list', function () {
         trigger.withArgs('reading-list-at-bottom-load-threshold').callCount.should.equal(1);
         trigger.withArgs('reading-list-out-of-content').callCount.should.equal(1);
       });
+
+      it('when scrolling to an item', function () {
+
+        readingList.settings.scrollToSpeed = 0;
+        readingList.unthrottledEventing();
+
+        readingList.scrollToItem($item3);
+
+        trigger.withArgs('reading-list-start-scroll-to').callCount.should.equal(1);
+        trigger.withArgs('reading-list-end-scroll-to').callCount.should.equal(1);
+      });
     });
 
     describe('an individual item', function () {
@@ -506,7 +517,9 @@ describe('Reading list', function () {
         'reading-list-item-in-looking ' +
         'reading-list-item-out-looking ' +
         'reading-list-item-progress ' +
-        'reading-list-start-item-load-done',
+        'reading-list-start-item-load-done ' +
+        'reading-list-start-scroll-to ' +
+        'reading-list-end-scroll-to',
         callback);
       $(document).on(
         'reading-list-at-top ' +
@@ -517,7 +530,9 @@ describe('Reading list', function () {
         'reading-list-item-in-looking ' +
         'reading-list-item-out-looking ' +
         'reading-list-item-progress ' +
-        'reading-list-start-item-load-done',
+        'reading-list-start-item-load-done ' +
+        'reading-list-start-scroll-to ' +
+        'reading-list-end-scroll-to',
         docCallback);
 
       readingList.$container.trigger('reading-list-at-top');
@@ -529,8 +544,10 @@ describe('Reading list', function () {
       readingList.$container.trigger('reading-list-item-out-looking');
       readingList.$container.trigger('reading-list-item-progress');
       readingList.$container.trigger('reading-list-start-item-load-done');
+      readingList.$container.trigger('reading-list-start-scroll-to');
+      readingList.$container.trigger('reading-list-end-scroll-to');
 
-      callback.callCount.should.equal(9);
+      callback.callCount.should.equal(11);
       docCallback.callCount.should.equal(0);
     });
   });
