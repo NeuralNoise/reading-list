@@ -10,9 +10,9 @@ var loadStatus = {
   FAILED: 'failed'
 };
 
-var loaddirection = {
-  none: false,
-  down: 'down'
+var loadDirection = {
+  NONE: false,
+  DOWN: 'down'
 };
 
 
