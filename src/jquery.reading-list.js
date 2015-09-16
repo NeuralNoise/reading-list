@@ -91,6 +91,8 @@ var ReadingList = function ($element, options) {
   this.$miniMapItems = $(this.settings.selectorsMiniMapItems);
 
   this.setup();
+
+  this.itemCappingAnimationLoop();
 };
 
 /**
