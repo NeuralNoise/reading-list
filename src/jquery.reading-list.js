@@ -10,10 +10,13 @@ var loadStatus = {
   FAILED: 'failed'
 };
 
-var loadDirection = {
-  NONE: false,
-  DOWN: 'down'
+var loaddirection = {
+  none: false,
+  down: 'down'
 };
+
+
+var CAPPED_ITEM_CLASS = 'reading-list-capped-item';
 
 var $window = $(window);
 var $document = $(window.document);
