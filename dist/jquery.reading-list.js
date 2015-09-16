@@ -358,6 +358,96 @@ ReadingList.prototype.unthrottledEventing = function () {
 };
 
 /**
+ * Cap the height of items that are entirely above the viewport.
+ * handles adjusting the scroll offset to ensure a smooth user scrolling experience.
+ */
+ReadingList.prototype.capItems = function () {
+  // Cap the height of items above the top of the viewport.
+  // Items above the viewport may resize themselves as dynamic
+  // content loads.
+
+  function capItem ($item, why) {
+    if ($item.hasClass(CAPPED_ITEM_CLASS)) {
+      return;
+    }
+    var startScrollTop = $container[0].scrollTop;
+    var preCapHeight = $item[0].scrollHeight;
+    $item.addClass(CAPPED_ITEM_CLASS);
+    var diff = preCapHeight - $item[0].offsetHeight;
+    var scrollTopDiff = startScrollTop - $container[0].scrollTop;
+    diff -= scrollTopDiff;
+    $container[0].scrollTop -= diff;
+  }
+
+  function uncapItem ($item, why) {
+    if (!$item.hasClass(CAPPED_ITEM_CLASS)) {
+      return;
+    }
+    //var startScrollTop = $container[0].scrollTop;
+    var preUncapHeight = $item[0].offsetHeight;
+    $item.removeClass(CAPPED_ITEM_CLASS);
+    var diff = $item[0].scrollHeight - preUncapHeight;
+    $container[0].scrollTop += diff;
+  }
+
+  var $container = this.getScrollAnimationContainer();
+
+  // Cache the scroll position and container height so we can bypass
+  // all capping checks on most frames. (this whole check took < 1ms
+  // per frame on my dev machine)
+  if ($container.scrollTop() === this.lastScrollTop && this.lastHeight === $container.outerHeight()) {
+    // no-op on animation
+    return;
+  }
+  this.lastScrollTop = $container.scrollTop();
+  this.lastHeight = $container.outerHeight();
+
+  this.$listItems.each(function () {
+    var $item = $(this);
+    // check yourself before you rect yourself
+    //    (very important comment, do not delete -CM )
+    var rect = this.getBoundingClientRect();
+    var isCapped = $item.hasClass(CAPPED_ITEM_CLASS);
+
+    if (rect.bottom < 0) {
+      // rectangle  is entirely above the viewport
+      capItem($item, 'above');
+    }
+    else if ( rect.top < 0 && rect.bottom > 0 && rect.bottom <= innerHeight) {
+      // rectangle intersects the top boundary of the viewport
+      uncapItem($item, 'x-top');
+    }
+    else if (rect.top <=0 && rect.bottom >= innerHeight) {
+      // rectangle intersects the top and the bottom of the viewport
+      uncapItem($item, 'x-both');
+    }
+    else if (rect.top >= 0 && rect.bottom <= innerHeight) {
+      // rectangle is entirely visible
+      uncapItem($item, 'visible');
+    }
+    else if (rect.top >= 0 && rect.top <= innerHeight && rect.bottom > innerHeight) {
+      // rectangle intersects the bottom boundary of the viewport
+      uncapItem($item, 'x-bottom');
+    }
+    else if (rect.top > innerHeight) {
+      // rectangle is entirely below the viewport
+      uncapItem($item, 'below');
+    }
+
+  });
+};
+
+/**
+ * Queues capping item heights for the next animaiton frame. And loops forever.
+ */
+ReadingList.prototype.itemCappingAnimationLoop = function () {
+  requestAnimationFrame(function () {
+    this.capItems();
+    this.itemCappingAnimationLoop();
+  }.bind(this));
+};
+
+/**
  * GET an item from reading list. Returns a promise that resolves when the
  *   response comes back from the server and html is loaded in to the page.
  */
@@ -503,7 +593,18 @@ ReadingList.prototype.stopContainerAnimation = function () {
  * @param {Number} addPx - additional number of pixels to scroll.
  */
 ReadingList.prototype.scrollToItem = function ($item, addPx) {
+  // We need to handle cases where the top position of the target item
+  // changes while we are animating.
+  // This tweaks the tween value per-step based on changes to the
+  // actual top position of the target item.
+  function findItemPosition () {
+    return $item.position().top + (addPx || 0);
+  }
+
+  var predictedScrollTop = findItemPosition();
+  var actualScrollTop = predictedScrollTop;
   var stopContainerAnimation = this.stopContainerAnimation.bind(this);
+  var animationContainer = this.getScrollAnimationContainer();
 
   // ensure the animation stops when user interaction occurs
   $document.on(MOVEMENTS, stopContainerAnimation);
@@ -511,14 +612,22 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
   this.$container.trigger('reading-list-start-scroll-to', [$item]);
   // stop any running animations and begin a new one
   this.stopContainerAnimation().animate({
-    scrollTop: $item.position().top + (addPx || 0)
+    scrollTop: predictedScrollTop,
   },
-  this.settings.scrollToSpeed,
-  (function () {
-    // unbind the scroll stoppage
-    $document.off(MOVEMENTS, stopContainerAnimation);
-    this.$container.trigger('reading-list-end-scroll-to', [$item]);
-  }).bind(this));
+  {
+    duration: this.settings.scrollToSpeed,
+    step: function (now, tween) {
+      // images may load during the animation
+      actualScrollTop = findItemPosition();
+      if (predictedScrollTop !== 0) {
+        tween.now = (actualScrollTop / predictedScrollTop) * tween.now;
+      }
+    },
+    complete: function () {
+      // unbind the scroll stoppage
+      $document.off(MOVEMENTS, stopContainerAnimation);
+    }.bind(this)
+  });
 };
 
 /**
