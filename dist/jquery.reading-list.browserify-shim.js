@@ -634,7 +634,7 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
     complete: function () {
       // unbind the scroll stoppage
       $document.off(MOVEMENTS, stopContainerAnimation);
-      this.$container.trigger('reading-list-start-scroll-to', [$item]);
+      this.$container.trigger('reading-list-end-scroll-to', [$item]);
     }.bind(this)
   });
 };
