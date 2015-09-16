@@ -144,3 +144,10 @@ If you'd like to see the example, clone down this code, then:
 $ cd reading-list
 $ npm run-script example
 ```
+
+## Running Tests/Development
+```bash
+npm install
+bower install
+npm test
+```
