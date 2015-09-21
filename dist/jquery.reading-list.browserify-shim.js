@@ -349,7 +349,10 @@ ReadingList.prototype.unthrottledEventing = function () {
   //
   // iff x - z - y <= a then past loading threshold
   var loadBot = false;
-  if (scrollTotalHeight - scrollTop - scrollContainerHeight <= this.settings.loadingThreshold) {
+  if ($.isFunction(this.settings.checkBottomLoadingThreshold)) {
+    loadBot = this.settings.checkBottomLoadingThreshold();
+  }
+  else if (scrollTotalHeight - scrollTop - scrollContainerHeight <= this.settings.loadingThreshold) {
     // we're in the bottom loading threshold
     this.$container.trigger('reading-list-at-bottom-load-threshold');
     // flag that we need to load something bot
