@@ -117,11 +117,11 @@ ReadingList.prototype.setup = function () {
       'reading-list-at-bottom ' +
       'reading-list-at-bottom-load-threshold ' +
       'reading-list-out-of-content ' +
-      'reading-list-start-item-load ' +
+      'reading-list-item-load-start ' +
       'reading-list-item-in-looking ' +
       'reading-list-item-out-looking ' +
       'reading-list-item-progress ' +
-      'reading-list-start-item-load-done ' +
+      'reading-list-item-load-done ' +
       'reading-list-start-scroll-to ' +
       'reading-list-end-scroll-to',
       function (e) {
@@ -130,7 +130,7 @@ ReadingList.prototype.setup = function () {
   }
 
   // set up some default event callbacks
-  this.$container.on('reading-list-start-item-load', this.startItemLoad.bind(this));
+  this.$container.on('reading-list-item-load-start', this.startItemLoad.bind(this));
   this.$container.on('reading-list-item-in-looking', this.miniMapItemActivate.bind(this));
   this.$container.on('reading-list-item-out-looking', this.miniMapItemDeactivate.bind(this));
   if (this.settings.addContent) {
@@ -252,7 +252,7 @@ ReadingList.prototype.itemEventing = function (loadBot) {
         loadingBotCounter < loadingBotMax && loadBot &&
         $item.prev().data('loadStatus') === loadStatus.LOADED) {
       // fire event telling loading to start
-      this.$container.trigger('reading-list-start-item-load', [$item, loadDirection.DOWN]);
+      this.$container.trigger('reading-list-item-load-start', [$item, loadDirection.DOWN]);
       // this item is going to be loading, count it
       loadingBotCounter++;
     } else if ($item.data('loadStatus') === loadStatus.LOADED) {
@@ -404,7 +404,7 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
       // do eventing
       self.eventing();
       // event that tells us something is done loading
-      self.$container.trigger('reading-list-start-item-load-done', [$readingListItem]);
+      self.$container.trigger('reading-list-item-load-done', [$readingListItem]);
     });
 };
 
@@ -476,7 +476,7 @@ ReadingList.prototype.appendItem = function (html) {
   // finally, append item to reading list
   this.$itemsContainer.append($item);
   // let others know a new item has loaded
-  this.$container.trigger('reading-list-start-item-load-done', [$item]);
+  this.$container.trigger('reading-list-item-load-done', [$item]);
 
   return $item;
 };

@@ -262,7 +262,7 @@ describe('Reading list', function () {
         var loaded = readingList.itemEventing(true);
 
         // sort out trigger calls
-        var events = trigger.withArgs('reading-list-start-item-load');
+        var events = trigger.withArgs('reading-list-item-load-start');
         events.callCount.should.equal(1);
 
         // check the arguments that will be given to callbacks for this event
@@ -439,7 +439,7 @@ describe('Reading list', function () {
       readingList.eventing.callCount.should.equal(1);
 
       // check load done event
-      var events = trigger.withArgs('reading-list-start-item-load-done');
+      var events = trigger.withArgs('reading-list-item-load-done');
       events.callCount.should.equal(1);
       expect(jqueryMatcher($item1).test(events.args[0][1][0])).to.be.true;
     });
@@ -469,7 +469,7 @@ describe('Reading list', function () {
       readingList.eventing.callCount.should.equal(1);
 
       // check load done event
-      var events = trigger.withArgs('reading-list-start-item-load-done');
+      var events = trigger.withArgs('reading-list-item-load-done');
       events.callCount.should.equal(1);
       expect(jqueryMatcher($item1).test(events.args[0][1][0])).to.be.true;
     });
@@ -513,11 +513,11 @@ describe('Reading list', function () {
         'reading-list-at-bottom ' +
         'reading-list-at-bottom-load-threshold ' +
         'reading-list-out-of-content ' +
-        'reading-list-start-item-load ' +
+        'reading-list-item-load-start ' +
         'reading-list-item-in-looking ' +
         'reading-list-item-out-looking ' +
         'reading-list-item-progress ' +
-        'reading-list-start-item-load-done ' +
+        'reading-list-item-load-done ' +
         'reading-list-start-scroll-to ' +
         'reading-list-end-scroll-to',
         callback);
@@ -526,11 +526,11 @@ describe('Reading list', function () {
         'reading-list-at-bottom ' +
         'reading-list-at-bottom-load-threshold ' +
         'reading-list-out-of-content ' +
-        'reading-list-start-item-load ' +
+        'reading-list-item-load-start ' +
         'reading-list-item-in-looking ' +
         'reading-list-item-out-looking ' +
         'reading-list-item-progress ' +
-        'reading-list-start-item-load-done ' +
+        'reading-list-item-load-done ' +
         'reading-list-start-scroll-to ' +
         'reading-list-end-scroll-to',
         docCallback);
@@ -539,11 +539,11 @@ describe('Reading list', function () {
       readingList.$container.trigger('reading-list-at-bottom');
       readingList.$container.trigger('reading-list-at-bottom-load-threshold');
       readingList.$container.trigger('reading-list-out-of-content');
-      readingList.$container.trigger('reading-list-start-item-load');
+      readingList.$container.trigger('reading-list-item-load-start');
       readingList.$container.trigger('reading-list-item-in-looking');
       readingList.$container.trigger('reading-list-item-out-looking');
       readingList.$container.trigger('reading-list-item-progress');
-      readingList.$container.trigger('reading-list-start-item-load-done');
+      readingList.$container.trigger('reading-list-item-load-done');
       readingList.$container.trigger('reading-list-start-scroll-to');
       readingList.$container.trigger('reading-list-end-scroll-to');
 

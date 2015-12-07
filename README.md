@@ -118,11 +118,11 @@ Events applicable to individual reading list items:
 
 | Name | Arguments | Notes |
 |-----:|:----------|:------|
-| ```reading-list-start-item-load``` | ```$item``` ```direction``` | ```$item``` is starting to load, triggered by a scrolling ```direction```. |
+| ```reading-list-item-load-start``` | ```$item``` ```direction``` | ```$item``` is starting to load, triggered by a scrolling ```direction```. |
 | ```reading-list-item-in-looking``` | ```$item``` | ```$item``` has entered the looking area and is the active item. |
 | ```reading-list-item-out-looking``` | ```$item``` | ```$item``` has fallen out of the looking area and is no longer the active item. |
 | ```reading-list-item-progress``` | ```$item``` ```progress``` | Has viewed ```progress``` ratio of the entire ```$item```. Use to update progress bars. To make ```progress``` a percentage, do ```progress * 100```.  |
-| ```reading-list-start-item-load-done``` | ```$item``` | ```$item``` is done loading. |
+| ```reading-list-item-load-done``` | ```$item``` | ```$item``` is done loading. |
 | ```reading-list-start-scroll-to```|```$item```|```$item``` is being scrolled into view.|
 | ```reading-list-end-scroll-to```|```$item```|```$item``` has been scrolled into view.|
 
