@@ -345,6 +345,7 @@ describe('Reading list', function () {
       it('showing what percentage of it has been viewed', function () {
         // stub out within looking area function to test separately
         var withinLookingArea = sandbox.stub(readingList, 'withinLookingArea');
+        var doItemEvent = sandbox.spy(readingList, 'doItemEvent');
 
         // pretend item2 is in the looking area
         readingList.$activeItem = $item1;
@@ -380,23 +381,25 @@ describe('Reading list', function () {
         readingList.itemEventing(true);
 
         // sort out trigger calls
+        var doItemEventCalls = doItemEvent.withArgs('reading-list-item-progress');
         var events = trigger.withArgs('reading-list-item-progress');
         events.callCount.should.equal(3);
+        doItemEventCalls.callCount.should.equal(3);
 
         // check 0% call
         var callbackArgs1 = events.args[0][1];
         expect(jqueryMatcher($item1).test(callbackArgs1[0])).to.be.true;
-        expect(callbackArgs1[1]).to.equal(0);
+        expect(callbackArgs1[2]).to.equal(0);
 
         // check 45% call
         var callbackArgs2 = events.args[1][1];
         expect(jqueryMatcher($item1).test(callbackArgs2[0])).to.be.true;
-        expect(callbackArgs2[1]).to.equal(0.45);
+        expect(callbackArgs2[2]).to.equal(0.45);
 
         // check over 100% call
         var callbackArgs3 = events.args[2][1];
         expect(jqueryMatcher($item1).test(callbackArgs3[0])).to.be.true;
-        expect(callbackArgs3[1]).to.equal(1.0);
+        expect(callbackArgs3[2]).to.equal(1.0);
       });
     });
   });

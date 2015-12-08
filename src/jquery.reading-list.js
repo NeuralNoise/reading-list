@@ -326,7 +326,7 @@ ReadingList.prototype.itemEventing = function (loadBot) {
     var ratioViewed = (-bounding.top + this.settings.lookingThresholdBottom) /
       bounding.height;
     var progress = ratioViewed <= 1.0 ? ratioViewed : 1.0;
-    this.$container.trigger('reading-list-item-progress', [this.$activeItem, progress]);
+    this.doItemEvent('reading-list-item-progress', this.$activeItem, progress);
   }
 
   return loadedCounter;
