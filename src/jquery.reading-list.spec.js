@@ -445,6 +445,8 @@ describe('Reading list', function () {
       var responseContent = '<div>some html content</div>';
       var success = sandbox.stub();
 
+      var doItemEvent = sandbox.stub(readingList, 'doItemEvent');
+
       readingList.settings.dataRetrievalSuccess = success;
       success.returns(responseContent);
 
@@ -466,16 +468,15 @@ describe('Reading list', function () {
       $item1.html().should.equal(responseContent);
       readingList.eventing.callCount.should.equal(1);
 
-      // check load done event
-      var events = trigger.withArgs('reading-list-item-load-done');
-      events.callCount.should.equal(1);
-      expect(jqueryMatcher(events.args[0][1][0]).test($item1)).to.be.true;
-      expect(events.args[0][1][1]).to.equal(1);
+      var doItemEventCalls = doItemEvent.withArgs('reading-list-item-load-done');
+      doItemEventCalls.callCount.should.equal(1);
     });
 
     it('should update item element on failure', function () {
       var responseContent = '<div>some html content</div>';
       var fail = sandbox.stub();
+
+      var doItemEvent = sandbox.stub(readingList, 'doItemEvent');
 
       readingList.settings.dataRetrievalFail = fail;
       fail.returns(responseContent);
@@ -497,12 +498,8 @@ describe('Reading list', function () {
       $item1.html().should.equal(responseContent);
       readingList.eventing.callCount.should.equal(1);
 
-      // check load done event
-      var events = trigger.withArgs('reading-list-item-load-done');
-      events.callCount.should.equal(1);
-      console.log(events.args[0])
-      expect(jqueryMatcher(events.args[0][1][0]).test($item1)).to.be.true;
-      expect(events.args[0][1][1]).to.equal(1);
+      var doItemEventCalls = doItemEvent.withArgs('reading-list-item-load-done');
+      doItemEventCalls.callCount.should.equal(1);
     });
 
   });
