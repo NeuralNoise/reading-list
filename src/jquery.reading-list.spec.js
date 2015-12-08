@@ -266,9 +266,9 @@ describe('Reading list', function () {
         var args = [arg1, arg2, arg3];
 
         var numberOfCalls = 3;
-        readingList.doItemEvent(eventName, $item1, args);
-        readingList.doItemEvent(eventName, $item1, args);
-        readingList.doItemEvent(eventName, $item1, args);
+        readingList.doItemEvent(eventName, $item1, args, true);
+        readingList.doItemEvent(eventName, $item1, args, true);
+        readingList.doItemEvent(eventName, $item1, args, true);
 
         var events = trigger.withArgs(eventName);
         events.callCount.should.equal(numberOfCalls);
@@ -469,7 +469,8 @@ describe('Reading list', function () {
       // check load done event
       var events = trigger.withArgs('reading-list-item-load-done');
       events.callCount.should.equal(1);
-      expect(jqueryMatcher($item1).test(events.args[0][1][0])).to.be.true;
+      expect(jqueryMatcher(events.args[0][1][0]).test($item1)).to.be.true;
+      expect(events.args[0][1][1]).to.equal(1);
     });
 
     it('should update item element on failure', function () {
@@ -499,7 +500,9 @@ describe('Reading list', function () {
       // check load done event
       var events = trigger.withArgs('reading-list-item-load-done');
       events.callCount.should.equal(1);
-      expect(jqueryMatcher($item1).test(events.args[0][1][0])).to.be.true;
+      console.log(events.args[0])
+      expect(jqueryMatcher(events.args[0][1][0]).test($item1)).to.be.true;
+      expect(events.args[0][1][1]).to.equal(1);
     });
 
   });

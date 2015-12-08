@@ -236,20 +236,20 @@ ReadingList.prototype.getScrollAnimationContainer = function () {
  * @param {String} name - name of event to trigger.
  * @param {Object} $item - item that event should trigger for.
  * @param {Array} args - arguments to pass into trigger.
+ * @param {Boolean} countCalls - true to increment trigger counter.
  * @returns {undefined}
  */
-ReadingList.prototype.doItemEvent = function (name, $item, args) {
-  var eventTracker = $item.data('eventTracker');
+ReadingList.prototype.doItemEvent = function (name, $item, args, countCalls) {
+  var eventTracker = $item.data('eventTracker') || {};
 
-  if (typeof(eventTracker) !== 'object') {
-    $item.data('eventTracker', {});
-    eventTracker = $item.data('eventTracker');
-  }
+  if (countCalls) {
+    if (eventTracker.hasOwnProperty(name)) {
+      eventTracker[name]++;
+    } else {
+      eventTracker[name] = 1;
+    }
 
-  if (eventTracker.hasOwnProperty(name)) {
-    eventTracker[name]++;
-  } else {
-    eventTracker[name] = 1;
+    $item.data('eventTracker', eventTracker);
   }
 
   this.$container.trigger(name, [$item, eventTracker[name]].concat(args));
@@ -277,7 +277,7 @@ ReadingList.prototype.itemEventing = function (loadBot) {
         loadingBotCounter < loadingBotMax && loadBot &&
         $item.prev().data('loadStatus') === loadStatus.LOADED) {
       // fire event telling loading to start
-      this.doItemEvent('reading-list-item-load-start', $item, loadDirection.DOWN);
+      this.doItemEvent('reading-list-item-load-start', $item, loadDirection.DOWN, true);
       // this item is going to be loading, count it
       loadingBotCounter++;
     } else if ($item.data('loadStatus') === loadStatus.LOADED) {
@@ -429,7 +429,7 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
       // do eventing
       self.eventing();
       // event that tells us something is done loading
-      self.$container.trigger('reading-list-item-load-done', [$readingListItem]);
+      self.doItemEvent('reading-list-item-load-done', $readingListItem, [], true);
     });
 };
 
@@ -501,7 +501,7 @@ ReadingList.prototype.appendItem = function (html) {
   // finally, append item to reading list
   this.$itemsContainer.append($item);
   // let others know a new item has loaded
-  this.$container.trigger('reading-list-item-load-done', [$item]);
+  this.doItemEvent('reading-list-item-load-done', $item, [], true);
 
   return $item;
 };
