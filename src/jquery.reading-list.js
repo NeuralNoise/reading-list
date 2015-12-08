@@ -277,7 +277,7 @@ ReadingList.prototype.itemEventing = function (loadBot) {
         loadingBotCounter < loadingBotMax && loadBot &&
         $item.prev().data('loadStatus') === loadStatus.LOADED) {
       // fire event telling loading to start
-      this.doItemEvent('reading-list-item-load-start', $item, [loadDirection.DOWN]);
+      this.doItemEvent('reading-list-item-load-start', $item, loadDirection.DOWN);
       // this item is going to be loading, count it
       loadingBotCounter++;
     } else if ($item.data('loadStatus') === loadStatus.LOADED) {

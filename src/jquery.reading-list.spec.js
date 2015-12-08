@@ -287,34 +287,19 @@ describe('Reading list', function () {
       });
 
       it('when it starts loading', function () {
-        // do eventing for items
+        var doItemEvent = sandbox.stub(readingList, 'doItemEvent');
         var loaded = readingList.itemEventing(true);
 
-        // sort out trigger calls
-        var events = trigger.withArgs('reading-list-item-load-start');
-        events.callCount.should.equal(1);
+        var calls = doItemEvent.withArgs('reading-list-item-load-start');
+        calls.callCount.should.equal(1);
 
-        // check the arguments that will be given to callbacks for this event
-        var callbackArgs = events.args[0][1];
-        expect(jqueryMatcher($item2).test(callbackArgs[0])).to.be.true;
-        callbackArgs[2].should.equal('down');
+        var args = calls.args[0];
+
+        expect(jqueryMatcher(args[1]).test($item2)).to.be.true;
+        args[2].should.equal('down');
 
         // only 1 item was previously loaded
         loaded.should.equal(1);
-      });
-
-      it('when it starts loading, uniquely the first time', function () {
-        // fire events
-        readingList.itemEventing(true);
-        readingList.itemEventing(true);
-        readingList.itemEventing(true);
-
-        var events = trigger.withArgs('reading-list-item-load-start');
-        events.callCount.should.equal(3);
-
-        expect(events.args[0][1][1]).to.equal(1);
-        expect(events.args[1][1][1]).to.equal(2);
-        expect(events.args[2][1][1]).to.equal(3);
       });
 
       it('when it falls into the view', function () {
