@@ -104,28 +104,33 @@ Note, also, that any styles that come along with the plugin must be applied to t
 Following are events you can hook into as the page scrolls. Note: all events are triggered on the container used to build the reading list, so in the example, it would be on the ```#readingList``` element.
 
 #### Reading List Events
-Events applicable to the state of the entire reading list:
+Events applicable to the state of the entire reading list. No arguments are given
+to event callbacks.
 
-| Name | Arguments | Notes |
+| Name | Notes |
 |-----:|:----------|:------|
-| ```reading-list-at-top``` | None | Fires when reading list hits the top. |
-| ```reading-list-at-bottom``` | None | Fires when reading list hits the bottom. |
-| ```reading-list-at-bottom-load-threshold``` | None | Triggered when the reading list is nearing the bottom, a threshold specified by ```loadingThreshold``` option. |
-| ```reading-list-out-of-content``` | None | Reading list has run out of content. Internally, if ```addContent``` is defined it will be used when this event triggers to add new content to the end of the reading list. |
+| ```reading-list-at-top``` | Fires when reading list hits the top. |
+| ```reading-list-at-bottom``` | Fires when reading list hits the bottom. |
+| ```reading-list-at-bottom-load-threshold``` | Triggered when the reading list is nearing the bottom, a threshold specified by ```loadingThreshold``` option. |
+| ```reading-list-out-of-content``` | Reading list has run out of content. Internally, if ```addContent``` is defined it will be used when this event triggers to add new content to the end of the reading list. |
 
 #### Item Events
-Events applicable to individual reading list items. Note that ```callCount``` refers
-to the number of times the given event has been triggered on that item.
+Events applicable to individual reading list items. Note that:
+1. All event callbacks are given the ```$item``` the event is for as the first
+argument.
+2. The ```Arguments``` listed are keys of the second argument into the callback.
+3. ```callCount``` refers to the number of times the given event has been
+triggered on that item.
 
 | Name | Arguments | Notes |
 |-----:|:----------|:------|
-| ```reading-list-item-load-start``` | ```$item``` ```callCount``` ```direction``` | ```$item``` is starting to load, triggered by a scrolling ```direction```. |
-| ```reading-list-item-load-done``` | ```$item``` ```callCount``` | ```$item``` is done loading. |
-| ```reading-list-item-in-looking``` | ```$item``` ```callCount``` | ```$item``` has entered the looking area and is the active item. |
-| ```reading-list-item-out-looking``` | ```$item``` ```callCount``` | ```$item``` has fallen out of the looking area and is no longer the active item. |
-| ```reading-list-item-progress``` | ```$item``` ```progress``` | Has viewed ```progress``` ratio of the entire ```$item```. Use to update progress bars. To make ```progress``` a percentage, do ```progress * 100```.  |
-| ```reading-list-start-scroll-to```|```$item```|```$item``` is being scrolled into view.|
-| ```reading-list-end-scroll-to```|```$item```|```$item``` has been scrolled into view.|
+| ```reading-list-item-load-start``` | ```callCount``` ```direction``` | ```$item``` is starting to load, triggered by a scrolling ```direction```. |
+| ```reading-list-item-load-done``` | ```callCount``` | ```$item``` is done loading. |
+| ```reading-list-item-in-looking``` | ```callCount``` | ```$item``` has entered the looking area and is the active item. |
+| ```reading-list-item-out-looking``` | ```callCount``` | ```$item``` has fallen out of the looking area and is no longer the active item. |
+| ```reading-list-item-progress``` | ```progress``` | Has viewed ```progress``` ratio of the entire ```$item```. Use to update progress bars. To make ```progress``` a percentage, do ```progress * 100```.  |
+| ```reading-list-start-scroll-to```| None |```$item``` is being scrolled into view.|
+| ```reading-list-end-scroll-to```| None |```$item``` has been scrolled into view.|
 
 ## Usage Notes
 

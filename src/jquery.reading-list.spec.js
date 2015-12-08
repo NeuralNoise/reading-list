@@ -264,7 +264,11 @@ describe('Reading list', function () {
         var arg1 = 'one';
         var arg2 = 'two';
         var arg3 = 'three';
-        var args = [arg1, arg2, arg3];
+        var args = {
+          arg1: arg1,
+          arg2: arg2,
+          arg3: arg3
+        };
 
         var numberOfCalls = 3;
         readingList.doItemEvent(eventName, $item1, args, true);
@@ -278,10 +282,10 @@ describe('Reading list', function () {
         events.args.forEach(function (argList) {
           expect(argList[0]).to.equal(eventName);
           expect(jqueryMatcher(argList[1][0]).test($item1)).to.be.true;
-          expect(argList[1][1]).to.equal(++callCount);
-          expect(argList[1][2]).to.equal(arg1);
-          expect(argList[1][3]).to.equal(arg2);
-          expect(argList[1][4]).to.equal(arg3);
+          expect(argList[1][1].callCount).to.equal(++callCount);
+          expect(argList[1][1].arg1).to.equal(arg1);
+          expect(argList[1][1].arg2).to.equal(arg2);
+          expect(argList[1][1].arg3).to.equal(arg3);
         });
 
         expect(callCount).to.equal(numberOfCalls);
@@ -297,7 +301,7 @@ describe('Reading list', function () {
         var args = calls.args[0];
 
         expect(jqueryMatcher(args[1]).test($item2)).to.be.true;
-        args[2].should.equal('down');
+        args[2].direction.should.equal('down');
 
         // only 1 item was previously loaded
         loaded.should.equal(1);
@@ -390,17 +394,17 @@ describe('Reading list', function () {
         // check 0% call
         var callbackArgs1 = events.args[0][1];
         expect(jqueryMatcher($item1).test(callbackArgs1[0])).to.be.true;
-        expect(callbackArgs1[2]).to.equal(0);
+        expect(callbackArgs1[1].progress).to.equal(0);
 
         // check 45% call
         var callbackArgs2 = events.args[1][1];
         expect(jqueryMatcher($item1).test(callbackArgs2[0])).to.be.true;
-        expect(callbackArgs2[2]).to.equal(0.45);
+        expect(callbackArgs2[1].progress).to.equal(0.45);
 
         // check over 100% call
         var callbackArgs3 = events.args[2][1];
         expect(jqueryMatcher($item1).test(callbackArgs3[0])).to.be.true;
-        expect(callbackArgs3[2]).to.equal(1.0);
+        expect(callbackArgs3[1].progress).to.equal(1.0);
       });
     });
   });

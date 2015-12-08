@@ -229,20 +229,18 @@ ReadingList.prototype.getScrollAnimationContainer = function () {
 
 /**
  * Trigger an event on an item and track the number of times it's been called.
- *  By default, the trigger will get the $item as the first argument, the count
- *  of the number of times the event has been called as the second, and an unpacked
- *  args array as the third through the last.
  *
  * @param {String} name - name of event to trigger.
  * @param {Object} $item - item that event should trigger for.
- * @param {Array} args - arguments to pass into trigger.
- * @param {Boolean} countCalls - true to increment trigger counter.
+ * @param {Object} [kwargs] - arguments object to pass into trigger.
+ * @param {Boolean} [countCalls] - true to increment trigger counter.
  * @returns {undefined}
  */
-ReadingList.prototype.doItemEvent = function (name, $item, args, countCalls) {
+ReadingList.prototype.doItemEvent = function (name, $item, kwargs, countCalls) {
+  var doCountCalls = typeof(kwargs) === 'boolean' ? kwargs : countCalls;
   var eventTracker = $item.data('eventTracker') || {};
 
-  if (countCalls) {
+  if (doCountCalls) {
     if (eventTracker.hasOwnProperty(name)) {
       eventTracker[name]++;
     } else {
@@ -252,7 +250,12 @@ ReadingList.prototype.doItemEvent = function (name, $item, args, countCalls) {
     $item.data('eventTracker', eventTracker);
   }
 
-  this.$container.trigger(name, [$item, eventTracker[name]].concat(args));
+  this.$container.trigger(name, [
+    $item,
+    $.extend({
+      callCount: eventTracker[name],
+    }, kwargs)
+  ]);
 };
 
 /**
@@ -277,7 +280,12 @@ ReadingList.prototype.itemEventing = function (loadBot) {
         loadingBotCounter < loadingBotMax && loadBot &&
         $item.prev().data('loadStatus') === loadStatus.LOADED) {
       // fire event telling loading to start
-      this.doItemEvent('reading-list-item-load-start', $item, loadDirection.DOWN, true);
+      this.doItemEvent(
+        'reading-list-item-load-start',
+        $item,
+        { direction: loadDirection.DOWN },
+        true
+      );
       // this item is going to be loading, count it
       loadingBotCounter++;
     } else if ($item.data('loadStatus') === loadStatus.LOADED) {
@@ -298,12 +306,12 @@ ReadingList.prototype.itemEventing = function (loadBot) {
         if (this.$activeItem) {
           // previously active item gets an event for no longer being active
           this.$activeItem.removeClass('reading-list-in-looking');
-          this.doItemEvent('reading-list-item-out-looking', this.$activeItem, [], true);
+          this.doItemEvent('reading-list-item-out-looking', this.$activeItem, true);
         }
 
         // add looking class to active item, trigger event
         $item.addClass('reading-list-in-looking');
-        this.doItemEvent('reading-list-item-in-looking', $item, [], true);
+        this.doItemEvent('reading-list-item-in-looking', $item, true);
       }
 
       // set the now active item to this item
@@ -326,7 +334,7 @@ ReadingList.prototype.itemEventing = function (loadBot) {
     var ratioViewed = (-bounding.top + this.settings.lookingThresholdBottom) /
       bounding.height;
     var progress = ratioViewed <= 1.0 ? ratioViewed : 1.0;
-    this.doItemEvent('reading-list-item-progress', this.$activeItem, progress);
+    this.doItemEvent('reading-list-item-progress', this.$activeItem, {progress: progress});
   }
 
   return loadedCounter;
@@ -429,7 +437,7 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
       // do eventing
       self.eventing();
       // event that tells us something is done loading
-      self.doItemEvent('reading-list-item-load-done', $readingListItem, [], true);
+      self.doItemEvent('reading-list-item-load-done', $readingListItem, true);
     });
 };
 
@@ -501,7 +509,7 @@ ReadingList.prototype.appendItem = function (html) {
   // finally, append item to reading list
   this.$itemsContainer.append($item);
   // let others know a new item has loaded
-  this.doItemEvent('reading-list-item-load-done', $item, [], true);
+  this.doItemEvent('reading-list-item-load-done', $item, true);
 
   return $item;
 };
@@ -536,7 +544,7 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
   // ensure the animation stops when user interaction occurs
   $document.on(MOVEMENTS, stopContainerAnimation);
 
-  this.doItemEvent('reading-list-start-scroll-to', $item, []);
+  this.doItemEvent('reading-list-start-scroll-to', $item);
   // stop any running animations and begin a new one
   this.stopContainerAnimation().animate({
     scrollTop: $item.position().top + (addPx || 0)
@@ -545,7 +553,7 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
   (function () {
     // unbind the scroll stoppage
     $document.off(MOVEMENTS, stopContainerAnimation);
-    this.doItemEvent('reading-list-end-scroll-to', $item, []);
+    this.doItemEvent('reading-list-end-scroll-to', $item);
   }).bind(this));
 };
 
