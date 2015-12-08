@@ -305,6 +305,7 @@ describe('Reading list', function () {
       it('when it falls into the view', function () {
         // stub out within looking area function to test separately
         var withinLookingArea = sandbox.stub(readingList, 'withinLookingArea');
+        var doItemEvent = sandbox.stub(readingList, 'doItemEvent');
 
         // pretend item2 is in the looking area
         readingList.$activeItem = $item1;
@@ -313,13 +314,8 @@ describe('Reading list', function () {
         // do item eventing
         readingList.itemEventing(true);
 
-        // sort out trigger calls
-        var events = trigger.withArgs('reading-list-item-in-looking');
-        events.callCount.should.equal(1);
-
-        // check the arguments that will be given to callbacks for this event
-        var callbackArgs = events.args[0][1];
-        expect(jqueryMatcher($item2).test(callbackArgs[0])).to.be.true;
+        var doItemEventCalls = doItemEvent.withArgs('reading-list-item-in-looking');
+        doItemEventCalls.callCount.should.equal(1);
 
         expect(jqueryMatcher($item2).test(readingList.$activeItem)).to.be.true;
         $item2.hasClass('reading-list-in-looking').should.be.true;

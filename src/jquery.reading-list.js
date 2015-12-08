@@ -303,7 +303,7 @@ ReadingList.prototype.itemEventing = function (loadBot) {
 
         // add looking class to active item, trigger event
         $item.addClass('reading-list-in-looking');
-        this.$container.trigger('reading-list-item-in-looking', [$item]);
+        this.doItemEvent('reading-list-item-in-looking', $item, [], true);
       }
 
       // set the now active item to this item
