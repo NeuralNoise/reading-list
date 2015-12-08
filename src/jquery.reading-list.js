@@ -228,6 +228,34 @@ ReadingList.prototype.getScrollAnimationContainer = function () {
 };
 
 /**
+ * Trigger an event on an item and track the number of times it's been called.
+ *  By default, the trigger will get the $item as the first argument, the count
+ *  of the number of times the event has been called as the second, and an unpacked
+ *  args array as the third through the last.
+ *
+ * @param {String} name - name of event to trigger.
+ * @param {Object} $item - item that event should trigger for.
+ * @param {Array} args - arguments to pass into trigger.
+ * @returns {undefined}
+ */
+ReadingList.prototype.doItemEvent = function (name, $item, args) {
+  var eventTracker = $item.data('eventTracker');
+
+  if (typeof(eventTracker) !== 'object') {
+    $item.data('eventTracker', {});
+    eventTracker = $item.data('eventTracker');
+  }
+
+  if (eventTracker.hasOwnProperty(name)) {
+    eventTracker[name]++;
+  } else {
+    eventTracker[name] = 1;
+  }
+
+  this.$container.trigger(name, [$item, eventTracker[name]].concat(args));
+};
+
+/**
  * Item event loop for use inside main eventing function.
  *
  * @param {Boolean} loadBot - set to true if next item down needs to load.
@@ -249,7 +277,7 @@ ReadingList.prototype.itemEventing = function (loadBot) {
         loadingBotCounter < loadingBotMax && loadBot &&
         $item.prev().data('loadStatus') === loadStatus.LOADED) {
       // fire event telling loading to start
-      this.$container.trigger('reading-list-item-load-start', [$item, loadDirection.DOWN]);
+      this.doItemEvent('reading-list-item-load-start', $item, [loadDirection.DOWN]);
       // this item is going to be loading, count it
       loadingBotCounter++;
     } else if ($item.data('loadStatus') === loadStatus.LOADED) {

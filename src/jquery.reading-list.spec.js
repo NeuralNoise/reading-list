@@ -257,6 +257,35 @@ describe('Reading list', function () {
 
     describe('an individual item', function () {
 
+      it('through a utility function', function () {
+
+        var eventName = 'something';
+        var arg1 = 'one';
+        var arg2 = 'two';
+        var arg3 = 'three';
+        var args = [arg1, arg2, arg3];
+
+        var numberOfCalls = 3;
+        readingList.doItemEvent(eventName, $item1, args);
+        readingList.doItemEvent(eventName, $item1, args);
+        readingList.doItemEvent(eventName, $item1, args);
+
+        var events = trigger.withArgs(eventName);
+        events.callCount.should.equal(numberOfCalls);
+
+        var callCount = 0;
+        events.args.forEach(function (argList) {
+          expect(argList[0]).to.equal(eventName);
+          expect(jqueryMatcher(argList[1][0]).test($item1)).to.be.true;
+          expect(argList[1][1]).to.equal(++callCount);
+          expect(argList[1][2]).to.equal(arg1);
+          expect(argList[1][3]).to.equal(arg2);
+          expect(argList[1][4]).to.equal(arg3);
+        });
+
+        expect(callCount).to.equal(numberOfCalls);
+      });
+
       it('when it starts loading', function () {
         // do eventing for items
         var loaded = readingList.itemEventing(true);
@@ -268,10 +297,24 @@ describe('Reading list', function () {
         // check the arguments that will be given to callbacks for this event
         var callbackArgs = events.args[0][1];
         expect(jqueryMatcher($item2).test(callbackArgs[0])).to.be.true;
-        callbackArgs[1].should.equal('down');
+        callbackArgs[2].should.equal('down');
 
         // only 1 item was previously loaded
         loaded.should.equal(1);
+      });
+
+      it('when it starts loading, uniquely the first time', function () {
+        // fire events
+        readingList.itemEventing(true);
+        readingList.itemEventing(true);
+        readingList.itemEventing(true);
+
+        var events = trigger.withArgs('reading-list-item-load-start');
+        events.callCount.should.equal(3);
+
+        expect(events.args[0][1][1]).to.equal(1);
+        expect(events.args[1][1][1]).to.equal(2);
+        expect(events.args[2][1][1]).to.equal(3);
       });
 
       it('when it falls into the view', function () {

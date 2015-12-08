@@ -114,11 +114,12 @@ Events applicable to the state of the entire reading list:
 | ```reading-list-out-of-content``` | None | Reading list has run out of content. Internally, if ```addContent``` is defined it will be used when this event triggers to add new content to the end of the reading list. |
 
 #### Item Events
-Events applicable to individual reading list items:
+Events applicable to individual reading list items. Note that ```callCount``` refers
+to the number of times the given event has been triggered on that item.
 
 | Name | Arguments | Notes |
 |-----:|:----------|:------|
-| ```reading-list-item-load-start``` | ```$item``` ```direction``` | ```$item``` is starting to load, triggered by a scrolling ```direction```. |
+| ```reading-list-item-load-start``` | ```$item``` ```callCount``` ```direction``` | ```$item``` is starting to load, triggered by a scrolling ```direction```. |
 | ```reading-list-item-in-looking``` | ```$item``` | ```$item``` has entered the looking area and is the active item. |
 | ```reading-list-item-out-looking``` | ```$item``` | ```$item``` has fallen out of the looking area and is no longer the active item. |
 | ```reading-list-item-progress``` | ```$item``` ```progress``` | Has viewed ```progress``` ratio of the entire ```$item```. Use to update progress bars. To make ```progress``` a percentage, do ```progress * 100```.  |
