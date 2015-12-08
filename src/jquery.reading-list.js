@@ -298,7 +298,7 @@ ReadingList.prototype.itemEventing = function (loadBot) {
         if (this.$activeItem) {
           // previously active item gets an event for no longer being active
           this.$activeItem.removeClass('reading-list-in-looking');
-          this.$container.trigger('reading-list-item-out-looking', [this.$activeItem]);
+          this.doItemEvent('reading-list-item-out-looking', this.$activeItem, [], true);
         }
 
         // add looking class to active item, trigger event
