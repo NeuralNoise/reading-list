@@ -244,14 +244,15 @@ describe('Reading list', function () {
       });
 
       it('when scrolling to an item', function () {
+        var doItemEvent = sandbox.stub(readingList, 'doItemEvent');
 
         readingList.settings.scrollToSpeed = 0;
         readingList.unthrottledEventing();
 
         readingList.scrollToItem($item3);
 
-        trigger.withArgs('reading-list-start-scroll-to').callCount.should.equal(1);
-        trigger.withArgs('reading-list-end-scroll-to').callCount.should.equal(1);
+        doItemEvent.withArgs('reading-list-start-scroll-to').callCount.should.equal(1);
+        doItemEvent.withArgs('reading-list-end-scroll-to').callCount.should.equal(1);
       });
     });
 

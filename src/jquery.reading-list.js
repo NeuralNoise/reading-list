@@ -536,7 +536,7 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
   // ensure the animation stops when user interaction occurs
   $document.on(MOVEMENTS, stopContainerAnimation);
 
-  this.$container.trigger('reading-list-start-scroll-to', [$item]);
+  this.doItemEvent('reading-list-start-scroll-to', $item, []);
   // stop any running animations and begin a new one
   this.stopContainerAnimation().animate({
     scrollTop: $item.position().top + (addPx || 0)
@@ -545,7 +545,7 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
   (function () {
     // unbind the scroll stoppage
     $document.off(MOVEMENTS, stopContainerAnimation);
-    this.$container.trigger('reading-list-end-scroll-to', [$item]);
+    this.doItemEvent('reading-list-end-scroll-to', $item, []);
   }).bind(this));
 };
 
