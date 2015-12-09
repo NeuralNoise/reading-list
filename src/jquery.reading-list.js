@@ -125,16 +125,24 @@ ReadingList.prototype.setup = function () {
 ReadingList.prototype.initialLoad = function () {
 
   if (this.$listItems.length > 0) {
-    // check if some item in list has been marked with load-first, use to load
-    var $firstLoad = this.$listItems.filter(function () {
-      return $(this).data('loadTo');
+    var $firstLoad = $();
+    var self = this;
+    this.$listItems.each(function () {
+      var $this = $(this);
+      if ($firstLoad.length < 1 && $this.data('loadTo')) {
+        $firstLoad = $this;
+      }
+
+      if ($this.filter(self.settings.selectorsItemsPreLoaded).length > 0) {
+        self.doItemEvent('reading-list-item-load-done', $this, true);
+      }
     });
 
     if ($firstLoad.length > 0) {
       this.retrieveListItemsTo($firstLoad);
     } else {
       // no first load specified, just load first item
-      $itemToLoad = this.$listItems.first();
+      var $itemToLoad = this.$listItems.first();
       if (!$itemToLoad.data('loadStatus')) {
         this.retrieveListItem($itemToLoad);
       }

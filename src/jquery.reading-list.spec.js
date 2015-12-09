@@ -121,6 +121,32 @@ describe('Reading list', function () {
 
       trigger.withArgs('reading-list-at-top').callCount.should.equal(1);
     });
+
+    it('should fire item load done event for any items already loaded in', function () {
+      var preLoadedClass = 'pre-loaded';
+
+      var $item1 = $('<div class="item ' + preLoadedClass + '" href="/one"></div>');
+      var $item2 = $('<div class="item ' + preLoadedClass + '" href="/two"></div>');
+      var $item3 = $('<div class="item" href="/three"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1)
+        .append($item2)
+        .append($item3);
+
+      var trigger = sandbox.spy($validReadingList, 'trigger');
+
+      var readingList = new ReadingList($validReadingList, {
+        selectorsItems: '.item',
+        selectorsItemsPreLoaded: '.' + preLoadedClass
+      });
+
+      var events = trigger.withArgs('reading-list-item-load-done');
+      events.callCount.should.equal(2);
+
+      expect(jqueryMatcher(events.args[0][1][0]).test($item1)).to.be.true;
+      expect(jqueryMatcher(events.args[1][1][0]).test($item2)).to.be.true;
+    });
   });
 
   describe('has scrolling-realated events for', function () {
