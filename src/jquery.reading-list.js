@@ -106,20 +106,6 @@ ReadingList.prototype._setup = function () {
 
   this.$container.trigger('reading-list-at-top');
 
-  // set up some default event callbacks
-  this.$container.on('reading-list-item-load-start', (function (e, $item) {
-    this._startItemLoad($item);
-  }).bind(this));
-  this.$container.on('reading-list-item-in-looking', (function (e, $item) {
-    this.miniMapItemActivate($item);
-  }).bind(this));
-  this.$container.on('reading-list-item-out-looking', (function (e, $item) {
-    this.miniMapItemDeactivate($item);
-  }).bind(this));
-  if (this.settings.addContent) {
-    this.$container.on('reading-list-out-of-content', this._addContent.bind(this));
-  }
-
   this._initialLoad();
 
   this.$container.on('scroll', this.eventing.bind(this));
@@ -152,6 +138,7 @@ ReadingList.prototype._initialLoad = function () {
         self._doItemEvent('reading-list-item-load-done', $this, true);
 
         if (i === 0) {
+          self.miniMapItemActivate($this);
           self._doItemEvent('reading-list-item-in-looking', $this, true);
           self._doItemEvent('reading-list-item-progress', $this, {progress: 0});
         }
@@ -294,6 +281,8 @@ ReadingList.prototype._itemEventing = function (loadBot) {
         { direction: loadDirection.DOWN },
         true
       );
+      this._startItemLoad($item);
+
       // this item is going to be loading, count it
       loadingBotCounter++;
     } else if ($item.data('loadStatus') === loadStatus.LOADED) {
@@ -312,10 +301,12 @@ ReadingList.prototype._itemEventing = function (loadBot) {
         // new active item isn't old active item, do some notifications
         if (this.$activeItem) {
           this.$activeItem.removeClass('reading-list-in-looking');
+          this.miniMapItemDeactivate($item);
           this._doItemEvent('reading-list-item-out-looking', this.$activeItem, true);
         }
 
         $item.addClass('reading-list-in-looking');
+        this.miniMapItemActivate($item);
         this._doItemEvent('reading-list-item-in-looking', $item, true);
       }
 
@@ -395,6 +386,7 @@ ReadingList.prototype._unthrottledEventing = function () {
 
   // check if we've run out of reading list content
   if (itemsLoaded === this.$listItems.length && loadBot) {
+    this._addContent();
     this.$container.trigger('reading-list-out-of-content');
   }
 };
@@ -518,11 +510,13 @@ ReadingList.prototype.appendItem = function (html) {
  * @returns {undefined}
  */
 ReadingList.prototype._addContent = function () {
-  this.settings.addContent()
-    .done(this.appendItem.bind(this))
-    .fail(function () {
-      console.log('Add item function failed, content not added to reading list.');
-    });
+  if (this.settings.addContent) {
+    this.settings.addContent()
+      .done(this.appendItem.bind(this))
+      .fail(function () {
+        console.log('Add item function failed, content not added to reading list.');
+      });
+  }
 };
 
 /**

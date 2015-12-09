@@ -301,6 +301,8 @@ describe('Reading list', function () {
         readingList.settings.loadingThreshold = 300;
         readingList.$container[0] = {scrollHeight: 1000};
 
+        var _addContent = sandbox.stub(readingList, '_addContent');
+
         // cause out of content event to fire
         _itemEventing.returns(5);
         sandbox.stub(readingList.$listItems, 'length', 5);
@@ -315,6 +317,7 @@ describe('Reading list', function () {
 
         trigger.withArgs('reading-list-at-bottom-load-threshold').callCount.should.equal(1);
         trigger.withArgs('reading-list-out-of-content').callCount.should.equal(1);
+        _addContent.callCount.should.equal(1);
       });
 
       it('when scrolling to an item', function () {
@@ -579,22 +582,6 @@ describe('Reading list', function () {
   });
 
   describe('config options', function () {
-
-    it('should call out of content function when defined', function () {
-      var addContent = sandbox.stub();
-
-      var deferred = $.Deferred();
-      deferred.resolve();
-      addContent.returns(deferred.promise());
-
-      var readingList = new ReadingList($validReadingList, {
-        addContent: addContent
-      });
-
-      readingList.$container.trigger('reading-list-out-of-content');
-
-      addContent.callCount.should.equal(1);
-    });
 
     it('should prevent bubbling when noEventBubbling is true', function () {
 
