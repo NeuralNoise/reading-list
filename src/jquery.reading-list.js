@@ -64,7 +64,7 @@ var ReadingList = function ($element, options) {
   this.$listItems = this.$container.find(this.settings.selectorsItems);
   this.$miniMapItems = $(this.settings.selectorsMiniMapItems);
 
-  this.setup();
+  this._setup();
 
   return this;
 };
@@ -74,16 +74,16 @@ var ReadingList = function ($element, options) {
  *
  * @returns {undefined}
  */
-ReadingList.prototype.setup = function () {
+ReadingList.prototype._setup = function () {
 
   // throttled eventing function to be used for all events
-  this.eventing = _.throttle(this.unthrottledEventing, this.settings.eventingThrottle);
+  this.eventing = _.throttle(this._unthrottledEventing, this.settings.eventingThrottle);
 
   // currently active item
   this.$activeItem = null;
 
   // set up minimap item click
-  this.$miniMapItems.on('click', this.miniMapItemClicked.bind(this));
+  this.$miniMapItems.on('click', this._miniMapItemClicked.bind(this));
 
   if (this.settings.noEventBubbling) {
     // don't bubble events up the dom tree, listeners must attach to the original container
@@ -107,14 +107,20 @@ ReadingList.prototype.setup = function () {
   this.$container.trigger('reading-list-at-top');
 
   // set up some default event callbacks
-  this.$container.on('reading-list-item-load-start', this.startItemLoad.bind(this));
-  this.$container.on('reading-list-item-in-looking', this.miniMapItemActivate.bind(this));
-  this.$container.on('reading-list-item-out-looking', this.miniMapItemDeactivate.bind(this));
+  this.$container.on('reading-list-item-load-start', (function (e, $item) {
+    this._startItemLoad($item);
+  }).bind(this));
+  this.$container.on('reading-list-item-in-looking', (function (e, $item) {
+    this.miniMapItemActivate($item);
+  }).bind(this));
+  this.$container.on('reading-list-item-out-looking', (function (e, $item) {
+    this.miniMapItemDeactivate($item);
+  }).bind(this));
   if (this.settings.addContent) {
-    this.$container.on('reading-list-out-of-content', this.addContent.bind(this));
+    this.$container.on('reading-list-out-of-content', this._addContent.bind(this));
   }
 
-  this.initialLoad();
+  this._initialLoad();
 
   this.$container.on('scroll', this.eventing.bind(this));
   $window.on('resize', this.eventing.bind(this));
@@ -131,7 +137,7 @@ ReadingList.prototype.setup = function () {
  *
  * @returns {undefined}
  */
-ReadingList.prototype.initialLoad = function () {
+ReadingList.prototype._initialLoad = function () {
 
   if (this.$listItems.length > 0) {
     var $firstLoad = $();
@@ -143,11 +149,11 @@ ReadingList.prototype.initialLoad = function () {
       }
 
       if ($this.filter(self.settings.selectorsItemsPreLoaded).length > 0) {
-        self.doItemEvent('reading-list-item-load-done', $this, true);
+        self._doItemEvent('reading-list-item-load-done', $this, true);
 
         if (i === 0) {
-          self.doItemEvent('reading-list-item-in-looking', $this, true);
-          self.doItemEvent('reading-list-item-progress', $this, {progress: 0});
+          self._doItemEvent('reading-list-item-in-looking', $this, true);
+          self._doItemEvent('reading-list-item-progress', $this, {progress: 0});
         }
       }
     });
@@ -175,7 +181,7 @@ ReadingList.prototype.initialLoad = function () {
  *  check if the element is inside of.
  * @returns {Boolean} true if element is inside boundary, false otherwise.
  */
-ReadingList.prototype.elementBoundingInsideArea = function (el, top, bot) {
+ReadingList.prototype._elementBoundingInsideArea = function (el, top, bot) {
   var elBounding = el.getBoundingClientRect();
   var overTop = elBounding.top < top && elBounding.bottom < top;
   var belowBot = elBounding.top > bot && elBounding.bottom > bot;
@@ -197,7 +203,7 @@ ReadingList.prototype.elementBoundingInsideArea = function (el, top, bot) {
 ReadingList.prototype.withinLookingArea = function (el) {
   var topThreshold = this.settings.lookingThresholdTop;
   var botThreshold = this.settings.lookingThresholdBottom;
-  return this.elementBoundingInsideArea(el, topThreshold, botThreshold);
+  return this._elementBoundingInsideArea(el, topThreshold, botThreshold);
 };
 
 /**
@@ -240,7 +246,7 @@ ReadingList.prototype.getScrollAnimationContainer = function () {
  * @param {Boolean} [countCalls] - true to increment trigger counter.
  * @returns {undefined}
  */
-ReadingList.prototype.doItemEvent = function (name, $item, kwargs, countCalls) {
+ReadingList.prototype._doItemEvent = function (name, $item, kwargs, countCalls) {
   var doCountCalls = typeof(kwargs) === 'boolean' ? kwargs : countCalls;
   var eventTracker = $item.data('eventTracker') || {};
 
@@ -268,7 +274,7 @@ ReadingList.prototype.doItemEvent = function (name, $item, kwargs, countCalls) {
  * @param {Boolean} loadBot - set to true if next item down needs to load.
  * @returns {Number} count of loaded items.
  */
-ReadingList.prototype.itemEventing = function (loadBot) {
+ReadingList.prototype._itemEventing = function (loadBot) {
   var $nowActive;
   var loadingBotCounter = 0;
   var loadedCounter = 0;
@@ -282,7 +288,7 @@ ReadingList.prototype.itemEventing = function (loadBot) {
     if (!$item.data('loadStatus') &&
         loadingBotCounter < loadingBotMax && loadBot &&
         $item.prev().data('loadStatus') === loadStatus.LOADED) {
-      this.doItemEvent(
+      this._doItemEvent(
         'reading-list-item-load-start',
         $item,
         { direction: loadDirection.DOWN },
@@ -306,11 +312,11 @@ ReadingList.prototype.itemEventing = function (loadBot) {
         // new active item isn't old active item, do some notifications
         if (this.$activeItem) {
           this.$activeItem.removeClass('reading-list-in-looking');
-          this.doItemEvent('reading-list-item-out-looking', this.$activeItem, true);
+          this._doItemEvent('reading-list-item-out-looking', this.$activeItem, true);
         }
 
         $item.addClass('reading-list-in-looking');
-        this.doItemEvent('reading-list-item-in-looking', $item, true);
+        this._doItemEvent('reading-list-item-in-looking', $item, true);
       }
 
       // set the now active item to this item
@@ -333,7 +339,7 @@ ReadingList.prototype.itemEventing = function (loadBot) {
     var ratioViewed = (-bounding.top + this.settings.lookingThresholdBottom) /
       bounding.height;
     var progress = ratioViewed <= 1.0 ? ratioViewed : 1.0;
-    this.doItemEvent('reading-list-item-progress', this.$activeItem, {progress: progress});
+    this._doItemEvent('reading-list-item-progress', this.$activeItem, {progress: progress});
   }
 
   return loadedCounter;
@@ -348,7 +354,7 @@ ReadingList.prototype.itemEventing = function (loadBot) {
  *
  * @returns {undefined}
  */
-ReadingList.prototype.unthrottledEventing = function () {
+ReadingList.prototype._unthrottledEventing = function () {
 
   // given:
   //  x = scrollTotalHeight      -> entire height of scrollable area
@@ -385,7 +391,7 @@ ReadingList.prototype.unthrottledEventing = function () {
     loadBot = true;
   }
 
-  var itemsLoaded = this.itemEventing(loadBot);
+  var itemsLoaded = this._itemEventing(loadBot);
 
   // check if we've run out of reading list content
   if (itemsLoaded === this.$listItems.length && loadBot) {
@@ -431,7 +437,7 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
       }
 
       self.eventing();
-      self.doItemEvent('reading-list-item-load-done', $readingListItem, true);
+      self._doItemEvent('reading-list-item-load-done', $readingListItem, true);
     });
 };
 
@@ -479,12 +485,10 @@ ReadingList.prototype.retrieveListItemsTo = function ($readingListItem) {
 /**
  * Check if item hasn't been loaded yet and then retrieve it if it hasn't.
  *
- * @param {Event} e - not used.
  * @param {jQuery} $item - item to start loading.
- * @param {String} direction - not used.
  * @returns {undefined}
  */
-ReadingList.prototype.startItemLoad = function (e, $item, direction) {
+ReadingList.prototype._startItemLoad = function ($item) {
   if (!$item.data('loadStatus')) {
     // no attempt has ever been made to load this item, start loading it
     this.retrieveListItem($item);
@@ -503,7 +507,7 @@ ReadingList.prototype.appendItem = function (html) {
   $item.data('loadStatus', loadStatus.LOADED);
   this.$listItems.add($item);
   this.$itemsContainer.append($item);
-  this.doItemEvent('reading-list-item-load-done', $item, true);
+  this._doItemEvent('reading-list-item-load-done', $item, true);
 
   return $item;
 };
@@ -513,7 +517,7 @@ ReadingList.prototype.appendItem = function (html) {
  *
  * @returns {undefined}
  */
-ReadingList.prototype.addContent = function () {
+ReadingList.prototype._addContent = function () {
   this.settings.addContent()
     .done(this.appendItem.bind(this))
     .fail(function () {
@@ -543,7 +547,7 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
   // ensure the animation stops when user interaction occurs
   $document.on(MOVEMENTS, stopContainerAnimation);
 
-  this.doItemEvent('reading-list-start-scroll-to', $item);
+  this._doItemEvent('reading-list-start-scroll-to', $item);
   this.stopContainerAnimation().animate({
     scrollTop: $item.position().top + (addPx || 0)
   },
@@ -551,7 +555,7 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
   (function () {
     // unbind the scroll stoppage
     $document.off(MOVEMENTS, stopContainerAnimation);
-    this.doItemEvent('reading-list-end-scroll-to', $item);
+    this._doItemEvent('reading-list-end-scroll-to', $item);
   }).bind(this));
 };
 
@@ -561,7 +565,7 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
  * @param {Event} e - click event.
  * @returns {undefined}
  */
-ReadingList.prototype.miniMapItemClicked = function (e) {
+ReadingList.prototype._miniMapItemClicked = function (e) {
   var $miniMapItem = $(e.currentTarget);
 
   e.preventDefault();
@@ -590,22 +594,20 @@ ReadingList.prototype.miniMapFindByItem = function ($item) {
 /**
  * Activate the minimap items associated with given item.
  *
- * @param {Event} e - event that triggered this call.
  * @param {jQuery} $item - item to find minimap items for.
  * @returns {undefined}
  */
-ReadingList.prototype.miniMapItemActivate = function (e, $item) {
+ReadingList.prototype.miniMapItemActivate = function ($item) {
   this.miniMapFindByItem($item).addClass('reading-list-active');
 };
 
 /**
  * Deactivate the minimap items associated with given item.
  *
- * @param {Event} e - event that triggered this call.
  * @param {jQuery} $item - item to find minimap items for.
  * @returns {undefined}
  */
-ReadingList.prototype.miniMapItemDeactivate = function (e, $item) {
+ReadingList.prototype.miniMapItemDeactivate = function ($item) {
   this.miniMapFindByItem($item).removeClass('reading-list-active');
 };
 

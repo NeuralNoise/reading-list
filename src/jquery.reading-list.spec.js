@@ -210,17 +210,17 @@ describe('Reading list', function () {
       $item1.data('loadStatus', 'loaded');
 
       // don't bother with setup since we just need to test the eventing function
-      sandbox.stub(ReadingList.prototype, 'setup');
+      sandbox.stub(ReadingList.prototype, '_setup');
       readingList = new ReadingList($validReadingList);
       trigger = sandbox.spy(readingList.$container, 'trigger');
     });
 
     describe('entire reading list', function () {
-      var itemEventing;
+      var _itemEventing;
 
       beforeEach(function () {
         // skip individual item eventing
-        itemEventing = sandbox.stub(ReadingList.prototype, 'itemEventing');
+        _itemEventing = sandbox.stub(ReadingList.prototype, '_itemEventing');
       });
 
       it('when at the top of the list', function () {
@@ -230,11 +230,11 @@ describe('Reading list', function () {
 
         // scroll down and ensure reading list at top does not fire
         scrollTop.returns(100);
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
         // scroll top and ensure reading list at top event does fire
         scrollTop.returns(0);
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
         trigger.withArgs('reading-list-at-top').callCount.should.equal(1);
       });
@@ -252,11 +252,11 @@ describe('Reading list', function () {
 
         // scroll to middle, event should not fire
         scrollTop.returns(300);
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
         // scroll to bottom, event should fire
         scrollTop.returns(700);
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
         trigger.withArgs('reading-list-at-bottom').callCount.should.equal(1);
       });
@@ -274,16 +274,16 @@ describe('Reading list', function () {
         readingList.$container[0] = {scrollHeight: 1000};
 
         // prevent out of content event from firing
-        itemEventing.returns(4);
+        _itemEventing.returns(4);
         sandbox.stub(readingList.$listItems, 'length', 5);
 
         // scroll to a point above loading threshold, should not fire
         scrollTop.returns(300);
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
         // scroll past threshold, should fire
         scrollTop.returns(600);
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
         trigger.withArgs('reading-list-at-bottom-load-threshold').callCount.should.equal(1);
         trigger.withArgs('reading-list-out-of-content').callCount.should.equal(0);
@@ -302,31 +302,31 @@ describe('Reading list', function () {
         readingList.$container[0] = {scrollHeight: 1000};
 
         // cause out of content event to fire
-        itemEventing.returns(5);
+        _itemEventing.returns(5);
         sandbox.stub(readingList.$listItems, 'length', 5);
 
         // scroll to a point above loading threshold, should not fire
         scrollTop.returns(300);
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
         // scroll past threshold, should fire
         scrollTop.returns(600);
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
         trigger.withArgs('reading-list-at-bottom-load-threshold').callCount.should.equal(1);
         trigger.withArgs('reading-list-out-of-content').callCount.should.equal(1);
       });
 
       it('when scrolling to an item', function () {
-        var doItemEvent = sandbox.stub(readingList, 'doItemEvent');
+        var _doItemEvent = sandbox.stub(readingList, '_doItemEvent');
 
         readingList.settings.scrollToSpeed = 0;
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
         readingList.scrollToItem($item3);
 
-        doItemEvent.withArgs('reading-list-start-scroll-to').callCount.should.equal(1);
-        doItemEvent.withArgs('reading-list-end-scroll-to').callCount.should.equal(1);
+        _doItemEvent.withArgs('reading-list-start-scroll-to').callCount.should.equal(1);
+        _doItemEvent.withArgs('reading-list-end-scroll-to').callCount.should.equal(1);
       });
     });
 
@@ -345,9 +345,9 @@ describe('Reading list', function () {
         };
 
         var numberOfCalls = 3;
-        readingList.doItemEvent(eventName, $item1, args, true);
-        readingList.doItemEvent(eventName, $item1, args, true);
-        readingList.doItemEvent(eventName, $item1, args, true);
+        readingList._doItemEvent(eventName, $item1, args, true);
+        readingList._doItemEvent(eventName, $item1, args, true);
+        readingList._doItemEvent(eventName, $item1, args, true);
 
         var events = trigger.withArgs(eventName);
         events.callCount.should.equal(numberOfCalls);
@@ -366,10 +366,10 @@ describe('Reading list', function () {
       });
 
       it('when it starts loading', function () {
-        var doItemEvent = sandbox.stub(readingList, 'doItemEvent');
-        var loaded = readingList.itemEventing(true);
+        var _doItemEvent = sandbox.stub(readingList, '_doItemEvent');
+        var loaded = readingList._itemEventing(true);
 
-        var calls = doItemEvent.withArgs('reading-list-item-load-start');
+        var calls = _doItemEvent.withArgs('reading-list-item-load-start');
         calls.callCount.should.equal(1);
 
         var args = calls.args[0];
@@ -384,17 +384,17 @@ describe('Reading list', function () {
       it('when it falls into the view', function () {
         // stub out within looking area function to test separately
         var withinLookingArea = sandbox.stub(readingList, 'withinLookingArea');
-        var doItemEvent = sandbox.stub(readingList, 'doItemEvent');
+        var _doItemEvent = sandbox.stub(readingList, '_doItemEvent');
 
         // pretend item2 is in the looking area
         readingList.$activeItem = $item1;
         withinLookingArea.withArgs($item2[0]).returns(true);
 
         // do item eventing
-        readingList.itemEventing(true);
+        readingList._itemEventing(true);
 
-        var doItemEventCalls = doItemEvent.withArgs('reading-list-item-in-looking');
-        doItemEventCalls.callCount.should.equal(1);
+        var _doItemEventCalls = _doItemEvent.withArgs('reading-list-item-in-looking');
+        _doItemEventCalls.callCount.should.equal(1);
 
         expect(jqueryMatcher($item2).test(readingList.$activeItem)).to.be.true;
         $item2.hasClass('reading-list-in-looking').should.be.true;
@@ -403,7 +403,7 @@ describe('Reading list', function () {
       it('when it falls out of view', function () {
         // stub out within looking area function to test separately
         var withinLookingArea = sandbox.stub(readingList, 'withinLookingArea');
-        var doItemEvent = sandbox.stub(readingList, 'doItemEvent');
+        var _doItemEvent = sandbox.stub(readingList, '_doItemEvent');
 
         // pretend item2 has moved out of looking area, and item3 has moved in
         readingList.$activeItem = $item2;
@@ -411,10 +411,10 @@ describe('Reading list', function () {
         withinLookingArea.withArgs($item3[0]).returns(true);
 
         // do item eventing
-        readingList.itemEventing(true);
+        readingList._itemEventing(true);
 
-        var doItemEventCalls = doItemEvent.withArgs('reading-list-item-out-looking');
-        doItemEventCalls.callCount.should.equal(1);
+        var _doItemEventCalls = _doItemEvent.withArgs('reading-list-item-out-looking');
+        _doItemEventCalls.callCount.should.equal(1);
 
         expect(jqueryMatcher($item2).test(readingList.$activeItem)).to.be.false;
         expect(jqueryMatcher($item3).test(readingList.$activeItem)).to.be.true;
@@ -424,7 +424,7 @@ describe('Reading list', function () {
       it('showing what percentage of it has been viewed', function () {
         // stub out within looking area function to test separately
         var withinLookingArea = sandbox.stub(readingList, 'withinLookingArea');
-        var doItemEvent = sandbox.spy(readingList, 'doItemEvent');
+        var _doItemEvent = sandbox.spy(readingList, '_doItemEvent');
 
         // pretend item2 is in the looking area
         readingList.$activeItem = $item1;
@@ -442,14 +442,14 @@ describe('Reading list', function () {
           top: 300,
           height: boundingHeight
         });
-        readingList.itemEventing(true);
+        readingList._itemEventing(true);
 
         // 45% viewed
         getBoundingClientRect.returns({
           top: -375,
           height: boundingHeight
         });
-        readingList.itemEventing(true);
+        readingList._itemEventing(true);
 
         // 100% viewed and now passing bottom of item, really over 100%, but should
         //  be capped at 100%
@@ -457,13 +457,13 @@ describe('Reading list', function () {
           top: -1500,
           height: boundingHeight
         });
-        readingList.itemEventing(true);
+        readingList._itemEventing(true);
 
         // sort out trigger calls
-        var doItemEventCalls = doItemEvent.withArgs('reading-list-item-progress');
+        var _doItemEventCalls = _doItemEvent.withArgs('reading-list-item-progress');
         var events = trigger.withArgs('reading-list-item-progress');
         events.callCount.should.equal(3);
-        doItemEventCalls.callCount.should.equal(3);
+        _doItemEventCalls.callCount.should.equal(3);
 
         // check 0% call
         var callbackArgs1 = events.args[0][1];
@@ -495,7 +495,7 @@ describe('Reading list', function () {
       $item1 = $('<div id="item1" data-href="' + href1 + '" class="reading-list-item"></div>');
       $validReadingList.find('.reading-list-items').append($item1);
 
-      sandbox.stub(ReadingList.prototype, 'setup');
+      sandbox.stub(ReadingList.prototype, '_setup');
 
       readingList = new ReadingList($validReadingList);
       trigger = sandbox.spy(readingList.$container, 'trigger');
@@ -519,7 +519,7 @@ describe('Reading list', function () {
       var responseContent = '<div>some html content</div>';
       var success = sandbox.stub();
 
-      var doItemEvent = sandbox.stub(readingList, 'doItemEvent');
+      var _doItemEvent = sandbox.stub(readingList, '_doItemEvent');
 
       readingList.settings.dataRetrievalSuccess = success;
       success.returns(responseContent);
@@ -542,15 +542,15 @@ describe('Reading list', function () {
       $item1.html().should.equal(responseContent);
       readingList.eventing.callCount.should.equal(1);
 
-      var doItemEventCalls = doItemEvent.withArgs('reading-list-item-load-done');
-      doItemEventCalls.callCount.should.equal(1);
+      var _doItemEventCalls = _doItemEvent.withArgs('reading-list-item-load-done');
+      _doItemEventCalls.callCount.should.equal(1);
     });
 
     it('should update item element on failure', function () {
       var responseContent = '<div>some html content</div>';
       var fail = sandbox.stub();
 
-      var doItemEvent = sandbox.stub(readingList, 'doItemEvent');
+      var _doItemEvent = sandbox.stub(readingList, '_doItemEvent');
 
       readingList.settings.dataRetrievalFail = fail;
       fail.returns(responseContent);
@@ -572,8 +572,8 @@ describe('Reading list', function () {
       $item1.html().should.equal(responseContent);
       readingList.eventing.callCount.should.equal(1);
 
-      var doItemEventCalls = doItemEvent.withArgs('reading-list-item-load-done');
-      doItemEventCalls.callCount.should.equal(1);
+      var _doItemEventCalls = _doItemEvent.withArgs('reading-list-item-load-done');
+      _doItemEventCalls.callCount.should.equal(1);
     });
 
   });
@@ -600,9 +600,9 @@ describe('Reading list', function () {
 
       sandbox.stub(ReadingList.prototype, 'miniMapItemActivate');
       sandbox.stub(ReadingList.prototype, 'miniMapItemDeactivate');
-      sandbox.stub(ReadingList.prototype, 'startItemLoad');
-      sandbox.stub(ReadingList.prototype, 'initialLoad');
-      sandbox.stub(ReadingList.prototype, 'unthrottledEventing');
+      sandbox.stub(ReadingList.prototype, '_startItemLoad');
+      sandbox.stub(ReadingList.prototype, '_initialLoad');
+      sandbox.stub(ReadingList.prototype, '_unthrottledEventing');
 
       var readingList = new ReadingList($validReadingList, {
         noEventBubbling: true
@@ -659,7 +659,7 @@ describe('Reading list', function () {
 
     beforeEach(function () {
       // don't bother with setup since we just need to test the calculating function
-      sandbox.stub(ReadingList.prototype, 'setup');
+      sandbox.stub(ReadingList.prototype, '_setup');
       readingList = new ReadingList($validReadingList);
     });
 
@@ -684,7 +684,7 @@ describe('Reading list', function () {
     });
 
     it('should have a test for elements being in looking area', function () {
-      var elementBoundingInsideArea = sandbox.stub(readingList, 'elementBoundingInsideArea');
+      var _elementBoundingInsideArea = sandbox.stub(readingList, '_elementBoundingInsideArea');
       var el = {};
 
       readingList.settings.lookingThresholdTop = 200;
@@ -692,7 +692,7 @@ describe('Reading list', function () {
 
       readingList.withinLookingArea(el);
 
-      elementBoundingInsideArea.withArgs(
+      _elementBoundingInsideArea.withArgs(
         el,
         readingList.settings.lookingThresholdTop,
         readingList.settings.lookingThresholdBottom).callCount.should.equal(1);
@@ -704,23 +704,23 @@ describe('Reading list', function () {
 
       // totally above box
       el.getBoundingClientRect.returns({top: -500, bottom: 100});
-      readingList.elementBoundingInsideArea(el, 200, 500).should.be.false;
+      readingList._elementBoundingInsideArea(el, 200, 500).should.be.false;
 
       // bottom inside box
       el.getBoundingClientRect.returns({top: -500, bottom: 300});
-      readingList.elementBoundingInsideArea(el, 200, 500).should.be.true;
+      readingList._elementBoundingInsideArea(el, 200, 500).should.be.true;
 
       // totally inside box
       el.getBoundingClientRect.returns({top: 300, bottom: 400});
-      readingList.elementBoundingInsideArea(el, 200, 500).should.be.true;
+      readingList._elementBoundingInsideArea(el, 200, 500).should.be.true;
 
       // top inside box
       el.getBoundingClientRect.returns({top: 300, bottom: 600});
-      readingList.elementBoundingInsideArea(el, 200, 500).should.be.true;
+      readingList._elementBoundingInsideArea(el, 200, 500).should.be.true;
 
       // totally below box
       el.getBoundingClientRect.returns({top: 600, bottom: 800});
-      readingList.elementBoundingInsideArea(el, 200, 500).should.be.false ;
+      readingList._elementBoundingInsideArea(el, 200, 500).should.be.false ;
     });
   });
 
