@@ -19,6 +19,13 @@ var $window = $(window);
 var $document = $(window.document);
 var $body = $(window.document.body);
 
+/**
+ * ReadingList constructor.
+ *
+ * @param {(HTMLElement|jQuery|String)} element - object to pass into jQuery
+ *    selector and to use for ReadingList container.
+ * @returns {ReadingList}
+ */
 var ReadingList = function ($element, options) {
 
   this.$container = $element;
@@ -58,6 +65,8 @@ var ReadingList = function ($element, options) {
   this.$miniMapItems = $(this.settings.selectorsMiniMapItems);
 
   this.setup();
+
+  return this;
 };
 
 /**
