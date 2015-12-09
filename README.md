@@ -138,9 +138,17 @@ the bottom of the "looking area".
 Any reading list items that are loaded with the page should have the attribute ```data-load-status="loaded"``` to prevent reloading that item. In order to keep
 styling consistent, the item should also get the ```loaded``` CSS class.
 
-## Running the Example
-If you'd like to see the example, clone down this code, then:
+## Development
+
+### Running the Example
+If you'd like to see the example:
 ```bash
 $ cd reading-list
-$ npm run-script example
+$ npm run example
+```
+
+### Creating a New Build
+Once you've made changes, create a new build and commit it:
+```bash
+$ npm run build
 ```
