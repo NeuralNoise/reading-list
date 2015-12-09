@@ -88,17 +88,12 @@ Following is a breakdown of the options available for this plugin:
 | ```scrollAnimationContainer``` | Set this to use a custom container for scrolling animation. A jQuery object that encapsulates the element that scrolling will occur on. Needed in cases such as when the reading list is entire document and the body should be used for scroll animations. |
 | ```noEventBubbling```| Set to true to stop events from bubbling up the DOM tree, in which case, any event listeners must attach to the reading list element itself. This **must** be set to true for any reading lists that are nested inside another reading list! |
 | ```onReady``` | Set to a function that will fire when the reading list is ready. Reading list object will be passed in as first argument. |
+| `selectorsMiniMapItems` | Selector for mini-map elements. Minimap elements can be anywhere on the page as long as they can be selected with this selector and have the `data-item-ref` attribute. If you are using multiple reading lists on a single page, this selector should be customized for each individual instance of a reading list. |
+| `selectorsItemsContainer` | Direct child of element used to create reading list. |
+| `selectorsItems` | Direct children of ```itemsContainer```, the class used for individual reading list items. |
+| `selectorsItemsPreLoaded` | Filter selector for `selectorsItems` that distinguishes items that have already been loaded into the reading list before reading list initialization. |
 
-#### Customizing Selectors
-The following selectors can be customized as options of the ```selectors``` option:
-
-| Selector Name | Selector Rules |
-|--------------:|:---------------|
-| ```itemsContainer``` | Direct child of element used to create reading list. |
-| ```items``` | Direct children of ```itemsContainer```, the class used for individual reading list items.  |
-| ```miniMapItems``` | Selector for mini-map elements. Minimap elements can be anywhere on the page as long as they can be selected with this selector and have the ```data-item-ref``` attribute. If you are using multiple reading lists on a single page, this selector should be customized for each individual instance of a reading list. |
-
-Note, also, that any styles that come along with the plugin must be applied to the corresponding customized classes here.
+Note, that any styles that come along with the plugin must be applied to the corresponding customized classes here.
 
 ### Events
 Following are events you can hook into as the page scrolls. Note: all events are triggered on the container used to build the reading list, so in the example, it would be on the ```#readingList``` element.

@@ -32,6 +32,7 @@ var ReadingList = function ($element, options) {
     selectorsMiniMapItems: '.reading-list-mini-map-item',
     selectorsItemsContainer: '.reading-list-items',
     selectorsItems: '.reading-list-item',
+    selectorsItemsPreLoaded: '.reading-list-loaded',
     addContent: false,
     dataRetrievalSuccess: function ($item, data) {
       return data;
