@@ -98,6 +98,8 @@ ReadingList.prototype.setup = function () {
       });
   }
 
+  this.$container.trigger('reading-list-at-top');
+
   // set up some default event callbacks
   this.$container.on('reading-list-item-load-start', this.startItemLoad.bind(this));
   this.$container.on('reading-list-item-in-looking', this.miniMapItemActivate.bind(this));

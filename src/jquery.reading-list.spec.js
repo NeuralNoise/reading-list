@@ -114,6 +114,13 @@ describe('Reading list', function () {
       onReady.called.should.be.true;
       onReady.args[0][0].should.equal(readingList);
     });
+
+    it('should fire top event', function () {
+      var trigger = sandbox.spy($validReadingList, 'trigger');
+      var readingList = new ReadingList($validReadingList);
+
+      trigger.withArgs('reading-list-at-top').callCount.should.equal(1);
+    });
   });
 
   describe('has scrolling-realated events for', function () {
