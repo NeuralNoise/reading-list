@@ -304,7 +304,7 @@ ReadingList.prototype._itemEventing = function (loadBot) {
         // new active item isn't old active item, do some notifications
         if (this.$activeItem) {
           this.$activeItem.removeClass('reading-list-in-looking');
-          this.miniMapItemDeactivate($item);
+          this.miniMapItemDeactivate(this.$activeItem);
           this._doItemEvent('reading-list-item-out-looking', this.$activeItem, true);
         }
 
