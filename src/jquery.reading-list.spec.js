@@ -167,6 +167,27 @@ describe('Reading list', function () {
 
       expect(jqueryMatcher(events.args[0][1][0]).test($item1)).to.be.true;
     });
+
+    it('should fire progress event for first preloaded item', function () {
+      var $item1 = $('<div class="reading-list-item reading-list-loaded" href="/one"></div>');
+      var $item2 = $('<div class="reading-list-item reading-list-loaded" href="/two"></div>');
+      var $item3 = $('<div class="reading-list-item" href="/three"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1)
+        .append($item2)
+        .append($item3);
+
+      var trigger = sandbox.spy($validReadingList, 'trigger');
+
+      var readingList = new ReadingList($validReadingList, {});
+
+      var events = trigger.withArgs('reading-list-item-progress');
+      events.callCount.should.equal(1);
+
+      expect(jqueryMatcher(events.args[0][1][0]).test($item1)).to.be.true;
+      expect(events.args[0][1][1].progress).to.equal(0);
+    });
   });
 
   describe('has scrolling-realated events for', function () {

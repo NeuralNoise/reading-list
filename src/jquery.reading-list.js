@@ -138,6 +138,7 @@ ReadingList.prototype.initialLoad = function () {
 
         if (i === 0) {
           self.doItemEvent('reading-list-item-in-looking', $this, true);
+          self.doItemEvent('reading-list-item-progress', $this, {progress: 0});
         }
       }
     });
