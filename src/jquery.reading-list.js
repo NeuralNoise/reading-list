@@ -127,7 +127,7 @@ ReadingList.prototype.initialLoad = function () {
   if (this.$listItems.length > 0) {
     var $firstLoad = $();
     var self = this;
-    this.$listItems.each(function () {
+    this.$listItems.each(function (i) {
       var $this = $(this);
       if ($firstLoad.length < 1 && $this.data('loadTo')) {
         $firstLoad = $this;
@@ -135,6 +135,10 @@ ReadingList.prototype.initialLoad = function () {
 
       if ($this.filter(self.settings.selectorsItemsPreLoaded).length > 0) {
         self.doItemEvent('reading-list-item-load-done', $this, true);
+
+        if (i === 0) {
+          self.doItemEvent('reading-list-item-in-looking', $this, true);
+        }
       }
     });
 
