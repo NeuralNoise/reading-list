@@ -24,27 +24,23 @@ var ReadingList = function ($element, options) {
   this.$container = $element;
 
   this.settings = $.extend({
-    loadingThreshold: 300,
-    lookingThresholdTop: 200,
-    lookingThresholdBottom: 250,
-    eventingThrottle: 10,
-    scrollToSpeed: 1000,
-    selectorsMiniMapItems: '.reading-list-mini-map-item',
-    selectorsItemsContainer: '.reading-list-items',
-    selectorsItems: '.reading-list-item',
-    selectorsItemsPreLoaded: '.reading-list-loaded',
     addContent: false,
-    dataRetrievalSuccess: function ($item, data) {
-      return data;
-    },
-    dataRetrievalFail: function ($item) {
-      return '';
-    },
-    scrollContainerHeight: null,
-    scrollTotalHeight: null,
-    scrollAnimationContainer: null,
+    dataRetrievalFail: function ($item) { return ''; },
+    dataRetrievalSuccess: function ($item, data) { return data; },
+    eventingThrottle: 10,
+    loadingThreshold: 300,
+    lookingThresholdBottom: 250,
+    lookingThresholdTop: 200,
     noEventBubbling: false,
-    onReady: null
+    onReady: null,
+    scrollAnimationContainer: null,
+    scrollContainerHeight: null,
+    scrollToSpeed: 1000,
+    scrollTotalHeight: null,
+    selectorsItems: '.reading-list-item',
+    selectorsItemsContainer: '.reading-list-items',
+    selectorsItemsPreLoaded: '.reading-list-loaded',
+    selectorsMiniMapItems: '.reading-list-mini-map-item'
   }, options);
 
   // ensure reading list elements we need are available, fail otherwise
