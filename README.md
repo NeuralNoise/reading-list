@@ -86,6 +86,7 @@ Following is a breakdown of the options available for this plugin:
 | `onReady` | Set to a function that will fire when the reading list is ready. Reading list object will be passed in as first argument. |
 | `scrollAnimationContainer` | Set this to use a custom container for scrolling animation. A jQuery object that encapsulates the element that scrolling will occur on. Needed in cases such as when the reading list is entire document and the body should be used for scroll animations. |
 | `scrollContainerHeight` | Set this to use a custom value for scroll container height in calculations, should be a function that returns an integer which is the height of the container being scrolled. Needed in cases, like were reading list is entire document and the window should be used for height calculations vs. document height. |
+| `scrollToAddPx` | Number, or function that returns a number, to add to scroll to distance. Useful if some absolute position element (such as a sticky header) needs to be accounted for when scrolling to an item. |
 | `scrollToSpeed` | Time in ms for scroll to event when scrolling to an article. |
 | `scrollTotalHeight` | Set this to use a custom value for scroll total height in calculations. Should be a function that returns an integer which is the total scrollable height of the scroll container. Needed in cases such as when the reading list is entire document and the body should be used for scroll total height calculations. |
 | `selectorsItems` | Direct children of `itemsContainer`, the class used for individual reading list items. |

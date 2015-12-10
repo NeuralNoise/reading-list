@@ -605,12 +605,15 @@ describe('Reading list', function () {
         .append($item2);
 
       readingList.settings.scrollToSpeed = 0;
+      readingList.settings.scrollToAddPx = function () { return 10; };
 
       readingList.scrollToItem($item2);
 
       stop.calledOnce.should.be.true;
       animate.calledOnce.should.be.true;
-      animate.args[0][0].scrollTop.should.equal($item2.position().top);
+      animate.args[0][0].scrollTop.should.equal(
+        $item2.position().top + readingList.settings.scrollToAddPx()
+      );
     });
 
     it('should have a test for elements being in looking area', function () {
