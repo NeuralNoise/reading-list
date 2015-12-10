@@ -285,7 +285,6 @@ describe('Reading list', function () {
         scrollTop.returns(600);
         readingList._unthrottledEventing();
 
-        trigger.withArgs('reading-list-at-bottom-load-threshold').callCount.should.equal(1);
         trigger.withArgs('reading-list-out-of-content').callCount.should.equal(0);
       });
 
@@ -315,7 +314,6 @@ describe('Reading list', function () {
         scrollTop.returns(600);
         readingList._unthrottledEventing();
 
-        trigger.withArgs('reading-list-at-bottom-load-threshold').callCount.should.equal(1);
         trigger.withArgs('reading-list-out-of-content').callCount.should.equal(1);
         _addContent.callCount.should.equal(1);
       });
@@ -600,7 +598,6 @@ describe('Reading list', function () {
       readingList.$container.on(
         'reading-list-at-top ' +
         'reading-list-at-bottom ' +
-        'reading-list-at-bottom-load-threshold ' +
         'reading-list-out-of-content ' +
         'reading-list-item-load-start ' +
         'reading-list-item-in-looking ' +
@@ -613,7 +610,6 @@ describe('Reading list', function () {
       $(document).on(
         'reading-list-at-top ' +
         'reading-list-at-bottom ' +
-        'reading-list-at-bottom-load-threshold ' +
         'reading-list-out-of-content ' +
         'reading-list-item-load-start ' +
         'reading-list-item-in-looking ' +
@@ -626,7 +622,6 @@ describe('Reading list', function () {
 
       readingList.$container.trigger('reading-list-at-top');
       readingList.$container.trigger('reading-list-at-bottom');
-      readingList.$container.trigger('reading-list-at-bottom-load-threshold');
       readingList.$container.trigger('reading-list-out-of-content');
       readingList.$container.trigger('reading-list-item-load-start');
       readingList.$container.trigger('reading-list-item-in-looking');
@@ -636,7 +631,7 @@ describe('Reading list', function () {
       readingList.$container.trigger('reading-list-start-scroll-to');
       readingList.$container.trigger('reading-list-end-scroll-to');
 
-      callback.callCount.should.equal(11);
+      callback.callCount.should.equal(10);
       docCallback.callCount.should.equal(0);
     });
   });

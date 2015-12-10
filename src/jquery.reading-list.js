@@ -91,7 +91,6 @@ ReadingList.prototype._setup = function () {
     this.$container.on(
       'reading-list-at-top ' +
       'reading-list-at-bottom ' +
-      'reading-list-at-bottom-load-threshold ' +
       'reading-list-out-of-content ' +
       'reading-list-item-load-start ' +
       'reading-list-item-in-looking ' +
@@ -377,8 +376,6 @@ ReadingList.prototype._unthrottledEventing = function () {
   // iff x - z - y <= a then past loading threshold
   var loadBot = false;
   if (scrollTotalHeight - scrollTop - scrollContainerHeight <= this.settings.loadingThreshold) {
-    // we're in the bottom loading threshold
-    this.$container.trigger('reading-list-at-bottom-load-threshold');
     // flag that we need to load something bot
     loadBot = true;
   }

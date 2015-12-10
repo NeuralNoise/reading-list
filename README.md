@@ -106,7 +106,6 @@ to event callbacks.
 |-----:|:----------|:------|
 | ```reading-list-at-top``` | Fires when reading list hits the top. |
 | ```reading-list-at-bottom``` | Fires when reading list hits the bottom. |
-| ```reading-list-at-bottom-load-threshold``` | Triggered when the reading list is nearing the bottom, a threshold specified by ```loadingThreshold``` option. |
 | ```reading-list-out-of-content``` | Reading list has run out of content. Internally, if ```addContent``` is defined it will be used when this event triggers to add new content to the end of the reading list. |
 
 #### Item Events
