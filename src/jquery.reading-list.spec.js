@@ -239,55 +239,6 @@ describe('Reading list', function () {
         trigger.withArgs('reading-list-at-top').callCount.should.equal(1);
       });
 
-      it('when at the bottom of the list', function () {
-        // note: we're at the bottom of the list when scrollHeight = height + scrollTop
-        //  or scrollHeight - height - scrollTop = 0
-
-        var scrollTop = sandbox.stub(readingList.$container, 'scrollTop');
-
-        readingList.settings.scrollContainerHeight = function () {
-          return 300;
-        };
-        readingList.$container[0] = {scrollHeight: 1000};
-
-        // scroll to middle, event should not fire
-        scrollTop.returns(300);
-        readingList._unthrottledEventing();
-
-        // scroll to bottom, event should fire
-        scrollTop.returns(700);
-        readingList._unthrottledEventing();
-
-        trigger.withArgs('reading-list-at-bottom').callCount.should.equal(1);
-      });
-
-      it('when past the loading threshold', function () {
-        // note: we're past the loading threshold when
-        //  total scroll area - scrollTop - visible scroll area <= loadingThreshold
-
-        var scrollTop = sandbox.stub(readingList.$container, 'scrollTop');
-
-        readingList.settings.scrollContainerHeight = function () {
-          return 300;
-        };
-        readingList.settings.loadingThreshold = 300;
-        readingList.$container[0] = {scrollHeight: 1000};
-
-        // prevent out of content event from firing
-        _itemEventing.returns(4);
-        sandbox.stub(readingList.$listItems, 'length', 5);
-
-        // scroll to a point above loading threshold, should not fire
-        scrollTop.returns(300);
-        readingList._unthrottledEventing();
-
-        // scroll past threshold, should fire
-        scrollTop.returns(600);
-        readingList._unthrottledEventing();
-
-        trigger.withArgs('reading-list-out-of-content').callCount.should.equal(0);
-      });
-
       it('when the reading list is out of content', function () {
         // note: we're out of content when all reading list items have been loaded and
         //  we've gone past the bottom load threshold
@@ -597,7 +548,6 @@ describe('Reading list', function () {
 
       readingList.$container.on(
         'reading-list-at-top ' +
-        'reading-list-at-bottom ' +
         'reading-list-out-of-content ' +
         'reading-list-item-load-start ' +
         'reading-list-item-in-looking ' +
@@ -609,7 +559,6 @@ describe('Reading list', function () {
         callback);
       $(document).on(
         'reading-list-at-top ' +
-        'reading-list-at-bottom ' +
         'reading-list-out-of-content ' +
         'reading-list-item-load-start ' +
         'reading-list-item-in-looking ' +
@@ -621,7 +570,6 @@ describe('Reading list', function () {
         docCallback);
 
       readingList.$container.trigger('reading-list-at-top');
-      readingList.$container.trigger('reading-list-at-bottom');
       readingList.$container.trigger('reading-list-out-of-content');
       readingList.$container.trigger('reading-list-item-load-start');
       readingList.$container.trigger('reading-list-item-in-looking');
@@ -631,7 +579,7 @@ describe('Reading list', function () {
       readingList.$container.trigger('reading-list-start-scroll-to');
       readingList.$container.trigger('reading-list-end-scroll-to');
 
-      callback.callCount.should.equal(10);
+      callback.callCount.should.equal(9);
       docCallback.callCount.should.equal(0);
     });
   });

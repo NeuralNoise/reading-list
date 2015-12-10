@@ -90,7 +90,6 @@ ReadingList.prototype._setup = function () {
     // don't bubble events up the dom tree, listeners must attach to the original container
     this.$container.on(
       'reading-list-at-top ' +
-      'reading-list-at-bottom ' +
       'reading-list-out-of-content ' +
       'reading-list-item-load-start ' +
       'reading-list-item-in-looking ' +
@@ -360,15 +359,6 @@ ReadingList.prototype._unthrottledEventing = function () {
   if (scrollTop <= 0) {
     // we're at the top of the reading list
     this.$container.trigger('reading-list-at-top');
-  }
-
-  // do bot check separate since you can be at the top/bot simultaneously if
-  //  one item deep and item is shorter than window
-  //
-  // iff x <= z + y then bottom of reading list
-  if (scrollTotalHeight <= scrollTop + scrollContainerHeight) {
-    // we're at the bottom of the reading list
-    this.$container.trigger('reading-list-at-bottom');
   }
 
   // check bottom loading threshold
