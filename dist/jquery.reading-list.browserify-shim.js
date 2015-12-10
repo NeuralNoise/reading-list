@@ -18,6 +18,21 @@ var loadDirection = {
   DOWN: 'down'
 };
 
+var events = {
+  atTop: 'reading-list-at-top',
+  itemLoadStart: 'reading-list-item-load-start',
+  itemLoadFinish: 'reading-list-item-load-done',
+  itemLookingIn: 'reading-list-item-in-looking',
+  itemLookingOut: 'reading-list-item-out-looking',
+  itemProgress: 'reading-list-item-progress',
+  outOfContent: 'reading-list-out-of-content',
+  scrollToEventStart: 'reading-list-start-scroll-to',
+  scrollToEventFinish: 'reading-list-end-scroll-to'
+};
+var eventsList = Object.keys(events).map(function (key) {
+  return events[key];
+});
+
 var $window = $(window);
 var $document = $(window.document);
 var $body = $(window.document.body);
@@ -92,23 +107,13 @@ ReadingList.prototype._setup = function () {
   if (this.settings.noEventBubbling) {
     // don't bubble events up the dom tree, listeners must attach to the original container
     this.$container.on(
-      'reading-list-at-top ' +
-      'reading-list-at-bottom ' +
-      'reading-list-at-bottom-load-threshold ' +
-      'reading-list-out-of-content ' +
-      'reading-list-item-load-start ' +
-      'reading-list-item-in-looking ' +
-      'reading-list-item-out-looking ' +
-      'reading-list-item-progress ' +
-      'reading-list-item-load-done ' +
-      'reading-list-start-scroll-to ' +
-      'reading-list-end-scroll-to',
+      eventsList.join(' '),
       function (e) {
         e.stopPropagation();
       });
   }
 
-  this.$container.trigger('reading-list-at-top');
+  this.$container.trigger(events.atTop);
 
   this._initialLoad();
 
@@ -139,12 +144,12 @@ ReadingList.prototype._initialLoad = function () {
       }
 
       if ($this.filter(self.settings.selectorsItemsPreLoaded).length > 0) {
-        self._doItemEvent('reading-list-item-load-done', $this, true);
+        self._doItemEvent(events.itemLoadFinish, $this, true);
 
         if (i === 0) {
           self.miniMapItemActivate($this);
-          self._doItemEvent('reading-list-item-in-looking', $this, true);
-          self._doItemEvent('reading-list-item-progress', $this, {progress: 0});
+          self._doItemEvent(events.itemLookingIn, $this, true);
+          self._doItemEvent(events.itemProgress, $this, {progress: 0});
         }
       }
     });
@@ -280,7 +285,7 @@ ReadingList.prototype._itemEventing = function (loadBot) {
         loadingBotCounter < loadingBotMax && loadBot &&
         $item.prev().data('loadStatus') === loadStatus.LOADED) {
       this._doItemEvent(
-        'reading-list-item-load-start',
+        events.itemLoadStart,
         $item,
         { direction: loadDirection.DOWN },
         true
@@ -306,12 +311,12 @@ ReadingList.prototype._itemEventing = function (loadBot) {
         if (this.$activeItem) {
           this.$activeItem.removeClass('reading-list-in-looking');
           this.miniMapItemDeactivate(this.$activeItem);
-          this._doItemEvent('reading-list-item-out-looking', this.$activeItem, true);
+          this._doItemEvent(events.itemLookingOut, this.$activeItem, true);
         }
 
         $item.addClass('reading-list-in-looking');
         this.miniMapItemActivate($item);
-        this._doItemEvent('reading-list-item-in-looking', $item, true);
+        this._doItemEvent(events.itemLookingIn, $item, true);
       }
 
       // set the now active item to this item
@@ -334,7 +339,7 @@ ReadingList.prototype._itemEventing = function (loadBot) {
     var ratioViewed = (-bounding.top + this.settings.lookingThresholdBottom) /
       bounding.height;
     var progress = ratioViewed <= 1.0 ? ratioViewed : 1.0;
-    this._doItemEvent('reading-list-item-progress', this.$activeItem, {progress: progress});
+    this._doItemEvent(events.itemProgress, this.$activeItem, {progress: progress});
   }
 
   return loadedCounter;
@@ -363,16 +368,7 @@ ReadingList.prototype._unthrottledEventing = function () {
   // check min/max scroll
   if (scrollTop <= 0) {
     // we're at the top of the reading list
-    this.$container.trigger('reading-list-at-top');
-  }
-
-  // do bot check separate since you can be at the top/bot simultaneously if
-  //  one item deep and item is shorter than window
-  //
-  // iff x <= z + y then bottom of reading list
-  if (scrollTotalHeight <= scrollTop + scrollContainerHeight) {
-    // we're at the bottom of the reading list
-    this.$container.trigger('reading-list-at-bottom');
+    this.$container.trigger(events.atTop);
   }
 
   // check bottom loading threshold
@@ -380,8 +376,6 @@ ReadingList.prototype._unthrottledEventing = function () {
   // iff x - z - y <= a then past loading threshold
   var loadBot = false;
   if (scrollTotalHeight - scrollTop - scrollContainerHeight <= this.settings.loadingThreshold) {
-    // we're in the bottom loading threshold
-    this.$container.trigger('reading-list-at-bottom-load-threshold');
     // flag that we need to load something bot
     loadBot = true;
   }
@@ -391,7 +385,7 @@ ReadingList.prototype._unthrottledEventing = function () {
   // check if we've run out of reading list content
   if (itemsLoaded === this.$listItems.length && loadBot) {
     this._addContent();
-    this.$container.trigger('reading-list-out-of-content');
+    this.$container.trigger(events.outOfContent);
   }
 };
 
@@ -433,7 +427,7 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
       }
 
       self.eventing();
-      self._doItemEvent('reading-list-item-load-done', $readingListItem, true);
+      self._doItemEvent(events.itemLoadFinish, $readingListItem, true);
     });
 };
 
@@ -503,7 +497,7 @@ ReadingList.prototype.appendItem = function (html) {
   $item.data('loadStatus', loadStatus.LOADED);
   this.$listItems.add($item);
   this.$itemsContainer.append($item);
-  this._doItemEvent('reading-list-item-load-done', $item, true);
+  this._doItemEvent(events.itemLoadFinish, $item, true);
 
   return $item;
 };
@@ -545,7 +539,7 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
   // ensure the animation stops when user interaction occurs
   $document.on(MOVEMENTS, stopContainerAnimation);
 
-  this._doItemEvent('reading-list-start-scroll-to', $item);
+  this._doItemEvent(events.scrollToEventStart, $item);
   this.stopContainerAnimation().animate({
     scrollTop: $item.position().top + (addPx || 0)
   },
@@ -553,7 +547,7 @@ ReadingList.prototype.scrollToItem = function ($item, addPx) {
   (function () {
     // unbind the scroll stoppage
     $document.off(MOVEMENTS, stopContainerAnimation);
-    this._doItemEvent('reading-list-end-scroll-to', $item);
+    this._doItemEvent(events.scrollToEventFinish, $item);
   }).bind(this));
 };
 
