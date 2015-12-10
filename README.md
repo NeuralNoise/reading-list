@@ -81,6 +81,7 @@ Following is a breakdown of the options available for this plugin:
 | `loadingThreshold` | Height from the bottom of scrolling container to start loading. |
 | `lookingThresholdBottom` | Bottom boundary of "looking" area, measured from top of window. |
 | `lookingThresholdTop` | Top boundary of "looking" area, measured from top of window. |
+| `miniMapActiveClass` | Class to apply to active minimap items. |
 | `noEventBubbling` | Set to true to stop events from bubbling up the DOM tree, in which case, any event listeners must attach to the reading list element itself. This **must** be set to true for any reading lists that are nested inside another reading list! |
 | `onReady` | Set to a function that will fire when the reading list is ready. Reading list object will be passed in as first argument. |
 | `scrollAnimationContainer` | Set this to use a custom container for scrolling animation. A jQuery object that encapsulates the element that scrolling will occur on. Needed in cases such as when the reading list is entire document and the body should be used for scroll animations. |
