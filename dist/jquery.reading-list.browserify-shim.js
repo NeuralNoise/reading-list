@@ -61,6 +61,7 @@ var ReadingList = function ($element, options) {
     onReady: null,
     scrollAnimationContainer: null,
     scrollContainerHeight: null,
+    scrollToAddPx: 0,
     scrollToSpeed: 1000,
     scrollTotalHeight: null,
     selectorsItems: '.reading-list-item',
@@ -527,14 +528,22 @@ ReadingList.prototype.stopContainerAnimation = function () {
 };
 
 /**
- * Scroll to a given item.
+ * Scroll to a given item. Reads settings scrollToAddPx to add additional pixels
+ *  to scroll event, useful if a sticky header or something similar is positioned
+ *  absolutely and may block scrolled-to content.
  *
  * @param {jQuery} $item - item to scroll to.
- * @param {Number} addPx - additional number of pixels to scroll.
  * @returns {undefined}
  */
-ReadingList.prototype.scrollToItem = function ($item, addPx) {
+ReadingList.prototype.scrollToItem = function ($item) {
   var stopContainerAnimation = this.stopContainerAnimation.bind(this);
+
+  var addPx = 0;
+  if (typeof(this.settings.scrollToAddPx) === 'function') {
+    addPx = this.settings.scrollToAddPx($item);
+  } else if (typeof(this.settings.scrollToAddPx) === 'number') {
+    addPx = this.settings.scrollToAddPx;
+  }
 
   // ensure the animation stops when user interaction occurs
   $document.on(MOVEMENTS, stopContainerAnimation);
@@ -567,7 +576,7 @@ ReadingList.prototype._miniMapItemClicked = function (e) {
   // retrieve everything on the way to our item, then scroll to it
   var $item = this.$listItems.filter('#' + itemRef);
   this.retrieveListItemsTo($item)
-    .always(this.scrollToItem.bind(this));
+    .always(this.scrollToItem.bind(this, $item));
 };
 
 /**
