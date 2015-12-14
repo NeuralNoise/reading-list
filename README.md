@@ -141,14 +141,16 @@ styling consistent, the item should also get the ```loaded``` CSS class.
 ## Development
 
 ### Running the Example
-If you'd like to see the example:
 ```bash
-$ cd reading-list
 $ npm run example
 ```
 
+### Run tests
+```bash
+$ npm run test
+```
+
 ### Creating a New Build
-Once you've made changes, create a new build and commit it:
 ```bash
 $ npm run build
 ```
