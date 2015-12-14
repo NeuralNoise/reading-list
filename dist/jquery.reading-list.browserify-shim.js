@@ -613,6 +613,35 @@ ReadingList.prototype.miniMapItemDeactivate = function ($item) {
 };
 
 /**
+ * Utility to wrap a callback function. Improves testability by allowing
+ *  stubbing of callbacks even after the object has been setup.
+ *
+ * Usage:
+ *
+ * `$element.on('some-event', readingList.callback(myReadingList, 'someCallbackFunction'));`
+ *
+ *  which can be stubbed later. As opposed to:
+ *
+ * `$element.on('some-event', myReadingList.someCallbackFunction.bind(myReadingList));`
+ *
+ *  which cannot be stubbed later.
+ *
+ * @param {Object} thisArg - Object to use for `this` inside callback.
+ * @param {String} callbackName - name of function to use for callback. Must
+ *  be a function and already be present on Object given for `thisArg`.
+ * @returns {undefined}
+ */
+ReadingList.prototype.callback = function (thisArg, callbackName) {
+  if (typeof thisArg[callbackName] !== 'function') {
+    throw new Error('Listener callback must be a function!');
+  }
+
+  return function () {
+    return thisArg[callbackName].apply(thisArg, arguments);
+  };
+};
+
+/**
  * Wrapper to contain reading list logic inside a subobject of jquery element.
  *
  * @param {Object} options - options to pass to reading list.
