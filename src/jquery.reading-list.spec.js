@@ -104,6 +104,17 @@ describe('Reading list', function () {
       expect(retrieveSpy.calledWith(jqueryMatcher($item3))).to.be.true;
     });
 
+    it('should call onPreSetup function if provided', function () {
+      var onPreSetup = sandbox.stub();
+
+      var readingList = new ReadingList($validReadingList, {
+        onPreSetup: onPreSetup
+      });
+
+      onPreSetup.called.should.be.true;
+      onPreSetup.args[0][0].should.equal(readingList);
+    });
+
     it('should call onReady function if provided', function () {
       var onReady = sandbox.stub();
 
