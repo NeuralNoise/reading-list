@@ -55,6 +55,7 @@ var ReadingList = function ($element, options) {
     lookingThresholdTop: 200,
     miniMapActiveClass: 'reading-list-active',
     noEventBubbling: false,
+    onPreSetup: null,
     onReady: null,
     scrollAnimationContainer: null,
     scrollContainerHeight: null,
@@ -81,7 +82,15 @@ var ReadingList = function ($element, options) {
   this.$listItems = this.$container.find(this.settings.selectorsItems);
   this.$miniMapItems = $(this.settings.selectorsMiniMapItems);
 
+  if (typeof(this.settings.onPreSetup) === 'function') {
+    this.settings.onPreSetup(this);
+  }
+
   this._setup();
+
+  if (typeof(this.settings.onReady) === 'function') {
+    this.settings.onReady(this);
+  }
 
   return this;
 };
@@ -119,10 +128,6 @@ ReadingList.prototype._setup = function () {
   $window.on('resize', this.eventing.bind(this));
 
   this.ready = true;
-
-  if (this.settings.onReady) {
-    this.settings.onReady(this);
-  }
 };
 
 /**
