@@ -657,4 +657,26 @@ describe('Reading list', function () {
     });
   });
 
+  describe('utilities', function () {
+
+    it('should have a function to attach an event callback that can be stubbed later', function () {
+      var $body = $(document.body);
+      var callbackName = 'someCallbackFunction';
+      var eventName = 'some-test-event';
+      var myReadingList = {};
+      var readingList = new ReadingList($validReadingList);
+
+      myReadingList[callbackName] = function () {};
+
+      $body.on(eventName, readingList.callback(myReadingList, callbackName));
+
+      var callback = sandbox.stub(myReadingList, callbackName);
+
+      $body.trigger(eventName);
+
+      $body.off();
+
+      expect(callback.calledOnce).to.be.true;
+    });
+  });
 });
