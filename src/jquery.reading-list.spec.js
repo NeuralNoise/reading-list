@@ -199,6 +199,22 @@ describe('Reading list', function () {
       expect(jqueryMatcher(events.args[0][1][0]).test($item1)).to.be.true;
       expect(events.args[0][1][1].progress).to.equal(0);
     });
+
+    it('should set the active item to the first item in the list', function () {
+
+      var $item1 = $('<div class="reading-list-item reading-list-loaded" href="/one"></div>');
+      var $item2 = $('<div class="reading-list-item reading-list-loaded" href="/two"></div>');
+      var $item3 = $('<div class="reading-list-item" href="/three"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1)
+        .append($item2)
+        .append($item3);
+
+      var readingList = new ReadingList($validReadingList, {});
+
+      expect(jqueryMatcher(readingList.$activeItem).test($item1)).to.be.true;
+    });
   });
 
   describe('has scrolling-realated events for', function () {

@@ -80,6 +80,7 @@ var ReadingList = function ($element, options) {
 
   // elements needed for reading list
   this.$listItems = this.$container.find(this.settings.selectorsItems);
+  this.$activeItem = this.$listItems.length > 0 ? this.$listItems.eq(0) : null;
   this.$miniMapItems = $(this.settings.selectorsMiniMapItems);
 
   if (typeof(this.settings.onPreSetup) === 'function') {
@@ -104,9 +105,6 @@ ReadingList.prototype._setup = function () {
 
   // throttled eventing function to be used for all events
   this.eventing = _.throttle(this._unthrottledEventing, this.settings.eventingThrottle);
-
-  // currently active item
-  this.$activeItem = null;
 
   // set up minimap item click
   this.$miniMapItems.on('click', this._miniMapItemClicked.bind(this));
