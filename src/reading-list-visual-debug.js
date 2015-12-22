@@ -25,10 +25,10 @@
     var $rule = $('<hr>');
 
     $rule
-      .css('border-bottom', '1px solid red')
+      .css('border-bottom', 'none')
       .css('border-left', 'none')
       .css('border-right', 'none')
-      .css('border-top', 'none')
+      .css('border-top', '1px solid red')
       .css('bottom', 0)
       .css('margin', 0)
       .css('pointer-events', 'none')
@@ -63,12 +63,6 @@
     }
   };
 
-  var setItemDebug = function (e, $item) {
-    $item
-      .css('border-top', '1px solid blue')
-      .css('border-bottom', '1px solid blue');
-  };
-
   window.readingListDebug = {
     /**
      * Debug given reading list.
@@ -84,7 +78,6 @@
 
       readingList.$container.on('reading-list-item-in-looking', setActiveItemIndicator);
       readingList.$container.on('reading-list-item-out-looking', setActiveItemIndicator);
-      readingList.$container.on('reading-list-item-load-done', setItemDebug);
 
       setActiveItemIndicator(null, readingList.$activeItem);
       readingList.$listItems.each(function () {
@@ -102,7 +95,6 @@
 
       readingList.$container.off('reading-list-item-in-looking', setActiveItemIndicator);
       readingList.$container.off('reading-list-item-out-looking', setActiveItemIndicator);
-      readingList.$container.off('reading-list-item-load-done', setItemDebug);
 
       return this;
     }
