@@ -6,6 +6,7 @@
   var $body = $(document.body);
 
   var $debugContainer = $('<div class="reading-list-debug-container">');
+  $body.append($debugContainer);
 
   var $addDebugBar = function () {
     var $debugBar = $('<div class="reading-list-debug-bar">');
@@ -85,6 +86,8 @@
     debugOff: function (readingList) {
       $debugContainer.empty();
       readingList.$container.off('reading-list-item-in-looking', setActiveItemIndicator);
+
+      return this;
     }
   };
 
