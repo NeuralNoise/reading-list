@@ -756,13 +756,6 @@ exports = ReadingList;
       readingList.$container.on('reading-list-item-out-looking', setActiveItemIndicator);
 
       setActiveItemIndicator(null, readingList.$activeItem);
-      readingList.$listItems.each(function () {
-        var $item = $(this);
-
-        if ($item.data('loadStatus') === 'loaded') {
-          setItemDebug(null, $item);
-        }
-      });
 
       return this;
     },
