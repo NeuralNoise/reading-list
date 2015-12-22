@@ -25,7 +25,10 @@
     var $rule = $('<hr>');
 
     $rule
-      .css('border', '1px solid ' + color + ' 0 0 0')
+      .css('border-bottom', '1px solid ' + color)
+      .css('border-left', 'none')
+      .css('border-right', 'none')
+      .css('border-top', 'none')
       .css('bottom', 0)
       .css('margin', 0)
       .css('pointer-events', 'none')
