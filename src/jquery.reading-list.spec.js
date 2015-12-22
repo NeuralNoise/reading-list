@@ -215,6 +215,12 @@ describe('Reading list', function () {
 
       expect(jqueryMatcher(readingList.$activeItem).test($item1)).to.be.true;
     });
+
+    it('should keep active item set to last active item if it would otherwise be unset', function () {
+      
+      // TODO : add test code here
+      throw new Error('Not implemented yet.');
+    });
   });
 
   describe('has scrolling-realated events for', function () {

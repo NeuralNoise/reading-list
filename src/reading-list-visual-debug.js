@@ -82,7 +82,7 @@
       readingList.$container.on('reading-list-item-in-looking', setActiveItemIndicator);
       readingList.$container.on('reading-list-item-load-done', setItemDebug);
 
-      this.$listItems.each(function () {
+      readingList.$listItems.each(function () {
         var $item = $(this);
 
         if ($item.data('loadStatus') === 'loaded') {
