@@ -37,7 +37,7 @@
     return $rule;
   };
 
-  var setActiveItemIndicator = function ($item) {
+  var setActiveItemIndicator = function (e, $item) {
     var $debugBar = $('.reading-list-debug-bar');
 
     if ($debugBar.length > 0) {
@@ -54,9 +54,16 @@
       }
 
       $activeItemIndicator
-      .find('.reading-list-debug-active-item-text')
-      .html($item.attr('id'));
+        .find('.reading-list-debug-active-item-text')
+        .html($item.attr('id'));
     }
+  };
+
+  var setItemDebug = function (e, $item) {
+    var bounds = $item.getBoundingClientRect();
+
+    $addVisualRule(bounds.top, true, 'blue');
+    $addVisualRule(bounds.bottom, true, 'blue');
   };
 
   window.readingListDebug = {
@@ -72,20 +79,16 @@
       $addVisualRule(readingList.settings.lookingThresholdTop, false, 'red');
       $addVisualRule(readingList.settings.lookingThresholdBottom, false, 'red');
 
-      readingList.$listItems.each(function () {
-        var bounds = this.getBoundingClientRect();
-
-        $addVisualRule(bounds.top, true, 'blue');
-        $addVisualRule(bounds.bottom, true, 'blue');
-      });
-
       readingList.$container.on('reading-list-item-in-looking', setActiveItemIndicator);
+      readingList.$container.on('reading-list-item-load-done', setItemDebug);
 
       return this;
     },
     debugOff: function (readingList) {
       $debugContainer.empty();
+
       readingList.$container.off('reading-list-item-in-looking', setActiveItemIndicator);
+      readingList.$container.off('reading-list-item-load-done', setItemDebug);
 
       return this;
     }
