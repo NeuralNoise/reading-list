@@ -45,8 +45,8 @@
       if ($activeItemIndicator.length < 1) {
         $activeItemIndicator = $(
           '<div class="reading-list-debug-active-item">' +
-          '<span>Active Item:</span>' +
-          '<span class="reading-list-debug-active-item-text">UNSET</span>'
+            '<span>Active Item:</span>' +
+            '<span class="reading-list-debug-active-item-text">UNSET</span>' +
           '</div>'
         );
         $debugBar.append($activeItemIndicator);
