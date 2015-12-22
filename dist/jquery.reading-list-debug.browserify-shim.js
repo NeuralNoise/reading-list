@@ -731,7 +731,7 @@ exports = ReadingList;
 
       $activeItemIndicator
         .find('.reading-list-debug-active-item-text')
-        .html($item.attr('id'));
+        .html(typeof($item) !== 'undefined' ? $item.attr('id') : 'undefined');
     }
   };
 
@@ -756,6 +756,7 @@ exports = ReadingList;
       $addVisualRule(readingList.settings.lookingThresholdBottom, false, 'red');
 
       readingList.$container.on('reading-list-item-in-looking', setActiveItemIndicator);
+      readingList.$container.on('reading-list-item-out-looking', setActiveItemIndicator);
       readingList.$container.on('reading-list-item-load-done', setItemDebug);
 
       readingList.$listItems.each(function () {
@@ -772,6 +773,7 @@ exports = ReadingList;
       $debugContainer.empty();
 
       readingList.$container.off('reading-list-item-in-looking', setActiveItemIndicator);
+      readingList.$container.off('reading-list-item-out-looking', setActiveItemIndicator);
       readingList.$container.off('reading-list-item-load-done', setItemDebug);
 
       return this;
