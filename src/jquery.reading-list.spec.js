@@ -215,12 +215,6 @@ describe('Reading list', function () {
 
       expect(jqueryMatcher(readingList.$activeItem).test($item1)).to.be.true;
     });
-
-    it('should keep active item set to last active item if it would otherwise be unset', function () {
-      
-      // TODO : add test code here
-      throw new Error('Not implemented yet.');
-    });
   });
 
   describe('has scrolling-realated events for', function () {
@@ -710,6 +704,25 @@ describe('Reading list', function () {
       $body.off();
 
       expect(callback.calledOnce).to.be.true;
+    });
+  });
+
+  describe('normal operation', function () {
+
+    it('should keep active item set to last active item if it would otherwise be undefined', function () {
+      var $item1 = $('<div class="reading-list-item"></div>');
+
+      $validReadingList.find('.reading-list-items').append($item1);
+
+      var readingList = new ReadingList($validReadingList);
+      var $oldActiveItem = readingList.$activeItem;
+
+      sandbox.stub(readingList, 'withinLookingArea').returns(false);
+
+      readingList._itemEventing();
+
+      expect(jqueryMatcher($oldActiveItem).test($item1)).to.be.true;
+      expect(jqueryMatcher(readingList.$activeItem).test($item1)).to.be.true;
     });
   });
 });
