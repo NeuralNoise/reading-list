@@ -25,9 +25,10 @@
     var $rule = $('<hr>');
 
     $rule
-      .css('border-top', '1px solid ' + color)
+      .css('border', '1px solid ' + color + ' 0 0 0')
       .css('bottom', 0)
       .css('margin', 0)
+      .css('pointer-events', 'none')
       .css('position', isAbsolute ? 'absolute' : 'fixed')
       .css('right', 0)
       .css('top', top + 'px')
@@ -60,10 +61,9 @@
   };
 
   var setItemDebug = function (e, $item) {
-    var bounds = $item[0].getBoundingClientRect();
-
-    $addVisualRule(bounds.top, true, 'blue');
-    $addVisualRule(bounds.bottom, true, 'blue');
+    $item
+      .css('border-top', '1px solid blue')
+      .css('border-bottom', '1px solid blue');
   };
 
   window.readingListDebug = {
