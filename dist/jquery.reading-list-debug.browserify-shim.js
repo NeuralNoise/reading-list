@@ -697,11 +697,14 @@ exports = ReadingList;
     return $debugBar;
   };
 
-  var $addVisualRule = function (top, isAbsolute, color) {
+  var $addVisualRule = function (top, isAbsolute) {
     var $rule = $('<hr>');
 
     $rule
-      .css('border', '1px solid ' + color + ' 0 0 0')
+      .css('border-bottom', '1px solid red')
+      .css('border-left', 'none')
+      .css('border-right', 'none')
+      .css('border-top', 'none')
       .css('bottom', 0)
       .css('margin', 0)
       .css('pointer-events', 'none')
@@ -752,13 +755,14 @@ exports = ReadingList;
       this.debugOff(readingList);
 
       $addDebugBar();
-      $addVisualRule(readingList.settings.lookingThresholdTop, false, 'red');
-      $addVisualRule(readingList.settings.lookingThresholdBottom, false, 'red');
+      $addVisualRule(readingList.settings.lookingThresholdTop);
+      $addVisualRule(readingList.settings.lookingThresholdBottom);
 
       readingList.$container.on('reading-list-item-in-looking', setActiveItemIndicator);
       readingList.$container.on('reading-list-item-out-looking', setActiveItemIndicator);
       readingList.$container.on('reading-list-item-load-done', setItemDebug);
 
+      setActiveItemIndicator(null, readingList.$activeItem);
       readingList.$listItems.each(function () {
         var $item = $(this);
 
