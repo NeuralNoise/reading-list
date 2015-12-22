@@ -29,7 +29,8 @@
     "build-prepare": "rm -rf dist && mkdir dist",
     "build-copy": "cp src/jquery.reading-list.css dist/ && cp src/jquery.reading-list.js dist/",
     "build-tasks": "./node_modules/.bin/browserify src/jquery.reading-list.js -o dist/jquery.reading-list.browserify-shim.js",
-    "build": "npm run build-prepare && npm run build-copy && npm run build-tasks",
+    "build-tasks-debug": "./node_modules/.bin/browserify src/jquery.reading-list.js src/reading-list-visual-debug.js -o dist/jquery.reading-list-debug.browserify-shim.js",
+    "build": "npm run build-prepare && npm run build-copy && npm run build-tasks && npm run build-tasks-debug",
     "example": "npm run build && bower install && (cd example && node web.js)"
   },
   "repository": {
