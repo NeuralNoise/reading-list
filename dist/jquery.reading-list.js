@@ -304,11 +304,9 @@ ReadingList.prototype._itemEventing = function (loadBot) {
     //  means that items higher up in the list take priority of being visible, e.g.
     //  given two reading list items in the viewing area, the top one will be marked
     //  as currently being read
-    if (!$nowActive && this.withinLookingArea($item[0])) {
+    if (typeof($nowActive) === 'undefined' && this.withinLookingArea($item[0])) {
 
-      // in looking area, and we haven't assigned a now active item yet
       if (!$item.is(this.$activeItem)) {
-        // new active item isn't old active item, do some notifications
         if (this.$activeItem) {
           this.$activeItem.removeClass('reading-list-in-looking');
           this.miniMapItemDeactivate(this.$activeItem);
@@ -320,14 +318,15 @@ ReadingList.prototype._itemEventing = function (loadBot) {
         this._doItemEvent(events.itemLookingIn, $item, true);
       }
 
-      // set the now active item to this item
       $nowActive = $item;
     }
   }).bind(this));
 
-  // check if there's an active item, fire progress events if so
-  this.$activeItem = $nowActive;
-  if (this.$activeItem && this.$activeItem.length > 0) {
+  if (typeof($nowActive) !== 'undefined') {
+    this.$activeItem = $nowActive;
+  }
+
+  if (this.withinLookingArea(this.$activeItem[0])) {
     // fire an event with percentage of article viewed
     //
     // given:
