@@ -60,7 +60,7 @@
   };
 
   var setItemDebug = function (e, $item) {
-    var bounds = $item.getBoundingClientRect();
+    var bounds = $item[0].getBoundingClientRect();
 
     $addVisualRule(bounds.top, true, 'blue');
     $addVisualRule(bounds.bottom, true, 'blue');
@@ -81,6 +81,14 @@
 
       readingList.$container.on('reading-list-item-in-looking', setActiveItemIndicator);
       readingList.$container.on('reading-list-item-load-done', setItemDebug);
+
+      this.$listItems.each(function () {
+        var $item = $(this);
+
+        if ($item.data('loadStatus') === 'loaded') {
+          setItemDebug(null, $item);
+        }
+      });
 
       return this;
     },
