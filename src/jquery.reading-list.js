@@ -197,9 +197,27 @@ ReadingList.prototype._elementBoundingInsideArea = function (el, top, bot) {
  * @returns {Boolean} true if element is inside boundary, false otherwise.
  */
 ReadingList.prototype.withinLookingArea = function (el) {
-  var topThreshold = this.settings.lookingThresholdTop;
+  var topThreshold = this._getLookingThresholdTop();
   var botThreshold = this.settings.lookingThresholdBottom;
   return this._elementBoundingInsideArea(el, topThreshold, botThreshold);
+};
+
+/**
+ * Figure out what to use for looking threshold.
+ *
+ * @returns {Number} looking threshold top.
+ */
+ReadingList.prototype._getLookingThresholdTop = function (el) {
+  var lookingThresholdTop = 0;
+  var value = this.settings.lookingThresholdTop;
+
+  if (_.isFunction(value)) {
+    lookingThresholdTop = value();
+  } else if (_.isNumber(value)) {
+    lookingThresholdTop = value;
+  }
+
+  return lookingThresholdTop;
 };
 
 /**

@@ -81,7 +81,7 @@ Following is a breakdown of the options available for this plugin:
 | `isMobile` | A value that determines if the user is currently on a mobile device, used for changing reading list behaviors depending on how the reading list is being viewed. Either a function that returns a boolean, or a constant boolean value. |
 | `loadingThreshold` | Height from the bottom of scrolling container to start loading. Either a function that returns a number or a constant number value. |
 | `lookingThresholdBottom` | Bottom boundary of "looking" area, measured from top of window. |
-| `lookingThresholdTop` | Top boundary of "looking" area, measured from top of window. |
+| `lookingThresholdTop` | Top boundary of "looking" area, measured from top of window. Either a function that returns a number or a constant number value. |
 | `miniMapActiveClass` | Class to apply to active minimap items. |
 | `noEventBubbling` | Set to true to stop events from bubbling up the DOM tree, in which case, any event listeners must attach to the reading list element itself. This **must** be set to true for any reading lists that are nested inside another reading list! |
 | `onPreSetup` | Set to a function that will fire before reading list is setup and initial eventing and loading is done. Reading list object will be passed in as first argument. |
