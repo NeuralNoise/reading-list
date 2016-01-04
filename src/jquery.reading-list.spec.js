@@ -732,6 +732,36 @@ describe('Reading list', function () {
       });
     });
 
+    describe('include a way to get the looking threshold bottom that', function () {
+
+      it('should call setting if it is a function', function () {
+        var lookingThresholdBottom = 100;
+        readingList.settings.lookingThresholdBottom = sandbox.stub().returns(lookingThresholdBottom);
+
+        var value = readingList._getLookingThresholdBottom();
+
+        expect(value).to.equal(lookingThresholdBottom);
+        expect(readingList.settings.lookingThresholdBottom.calledOnce).to.be.true;
+      });
+
+      it('should return setting if it is a number', function () {
+        var lookingThresholdBottom = 100;
+        readingList.settings.lookingThresholdBottom = lookingThresholdBottom;
+
+        var value = readingList._getLookingThresholdBottom();
+
+        expect(value).to.equal(lookingThresholdBottom);
+      });
+
+      it('should return 0 if no valid setting is given', function () {
+        readingList.settings.lookingThresholdBottom = null;
+
+        var value = readingList._getLookingThresholdBottom();
+
+        expect(value).to.equal(0);
+      });
+    });
+
     describe('include a way to get the looking threshold top that', function () {
 
       it('should call setting if it is a function', function () {
