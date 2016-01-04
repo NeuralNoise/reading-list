@@ -121,7 +121,7 @@ ReadingList.prototype._setup = function () {
 
   this._initialLoad();
 
-  this.getScrollContainer().on('scroll', this.eventing.bind(this));
+  this._getScrollContainer().on('scroll', this.eventing.bind(this));
   $window.on('resize', this.eventing.bind(this));
 
   this.ready = true;
@@ -238,7 +238,7 @@ ReadingList.prototype._getLoadingThreshold = function () {
  * @returns {Object} either the scroll container provided by the scrollContainer
  *  setting or the container the reading list is operating on.
  */
-ReadingList.prototype.getScrollContainer = function () {
+ReadingList.prototype._getScrollContainer = function () {
   var $scrollContainer = this.$container;
   var value = this.settings.scrollContainer;
 
@@ -396,13 +396,12 @@ ReadingList.prototype._unthrottledEventing = function () {
   //  y = scrollContainerHeight  -> visible height of scrollable area
   //  z = scrollTop              -> current scroll location relative to total scrollable height
   //  a = loadingThreshold       -> distance from bottom of scrollable area to begin loading
-  var $scrollContainer = this.getScrollContainer();
+  var $scrollContainer = this._getScrollContainer();
   var scrollTop = $scrollContainer.scrollTop();
   var scrollContainerHeight = $scrollContainer.height();
   var scrollTotalHeight = this._getScrollTotalHeight();
   var loadingThreshold = this._getLoadingThreshold();
-console.log(scrollTotalHeight, scrollTop, scrollContainerHeight, loadingThreshold);
-console.log(scrollTotalHeight - scrollTop - scrollContainerHeight <= loadingThreshold);
+
   // check min/max scroll
   if (scrollTop <= 0) {
     // we're at the top of the reading list
@@ -561,7 +560,7 @@ ReadingList.prototype._addContent = function () {
  * @returns {Object} animation interface.
  */
 ReadingList.prototype.stopContainerAnimation = function () {
-  return this.getScrollContainer().stop();
+  return this._getScrollContainer().stop();
 };
 
 /**

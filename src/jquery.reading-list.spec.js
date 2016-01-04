@@ -703,28 +703,63 @@ describe('Reading list', function () {
       });
     });
 
+    describe('include a way to get the scroll container that', function () {
+
+      it('should call setting if it is a function', function () {
+        var container = {};
+        readingList.settings.scrollContainer = sandbox.stub().returns(container);
+
+        var value = readingList._getScrollContainer();
+
+        expect(value).to.equal(container);
+        expect(readingList.settings.scrollContainer.calledOnce).to.be.true;
+      });
+
+      it('should return setting if it is a jQuery object', function () {
+        var container = $('div');
+        readingList.settings.scrollContainer = container;
+
+        var value = readingList._getScrollContainer();
+
+        expect(value).to.equal(container);
+      });
+
+      it('should use container if no setting is given', function () {
+        readingList.settings.scrollContainer = null;
+
+        var value = readingList._getScrollContainer();
+
+        expect(value).to.equal(readingList.$container);
+      });
+    });
+
     describe('include a way to retrieve isMobile setting that', function () {
 
       it('should call setting if it is a function', function () {
         var isMobile = true;
+        readingList.settings.isMobile = sandbox.stub().returns(isMobile);
 
-        readingList.settings.isMobile = function () { return isMobile; };
+        var value = readingList._isMobile();
 
-        expect(readingList._isMobile()).to.equal(isMobile);
+        expect(value).to.equal(isMobile);
+        expect(readingList.settings.isMobile.calledOnce).to.be.true;
       });
 
       it('should return setting if it is a boolean', function () {
         var isMobile = true;
-
         readingList.settings.isMobile = isMobile;
 
-        expect(readingList._isMobile()).to.equal(isMobile);
+        var value = readingList._isMobile();
+
+        expect(value).to.equal(isMobile);
       });
 
       it('should return false if setting is not a function or boolean', function () {
-        readingList.settings.isMobile = 'true';
+        readingList.settings.isMobile =  null;
 
-        expect(readingList._isMobile()).to.equal(false);
+        var value = readingList._isMobile();
+
+        expect(value).to.equal(false);
       });
     });
   });
