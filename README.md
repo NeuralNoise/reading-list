@@ -86,7 +86,7 @@ Following is a breakdown of the options available for this plugin:
 | `noEventBubbling` | Set to true to stop events from bubbling up the DOM tree, in which case, any event listeners must attach to the reading list element itself. This **must** be set to true for any reading lists that are nested inside another reading list! |
 | `onPreSetup` | Set to a function that will fire before reading list is setup and initial eventing and loading is done. Reading list object will be passed in as first argument. |
 | `onReady` | Set to a function that will fire when the reading list is ready and initial eventing and loading has been done. Reading list object will be passed in as first argument. |
-| `scrollAnimationContainer` | Set this to use a custom container for scrolling animation. A jQuery object that encapsulates the element that scrolling will occur on. Needed in cases such as when the reading list is entire document and the body should be used for scroll animations. |
+| `scrollContainer` | Container that is used for scrolling. Customize this only if using a non-element--such as window, body, document, html--for scrolling. |
 | `scrollContainerHeight` | Set this to use a custom value for scroll container height in calculations, should be a function that returns an integer which is the height of the container being scrolled. Needed in cases, like were reading list is entire document and the window should be used for height calculations vs. document height. |
 | `scrollToAddPx` | Number, or function that returns a number, to add to scroll to distance. Useful if some absolute position element (such as a sticky header) needs to be accounted for when scrolling to an item. |
 | `scrollToSpeed` | Time in ms for scroll to event when scrolling to an article. |

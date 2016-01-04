@@ -61,7 +61,7 @@ var ReadingList = function ($element, options) {
     noEventBubbling: false,
     onPreSetup: null,
     onReady: null,
-    scrollAnimationContainer: null,
+    scrollContainer: null,
     scrollContainerHeight: null,
     scrollToAddPx: 0,
     scrollToSpeed: 1000,
@@ -126,7 +126,7 @@ ReadingList.prototype._setup = function () {
 
   this._initialLoad();
 
-  this.$container.on('scroll', this.eventing.bind(this));
+  this.getScrollContainer().on('scroll', this.eventing.bind(this));
   $window.on('resize', this.eventing.bind(this));
 
   this.ready = true;
@@ -230,12 +230,22 @@ ReadingList.prototype.getScrollTotalHeight = function () {
 };
 
 /**
- * Figure out what the scroll animation container should be.
+ * Figure out what the scroll container should be if it's been customized.
  *
- * @returns {Object} container to use for scrolling.
+ * @returns {Object} either the scroll container provided by the scrollContainer
+ *  setting or the container the reading list is operating on.
  */
-ReadingList.prototype.getScrollAnimationContainer = function () {
-  return (this.settings.scrollAnimationContainer || this.$container);
+ReadingList.prototype.getScrollContainer = function () {
+  var $scrollContainer = this.$container;
+  var value = this.settings.scrollContainer;
+
+  if (_.isFunction(value)) {
+    $scrollContainer = value();
+  } else if (value instanceof jQuery) {
+    $scrollContainer = value;
+  }
+
+  return $scrollContainer;
 };
 
 /**
@@ -545,7 +555,7 @@ ReadingList.prototype._addContent = function () {
  * @returns {Object} animation interface.
  */
 ReadingList.prototype.stopContainerAnimation = function () {
-  return this.getScrollAnimationContainer().stop();
+  return this.getScrollContainer().stop();
 };
 
 /**
