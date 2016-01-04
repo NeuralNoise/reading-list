@@ -78,6 +78,7 @@ Following is a breakdown of the options available for this plugin:
 | `dataRetrievalFail` | Reading list data failure callback. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return HTML of some error message. |
 | `dataRetrievalSuccess` | Reading list data transform callback to change received data to HTML. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return the HTML of the reading list item. |
 | `eventingThrottle` | Time in ms to delay eventing execution on scroll. Use larger values when considering slower browsers so that scrolling isn't affected by event triggering. |
+| `isMobile` | A value that determines if the user is currently on a mobile device, used for changing reading list behaviors depending on how the reading list is being viewed. Either a function that returns a boolean, or an unchanging boolean value. |
 | `loadingThreshold` | Height from the bottom of scrolling container to start loading. |
 | `lookingThresholdBottom` | Bottom boundary of "looking" area, measured from top of window. |
 | `lookingThresholdTop` | Top boundary of "looking" area, measured from top of window. |

@@ -620,29 +620,6 @@ describe('Reading list', function () {
       readingList = new ReadingList($validReadingList);
     });
 
-    it('should have a way to scroll to a given item', function () {
-      var stop = sandbox.spy(readingList.$container, 'stop');
-      var animate = sandbox.spy(readingList.$container, 'animate');
-
-      var $item1 = $('<div id="item1" class="reading-list-item"></div>');
-      var $item2 = $('<div id="item2" class="reading-list-item"></div>');
-
-      $validReadingList.find('.reading-list-items')
-        .append($item1)
-        .append($item2);
-
-      readingList.settings.scrollToSpeed = 0;
-      readingList.settings.scrollToAddPx = function () { return 10; };
-
-      readingList.scrollToItem($item2);
-
-      stop.calledOnce.should.be.true;
-      animate.calledOnce.should.be.true;
-      animate.args[0][0].scrollTop.should.equal(
-        $item2.position().top + readingList.settings.scrollToAddPx()
-      );
-    });
-
     it('should have a test for elements being in looking area', function () {
       var _elementBoundingInsideArea = sandbox.stub(readingList, '_elementBoundingInsideArea');
       var el = {};
@@ -681,6 +658,77 @@ describe('Reading list', function () {
       // totally below box
       el.getBoundingClientRect.returns({top: 600, bottom: 800});
       readingList._elementBoundingInsideArea(el, 200, 500).should.be.false ;
+    });
+
+    describe('include a way to scroll to a given item that', function () {
+
+      it('should scroll to given item', function () {
+        var $item1 = $('<div id="item1" class="reading-list-item"></div>');
+        var $item2 = $('<div id="item2" class="reading-list-item"></div>');
+        var stop = sandbox.spy(readingList.$container, 'stop');
+        var animate = sandbox.spy(readingList.$container, 'animate');
+        var scrollToSpeed = 123;
+
+        $validReadingList.find('.reading-list-items')
+          .append($item1)
+          .append($item2);
+
+        readingList.settings.scrollToSpeed = scrollToSpeed;
+        readingList.settings.scrollToAddPx = function () { return 10; };
+
+        readingList.scrollToItem($item2);
+
+        stop.calledOnce.should.be.true;
+        animate.calledOnce.should.be.true;
+        animate.args[0][0].scrollTop.should.equal(
+          $item2.position().top + readingList.settings.scrollToAddPx()
+        );
+        animate.args[0][1].should.equal(scrollToSpeed);
+      });
+
+      it('should use a zero scroll to speed when user is mobile', function () {
+        var $item1 = $('<div id="item1" class="reading-list-item"></div>');
+        var $item2 = $('<div id="item2" class="reading-list-item"></div>');
+        var animate = sandbox.spy(readingList.$container, 'animate');
+        var isMobile = sandbox.stub(readingList, '_isMobile');
+
+        $validReadingList.find('.reading-list-items')
+          .append($item1)
+          .append($item2);
+
+        isMobile.returns(true);
+        readingList.settings.scrollToSpeed = 123;
+
+        readingList.scrollToItem($item2);
+
+        isMobile.calledOnce.should.be.true;
+        animate.args[0][1].should.equal(0);
+      });
+    });
+
+    describe('include a way to retrieve isMobile setting that', function () {
+
+      it('should call setting if it is a function', function () {
+        var isMobile = true;
+
+        readingList.settings.isMobile = function () { return isMobile; };
+
+        expect(readingList._isMobile()).to.equal(isMobile);
+      });
+
+      it('should return setting if it is a boolean', function () {
+        var isMobile = true;
+
+        readingList.settings.isMobile = isMobile;
+
+        expect(readingList._isMobile()).to.equal(isMobile);
+      });
+
+      it('should return false if setting is not a function or boolean', function () {
+        readingList.settings.isMobile = 'true';
+
+        expect(readingList._isMobile()).to.equal(false);
+      });
     });
   });
 
