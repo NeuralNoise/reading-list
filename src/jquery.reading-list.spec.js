@@ -270,12 +270,12 @@ describe('Reading list', function () {
         // note: we're out of content when all reading list items have been loaded and
         //  we've gone past the bottom load threshold
 
+        var _addContent = sandbox.stub(readingList, '_addContent');
         var scrollTop = sandbox.stub(readingList.$container, 'scrollTop');
 
         readingList.settings.loadingThreshold = 300;
-        readingList.$container[0] = {scrollHeight: 1000};
-
-        var _addContent = sandbox.stub(readingList, '_addContent');
+        $validReadingList.height(100);
+        sandbox.stub(readingList, '_getScrollTotalHeight').returns(1000);
 
         // cause out of content event to fire
         _itemEventing.returns(5);

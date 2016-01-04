@@ -89,7 +89,6 @@ Following is a breakdown of the options available for this plugin:
 | `scrollContainer` | Container that is used for scrolling. Customize this only if using a non-element--such as window, body, document, html--for scrolling. |
 | `scrollToAddPx` | Number, or function that returns a number, to add to scroll to distance. Useful if some absolute position element (such as a sticky header) needs to be accounted for when scrolling to an item. |
 | `scrollToSpeed` | Time in ms for scroll to event when scrolling to an article. |
-| `scrollTotalHeight` | Set this to use a custom value for scroll total height in calculations. Should be a function that returns an integer which is the total scrollable height of the scroll container. Needed in cases such as when the reading list is entire document and the body should be used for scroll total height calculations. |
 | `selectorsItems` | Direct children of `itemsContainer`, the class used for individual reading list items. |
 | `selectorsItemsContainer` | Direct child of element used to create reading list. |
 | `selectorsItemsPreLoaded` | Filter selector for `selectorsItems` that distinguishes items that have already been loaded into the reading list before reading list initialization. |

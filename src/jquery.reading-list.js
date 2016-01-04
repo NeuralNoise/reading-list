@@ -59,10 +59,8 @@ var ReadingList = function ($element, options) {
     onPreSetup: null,
     onReady: null,
     scrollContainer: null,
-    scrollContainerHeight: null,
     scrollToAddPx: 0,
     scrollToSpeed: 1000,
-    scrollTotalHeight: null,
     selectorsItems: '.reading-list-item',
     selectorsItemsContainer: '.reading-list-items',
     selectorsItemsPreLoaded: '.reading-list-loaded',
@@ -209,10 +207,29 @@ ReadingList.prototype.withinLookingArea = function (el) {
  *
  * @returns {Number} scroll total height.
  */
-ReadingList.prototype.getScrollTotalHeight = function () {
-  return $.isFunction(this.settings.scrollTotalHeight) ?
-    this.settings.scrollTotalHeight() :
-    this.$container[0].scrollHeight;
+ReadingList.prototype._getScrollTotalHeight = function () {
+  var scrollTotalHeight;
+
+  if ([window, document].indexOf(this.$container[0]) > -1) {
+    scrollTotalHeight = document.body.scrollHeight;
+  } else {
+    scrollTotalHeight = this.$container[0].scrollHeight
+  }
+
+  return scrollTotalHeight;
+};
+
+ReadingList.prototype._getLoadingThreshold = function () {
+  var loadingThreshold;
+  var value = this.settings.loadingThreshold;
+
+  if (_.isFunction(value)) {
+    loadingThreshold = value();
+  } else {
+    loadingThreshold = value;
+  }
+
+  return loadingThreshold;
 };
 
 /**
@@ -379,10 +396,13 @@ ReadingList.prototype._unthrottledEventing = function () {
   //  y = scrollContainerHeight  -> visible height of scrollable area
   //  z = scrollTop              -> current scroll location relative to total scrollable height
   //  a = loadingThreshold       -> distance from bottom of scrollable area to begin loading
-  var scrollTop = this.$container.scrollTop();
-  var scrollContainerHeight = this.getScrollContainer().height();
-  var scrollTotalHeight = this.getScrollTotalHeight();
-
+  var $scrollContainer = this.getScrollContainer();
+  var scrollTop = $scrollContainer.scrollTop();
+  var scrollContainerHeight = $scrollContainer.height();
+  var scrollTotalHeight = this._getScrollTotalHeight();
+  var loadingThreshold = this._getLoadingThreshold();
+console.log(scrollTotalHeight, scrollTop, scrollContainerHeight, loadingThreshold);
+console.log(scrollTotalHeight - scrollTop - scrollContainerHeight <= loadingThreshold);
   // check min/max scroll
   if (scrollTop <= 0) {
     // we're at the top of the reading list
@@ -393,7 +413,7 @@ ReadingList.prototype._unthrottledEventing = function () {
   //
   // iff x - z - y <= a then past loading threshold
   var loadBot = false;
-  if (scrollTotalHeight - scrollTop - scrollContainerHeight <= this.settings.loadingThreshold) {
+  if (scrollTotalHeight - scrollTop - scrollContainerHeight <= loadingThreshold) {
     // flag that we need to load something bot
     loadBot = true;
   }
