@@ -219,13 +219,18 @@ ReadingList.prototype._getScrollTotalHeight = function () {
   return scrollTotalHeight;
 };
 
+/**
+ * Figure out what to use for loading threshold.
+ *
+ * @returns {Number} loading threshold.
+ */
 ReadingList.prototype._getLoadingThreshold = function () {
-  var loadingThreshold;
+  var loadingThreshold = 0;
   var value = this.settings.loadingThreshold;
 
   if (_.isFunction(value)) {
     loadingThreshold = value();
-  } else {
+  } else if (_.isNumber(value)) {
     loadingThreshold = value;
   }
 

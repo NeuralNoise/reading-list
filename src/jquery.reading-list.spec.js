@@ -703,6 +703,36 @@ describe('Reading list', function () {
       });
     });
 
+    describe('include a way to get the loading threshold that', function () {
+
+      it('should call setting if it is a function', function () {
+        var loadingThreshold = 100;
+        readingList.settings.loadingThreshold = sandbox.stub().returns(loadingThreshold);
+
+        var value = readingList._getLoadingThreshold();
+
+        expect(value).to.equal(loadingThreshold);
+        expect(readingList.settings.loadingThreshold.calledOnce).to.be.true;
+      });
+
+      it('should return setting if it is a number', function () {
+        var loadingThreshold = 100;
+        readingList.settings.loadingThreshold = loadingThreshold;
+
+        var value = readingList._getLoadingThreshold();
+
+        expect(value).to.equal(loadingThreshold);
+      });
+
+      it('should return 0 if no valid setting is given', function () {
+        readingList.settings.loadingThreshold = null;
+
+        var value = readingList._getLoadingThreshold();
+
+        expect(value).to.equal(0);
+      });
+    });
+
     describe('include a way to get the scroll container that', function () {
 
       it('should call setting if it is a function', function () {
@@ -724,7 +754,7 @@ describe('Reading list', function () {
         expect(value).to.equal(container);
       });
 
-      it('should use container if no setting is given', function () {
+      it('should use container if no valid setting is given', function () {
         readingList.settings.scrollContainer = null;
 
         var value = readingList._getScrollContainer();
@@ -754,7 +784,7 @@ describe('Reading list', function () {
         expect(value).to.equal(isMobile);
       });
 
-      it('should return false if setting is not a function or boolean', function () {
+      it('should return false if no valid setting is given', function () {
         readingList.settings.isMobile =  null;
 
         var value = readingList._isMobile();
