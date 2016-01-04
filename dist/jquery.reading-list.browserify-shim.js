@@ -208,17 +208,6 @@ ReadingList.prototype.withinLookingArea = function (el) {
 };
 
 /**
- * Figure out what to use for scroll height calculations.
- *
- * @returns {Number} height of scroll container.
- */
-ReadingList.prototype.getScrollContainerHeight = function () {
-  return $.isFunction(this.settings.scrollContainerHeight) ?
-    this.settings.scrollContainerHeight() :
-    this.$container.height();
-};
-
-/**
  * Figure out what to use for scroll total height calculations.
  *
  * @returns {Number} scroll total height.
@@ -394,7 +383,7 @@ ReadingList.prototype._unthrottledEventing = function () {
   //  z = scrollTop              -> current scroll location relative to total scrollable height
   //  a = loadingThreshold       -> distance from bottom of scrollable area to begin loading
   var scrollTop = this.$container.scrollTop();
-  var scrollContainerHeight = this.getScrollContainerHeight();
+  var scrollContainerHeight = this.getScrollContainer().height();
   var scrollTotalHeight = this.getScrollTotalHeight();
 
   // check min/max scroll

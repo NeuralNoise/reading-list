@@ -272,9 +272,6 @@ describe('Reading list', function () {
 
         var scrollTop = sandbox.stub(readingList.$container, 'scrollTop');
 
-        readingList.settings.scrollContainerHeight = function () {
-          return 300;
-        };
         readingList.settings.loadingThreshold = 300;
         readingList.$container[0] = {scrollHeight: 1000};
 
