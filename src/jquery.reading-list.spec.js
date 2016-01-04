@@ -703,6 +703,35 @@ describe('Reading list', function () {
       });
     });
 
+    describe('include a way to get the scroll container total height that', function () {
+
+      it('should return body scrollHeight if container is window', function () {
+        readingList.$container = $(window);
+
+        var value = readingList._getScrollTotalHeight();
+
+        expect(value).to.equal(document.body.scrollHeight);
+      });
+
+      it('should return body scrollHeight if container is document', function () {
+        readingList.$container = $(document);
+
+        var value = readingList._getScrollTotalHeight();
+
+        expect(value).to.equal(document.body.scrollHeight);
+      });
+
+      it('should return container scrollHeight if container is not window or document', function () {
+        var scrollHeight = 1001;
+
+        readingList.$container[0] = {scrollHeight: scrollHeight};
+
+        var value = readingList._getScrollTotalHeight();
+
+        expect(value).to.equal(scrollHeight);
+      });
+    });
+
     describe('include a way to get the loading threshold that', function () {
 
       it('should call setting if it is a function', function () {
