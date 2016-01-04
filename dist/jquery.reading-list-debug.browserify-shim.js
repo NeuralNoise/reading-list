@@ -200,9 +200,45 @@ ReadingList.prototype._elementBoundingInsideArea = function (el, top, bot) {
  * @returns {Boolean} true if element is inside boundary, false otherwise.
  */
 ReadingList.prototype.withinLookingArea = function (el) {
-  var topThreshold = this.settings.lookingThresholdTop;
-  var botThreshold = this.settings.lookingThresholdBottom;
+  var topThreshold = this._getLookingThresholdTop();
+  var botThreshold = this._getLookingThresholdBottom();
   return this._elementBoundingInsideArea(el, topThreshold, botThreshold);
+};
+
+/**
+ * Figure out what to use for looking threshold top.
+ *
+ * @returns {Number} looking threshold top.
+ */
+ReadingList.prototype._getLookingThresholdTop = function (el) {
+  var lookingThresholdTop = 0;
+  var value = this.settings.lookingThresholdTop;
+
+  if (_.isFunction(value)) {
+    lookingThresholdTop = value();
+  } else if (_.isNumber(value)) {
+    lookingThresholdTop = value;
+  }
+
+  return lookingThresholdTop;
+};
+
+/**
+ * Figure out what to use for looking threshold bottom.
+ *
+ * @returns {Number} looking threshold bottom.
+ */
+ReadingList.prototype._getLookingThresholdBottom = function (el) {
+  var lookingThresholdBottom = 0;
+  var value = this.settings.lookingThresholdBottom;
+
+  if (_.isFunction(value)) {
+    lookingThresholdBottom = value();
+  } else if (_.isNumber(value)) {
+    lookingThresholdBottom = value;
+  }
+
+  return lookingThresholdBottom;
 };
 
 /**
@@ -379,7 +415,7 @@ ReadingList.prototype._itemEventing = function (loadBot) {
     //
     // p = (-t + x) / h = ratio viewed, max(p) = 1.0
     var bounding = this.$activeItem[0].getBoundingClientRect();
-    var ratioViewed = (-bounding.top + this.settings.lookingThresholdBottom) /
+    var ratioViewed = (-bounding.top + this._getLookingThresholdBottom()) /
       bounding.height;
     var progress = ratioViewed <= 1.0 ? ratioViewed : 1.0;
     this._doItemEvent(events.itemProgress, this.$activeItem, {progress: progress});
