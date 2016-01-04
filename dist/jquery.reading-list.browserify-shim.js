@@ -53,6 +53,7 @@ var ReadingList = function ($element, options) {
     dataRetrievalFail: function ($item) { return ''; },
     dataRetrievalSuccess: function ($item, data) { return data; },
     eventingThrottle: 10,
+    isMobile: false,
     loadingThreshold: 300,
     lookingThresholdBottom: 250,
     lookingThresholdTop: 200,
@@ -235,6 +236,24 @@ ReadingList.prototype.getScrollTotalHeight = function () {
  */
 ReadingList.prototype.getScrollAnimationContainer = function () {
   return (this.settings.scrollAnimationContainer || this.$container);
+};
+
+/**
+ * Figure out how to read the isMobile setting and return its value.
+ *
+ * @returns {Boolean} true if user is mobile, false otherwise.
+ */
+ReadingList.prototype._isMobile = function () {
+  var mobile = false;
+  var value = this.settings.isMobile;
+
+  if (_.isFunction(value)) {
+    mobile = value();
+  } else if (_.isBoolean(value)) {
+    mobile = value;
+  }
+
+  return mobile;
 };
 
 /**
@@ -554,7 +573,7 @@ ReadingList.prototype.scrollToItem = function ($item) {
   this.stopContainerAnimation().animate({
     scrollTop: $item.position().top + (addPx || 0)
   },
-  this.settings.scrollToSpeed,
+  this._isMobile() ? 0 : this.settings.scrollToSpeed,
   (function () {
     // unbind the scroll stoppage
     $document.off(MOVEMENTS, stopContainerAnimation);
