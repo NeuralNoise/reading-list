@@ -608,6 +608,76 @@ describe('Reading list', function () {
     });
   });
 
+	describe('item capping', function () {
+		var readingList, $item1, $item2, $item3, style;
+
+		beforeEach(function () {
+			style = document.createElement('style');
+			style.appendChild(document.createTextNode(""));
+			document.head.appendChild(style);
+			style.sheet.insertRule('.reading-list-capped-item { height: 250px; }');
+			style.sheet.insertRule('.reading-list-item { height: 4000px; }');
+
+			$validReadingList.css({
+				height: '400px',
+				overflowY: 'auto'
+			});
+
+			$item1 = $('<div class="reading-list-item" reading-list-loaded" href="/one"></div>');
+      $item2 = $('<div class="reading-list-item" reading-list-loaded" href="/two"></div>');
+      $item3 = $('<div class="reading-list-item" reading-list-loaded" href="/three"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1)
+        .append($item2)
+        .append($item3);
+
+      readingList = new ReadingList($validReadingList);
+		});
+
+		afterEach(function () {
+			document.head.removeChild(style);
+		});
+
+		describe('_capItems', function () {
+			it('caps items that are fully above the top of the viewport', function () {
+				$validReadingList.scrollTop(8000);
+				readingList._capItems();
+				$item1.hasClass('reading-list-capped-item').should.eql(true);
+			});
+
+			it('uncaps items that are below the top of the viewport', function () {
+				$item1.addClass('reading-list-capped-item');
+				readingList._capItems();
+				$item1.hasClass('reading-list-capped-item').should.eql(false);
+			});
+		});
+
+		describe('_capItem', function () {
+			it('juggles the container scrollTop', function () {
+				$validReadingList.scrollTop(4100);
+
+				readingList._capItems();
+				readingList._capItems();
+
+				$validReadingList.scrollTop().should.eql(4100 - (4000 - 250)); // scrolltop - (item height - capped item height)
+			});
+		});
+
+		describe('_uncapItem', function () {
+			it('juggles the container scrollTop', function () {
+				$validReadingList.scrollTop(4100);
+				readingList._capItems();
+				readingList._capItems();
+				$validReadingList[0].scrollTop -= 1;
+
+				readingList._capItems();
+
+				$validReadingList.scrollTop().should.eql(4100 - (4000 - 250) - 1); // scrolltop - (item height - capped item height) - amount scrolled
+			});
+		});
+	});
+
   describe('misc functions', function () {
     var readingList;
 
@@ -732,7 +802,7 @@ describe('Reading list', function () {
         animate.args[0][0].scrollTop.should.equal(
           $item2.position().top + readingList.settings.scrollToAddPx()
         );
-        animate.args[0][1].should.equal(scrollToSpeed);
+        animate.args[0][1].duration.should.equal(scrollToSpeed);
       });
 
       it('should use a zero scroll to speed when user is mobile', function () {
@@ -751,7 +821,7 @@ describe('Reading list', function () {
         readingList.scrollToItem($item2);
 
         isMobile.calledOnce.should.be.true;
-        animate.args[0][1].should.equal(0);
+        animate.args[0][1].duration.should.equal(0);
       });
     });
 
