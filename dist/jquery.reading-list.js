@@ -89,7 +89,7 @@ var ReadingList = function ($element, options) {
   }
 
   this._setup();
-  this.itemCappingAnimationLoop();
+  this._itemCappingAnimationLoop();
 
   if (typeof(this.settings.onReady) === 'function') {
     this.settings.onReady(this);
@@ -296,6 +296,25 @@ ReadingList.prototype._getScrollContainer = function () {
 };
 
 /**
+ * Get item top adjusted by given addPx setting.
+ *
+ * @param {jQuery} $item - item to get position top of.
+ * @returns {Number} item top.
+ */
+ReadingList.prototype._getAdjustedItemPosition = function ($item) {
+  var addPx = 0;
+  var value = this.settings.scrollToAddPx;
+
+  if (_.isFunction(value)) {
+    addPx = value($item);
+  } else if (_.isNumber(value)) {
+    addPx = value;
+  }
+
+  return $item.position().top + addPx;
+};
+
+/**
  * Figure out how to read the isMobile setting and return its value.
  *
  * @returns {Boolean} true if user is mobile, false otherwise.
@@ -470,51 +489,70 @@ ReadingList.prototype._unthrottledEventing = function () {
   }
 };
 
-/*
- * Cap the height of items that are entirely above the viewport.
- * handles adjusting the scroll offset to ensure a smooth user scrolling experience.
+/**
+ * Uncap given item height.
+ *
+ * @param {jQuery} $item - item to cap.
+ * @param {String} why - reason why item was capped.
+ * @returns {undefined}
  */
-ReadingList.prototype.capItems = function () {
-  // Cap the height of items above the top of the viewport.
-  // Items above the viewport may resize themselves as dynamic
-  // content loads.
-
-  function capItem ($item, why) {
-    if ($item.hasClass(CAPPED_ITEM_CLASS)) {
-      return;
-    }
-    var startScrollTop = $container[0].scrollTop;
-    var preCapHeight = $item[0].scrollHeight;
-    $item.addClass(CAPPED_ITEM_CLASS);
-    var diff = preCapHeight - $item[0].offsetHeight;
-    var scrollTopDiff = startScrollTop - $container[0].scrollTop;
-    diff -= scrollTopDiff;
-    $container[0].scrollTop -= diff;
+ReadingList.prototype._uncapItem = function ($item, why) {
+  if (!$item.hasClass(CAPPED_ITEM_CLASS)) {
+    return;
   }
 
-  function uncapItem ($item, why) {
-    if (!$item.hasClass(CAPPED_ITEM_CLASS)) {
-      return;
-    }
-    //var startScrollTop = $container[0].scrollTop;
-    var preUncapHeight = $item[0].offsetHeight;
-    $item.removeClass(CAPPED_ITEM_CLASS);
-    var diff = $item[0].scrollHeight - preUncapHeight;
-    $container[0].scrollTop += diff;
+  var $scrollContainer = this._getScrollContainer();
+  var preUncapHeight = $item[0].offsetHeight;
+  $item.removeClass(CAPPED_ITEM_CLASS);
+  var diff = $item[0].scrollHeight - preUncapHeight;
+  $scrollContainer[0].scrollTop += diff;
+};
+
+/**
+ * Cap given item height.
+ *
+ * @param {jQuery} $item - item to cap.
+ * @param {String} why - reason why item was capped.
+ * @returns {undefined}
+ */
+ReadingList.prototype._capItem = function ($item, why) {
+  if ($item.hasClass(CAPPED_ITEM_CLASS)) {
+    return;
   }
 
-  var $container = this.getScrollAnimationContainer();
+  var $scrollContainer = this._getScrollContainer();
+  var startScrollTop = $scrollContainer[0].scrollTop;
+  var preCapHeight = $item[0].scrollHeight;
+
+  $item.addClass(CAPPED_ITEM_CLASS);
+
+  var diff = preCapHeight - $item[0].offsetHeight;
+  var scrollTopDiff = startScrollTop - $scrollContainer[0].scrollTop;
+
+  diff -= scrollTopDiff;
+  $scrollContainer[0].scrollTop -= diff;
+};
+
+/*
+ * Cap the height of items that are entirely above the viewport. Handles
+ *  adjusting the scroll offset to ensure a smooth user scrolling experience.
+ */
+ReadingList.prototype._capItems = function () {
+
+  var $scrollContainer = this._getScrollContainer();
 
   // Cache the scroll position and container height so we can bypass
   // all capping checks on most frames. (this whole check took < 1ms
   // per frame on my dev machine)
-  if ($container.scrollTop() === this.lastScrollTop && this.lastHeight === $container.outerHeight()) {
+  if ($scrollContainer.scrollTop() === this.lastScrollTop &&
+      this.lastHeight === $scrollContainer.outerHeight()) {
     // no-op on animation
     return;
   }
-  this.lastScrollTop = $container.scrollTop();
-  this.lastHeight = $container.outerHeight();
+  this.lastScrollTop = $scrollContainer.scrollTop();
+  this.lastHeight = $scrollContainer.outerHeight();
 
+  var _this = this;
   this.$listItems.each(function () {
     var $item = $(this);
     // check yourself before you rect yourself
@@ -524,40 +562,35 @@ ReadingList.prototype.capItems = function () {
 
     if (rect.bottom < 0) {
       // rectangle  is entirely above the viewport
-      capItem($item, 'above');
-    }
-    else if ( rect.top < 0 && rect.bottom > 0 && rect.bottom <= innerHeight) {
+      _this.capItem($item, 'above');
+    } else if (rect.top < 0 && rect.bottom > 0 && rect.bottom <= innerHeight) {
       // rectangle intersects the top boundary of the viewport
-      uncapItem($item, 'x-top');
-    }
-    else if (rect.top <=0 && rect.bottom >= innerHeight) {
+      _this.uncapItem($item, 'x-top');
+    } else if (rect.top <=0 && rect.bottom >= innerHeight) {
       // rectangle intersects the top and the bottom of the viewport
-      uncapItem($item, 'x-both');
-    }
-    else if (rect.top >= 0 && rect.bottom <= innerHeight) {
+      _this.uncapItem($item, 'x-both');
+    } else if (rect.top >= 0 && rect.bottom <= innerHeight) {
       // rectangle is entirely visible
-      uncapItem($item, 'visible');
-    }
-    else if (rect.top >= 0 && rect.top <= innerHeight && rect.bottom > innerHeight) {
+      _this.uncapItem($item, 'visible');
+    } else if (rect.top >= 0 && rect.top <= innerHeight && rect.bottom > innerHeight) {
       // rectangle intersects the bottom boundary of the viewport
-      uncapItem($item, 'x-bottom');
-    }
-    else if (rect.top > innerHeight) {
+      _this.uncapItem($item, 'x-bottom');
+    } else if (rect.top > innerHeight) {
       // rectangle is entirely below the viewport
-      uncapItem($item, 'below');
+      _this.uncapItem($item, 'below');
     }
-
   });
 };
 
 /**
  * Queues capping item heights for the next animaiton frame. And loops forever.
  */
-ReadingList.prototype.itemCappingAnimationLoop = function () {
+ReadingList.prototype._itemCappingAnimationLoop = function () {
+  var _this = this;
   requestAnimationFrame(function () {
-    this.capItems();
-    this.itemCappingAnimationLoop();
-  }.bind(this));
+    _this._capItems();
+    _this._itemCappingAnimationLoop();
+  });
 };
 
 /**
@@ -706,26 +739,11 @@ ReadingList.prototype.stopContainerAnimation = function () {
  * @returns {undefined}
  */
 ReadingList.prototype.scrollToItem = function ($item) {
-  var addPx = 0;
-  if (typeof(this.settings.scrollToAddPx) === 'function') {
-    addPx = this.settings.scrollToAddPx($item);
-  } else if (typeof(this.settings.scrollToAddPx) === 'number') {
-    addPx = this.settings.scrollToAddPx;
-  }
 
-  // We need to handle cases where the top position of the target item
-  // changes while we are animating.
-  // This tweaks the tween value per-step based on changes to the
-  // actual top position of the target item.
-  function findItemPosition () {
-    return $item.position().top + (addPx || 0);
-  }
-
-  var predictedScrollTop = findItemPosition();
+  var predictedScrollTop = this._getAdjustedItemPosition();
   var actualScrollTop = predictedScrollTop;
   var stopContainerAnimation = this.stopContainerAnimation.bind(this);
-  var animationContainer = this.getScrollAnimationContainer();
-
+  var animationContainer = this._getScrollContainer();
 
   // ensure the animation stops when user interaction occurs
   $document.on(MOVEMENTS, stopContainerAnimation);
@@ -733,11 +751,11 @@ ReadingList.prototype.scrollToItem = function ($item) {
   this._doItemEvent(events.scrollToEventStart, $item);
   this.stopContainerAnimation().animate({
     scrollTop: predictedScrollTop,
-  },{
+  }, {
     duration: this._isMobile() ? 0 : this.settings.scrollToSpeed,
     step: function (now, tween) {
       // images may load during the animation
-      actualScrollTop = findItemPosition();
+      actualScrollTop = this._getAdjustedItemPosition();
       if (predictedScrollTop !== 0) {
         tween.now = (actualScrollTop / predictedScrollTop) * tween.now;
       }
