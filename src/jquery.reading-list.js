@@ -562,22 +562,22 @@ ReadingList.prototype._capItems = function () {
 
     if (rect.bottom < 0) {
       // rectangle  is entirely above the viewport
-      _this.capItem($item, 'above');
+      _this._capItem($item, 'above');
     } else if (rect.top < 0 && rect.bottom > 0 && rect.bottom <= innerHeight) {
       // rectangle intersects the top boundary of the viewport
-      _this.uncapItem($item, 'x-top');
+      _this._uncapItem($item, 'x-top');
     } else if (rect.top <=0 && rect.bottom >= innerHeight) {
       // rectangle intersects the top and the bottom of the viewport
-      _this.uncapItem($item, 'x-both');
+      _this._uncapItem($item, 'x-both');
     } else if (rect.top >= 0 && rect.bottom <= innerHeight) {
       // rectangle is entirely visible
-      _this.uncapItem($item, 'visible');
+      _this._uncapItem($item, 'visible');
     } else if (rect.top >= 0 && rect.top <= innerHeight && rect.bottom > innerHeight) {
       // rectangle intersects the bottom boundary of the viewport
-      _this.uncapItem($item, 'x-bottom');
+      _this._uncapItem($item, 'x-bottom');
     } else if (rect.top > innerHeight) {
       // rectangle is entirely below the viewport
-      _this.uncapItem($item, 'below');
+      _this._uncapItem($item, 'below');
     }
   });
 };
