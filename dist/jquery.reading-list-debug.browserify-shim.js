@@ -744,7 +744,7 @@ ReadingList.prototype.stopContainerAnimation = function () {
  */
 ReadingList.prototype.scrollToItem = function ($item) {
 
-  var predictedScrollTop = this._getAdjustedItemPosition();
+  var predictedScrollTop = this._getAdjustedItemPosition($item);
   var actualScrollTop = predictedScrollTop;
   var stopContainerAnimation = this.stopContainerAnimation.bind(this);
   var animationContainer = this._getScrollContainer();
@@ -759,7 +759,7 @@ ReadingList.prototype.scrollToItem = function ($item) {
     duration: this._isMobile() ? 0 : this.settings.scrollToSpeed,
     step: function (now, tween) {
       // images may load during the animation
-      actualScrollTop = this._getAdjustedItemPosition();
+      actualScrollTop = this._getAdjustedItemPosition($item);
       if (predictedScrollTop !== 0) {
         tween.now = (actualScrollTop / predictedScrollTop) * tween.now;
       }
