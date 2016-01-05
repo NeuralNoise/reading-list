@@ -753,13 +753,15 @@ ReadingList.prototype.scrollToItem = function ($item) {
   $document.on(MOVEMENTS, stopContainerAnimation);
 
   this._doItemEvent(events.scrollToEventStart, $item);
+
+  var _this = this;
   this.stopContainerAnimation().animate({
     scrollTop: predictedScrollTop,
   }, {
     duration: this._isMobile() ? 0 : this.settings.scrollToSpeed,
     step: function (now, tween) {
       // images may load during the animation
-      actualScrollTop = this._getAdjustedItemPosition($item);
+      actualScrollTop = _this._getAdjustedItemPosition($item);
       if (predictedScrollTop !== 0) {
         tween.now = (actualScrollTop / predictedScrollTop) * tween.now;
       }
@@ -767,8 +769,8 @@ ReadingList.prototype.scrollToItem = function ($item) {
     complete: function () {
 			// unbind the scroll stoppage
 			$document.off(MOVEMENTS, stopContainerAnimation);
-			this._doItemEvent(events.scrollToEventFinish, $item);
-    }.bind(this)
+			_this._doItemEvent(events.scrollToEventFinish, $item);
+    }
   });
 };
 
