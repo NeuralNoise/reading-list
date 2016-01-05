@@ -613,47 +613,6 @@ describe('Reading list', function () {
       readingList.scrollToItem($item1);
     });
 
-    ['touchmove', 'mousedown', 'DOMMouseScroll', 'mousewheel', 'keyup', 'resize'].forEach(function (event) {
-      it('should lock scrollTop to the top of the item until a '+event+'event occurs', function (done) {
-        var $item1 = $('<div id="item1" class="reading-list-item"></div>');
-
-        $validReadingList.find('.reading-list-items')
-          .append($item1);
-
-        $item1.position = function () {
-          return {top: 100};
-        };
-        readingList.settings.scrollToSpeed = 0;
-        readingList.scrollToItem($item1);
-        // This frame catches the initial animation
-
-        var scrollTop = sandbox.spy(readingList.$container, 'scrollTop');
-        requestAnimationFrame(function () {
-
-          $item1.position = function () {
-            return {top: 10};
-          };
-
-          // This frame catches changes after the animation
-          requestAnimationFrame(function () {
-            $(document).trigger(event);
-            $item1.position = function () {
-              return {top: 50};
-            };
-
-            // This frame occurs after the MOVEMENT event and should NOT
-            // reflect the new item top position.
-            requestAnimationFrame(function () {
-              scrollTop.args.length.should.eql(2);
-              scrollTop.args[0][0].should.eql(100);
-              scrollTop.args[1][0].should.eql(10);
-              done();
-            });
-          });
-        });
-      });
-    });
-
     it('should have a test for elements being in looking area', function () {
       var elementBoundingInsideArea = sandbox.stub(readingList, 'elementBoundingInsideArea');
       var el = {};
