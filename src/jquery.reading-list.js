@@ -501,11 +501,13 @@ ReadingList.prototype._uncapItem = function ($item, why) {
     return;
   }
 
-  var $scrollContainer = this._getScrollContainer();
   var preUncapHeight = $item[0].offsetHeight;
+
   $item.removeClass(CAPPED_ITEM_CLASS);
+
   var diff = $item[0].scrollHeight - preUncapHeight;
-  $scrollContainer[0].scrollTop += diff;
+
+  this.$container[0].scrollTop += diff;
 };
 
 /**
@@ -520,17 +522,16 @@ ReadingList.prototype._capItem = function ($item, why) {
     return;
   }
 
-  var $scrollContainer = this._getScrollContainer();
-  var startScrollTop = $scrollContainer[0].scrollTop;
+  var startScrollTop = this.$container[0].scrollTop;
   var preCapHeight = $item[0].scrollHeight;
 
   $item.addClass(CAPPED_ITEM_CLASS);
 
   var diff = preCapHeight - $item[0].offsetHeight;
-  var scrollTopDiff = startScrollTop - $scrollContainer[0].scrollTop;
+  var scrollTopDiff = startScrollTop - this.$container[0].scrollTop;
 
   diff -= scrollTopDiff;
-  $scrollContainer[0].scrollTop -= diff;
+  this.$container[0].scrollTop -= diff;
 };
 
 /*
@@ -539,18 +540,18 @@ ReadingList.prototype._capItem = function ($item, why) {
  */
 ReadingList.prototype._capItems = function () {
 
-  var $scrollContainer = this._getScrollContainer();
-
   // Cache the scroll position and container height so we can bypass
   // all capping checks on most frames. (this whole check took < 1ms
   // per frame on my dev machine)
-  if ($scrollContainer.scrollTop() === this.lastScrollTop &&
-      this.lastHeight === $scrollContainer.outerHeight()) {
+  var scrollTotalHeight = this._getScrollTotalHeight();
+
+  if (this.$container.scrollTop() === this.lastScrollTop &&
+      this.lastHeight === scrollTotalHeight) {
     // no-op on animation
     return;
   }
-  this.lastScrollTop = $scrollContainer.scrollTop();
-  this.lastHeight = $scrollContainer.outerHeight();
+  this.lastScrollTop = this.$container.scrollTop();
+  this.lastHeight = scrollTotalHeight;
 
   var _this = this;
   this.$listItems.each(function () {
