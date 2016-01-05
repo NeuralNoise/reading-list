@@ -617,6 +617,58 @@ describe('Reading list', function () {
       readingList = new ReadingList($validReadingList);
     });
 
+    it('should have a way to scroll to a given item', function () {
+      var stop = sandbox.spy(readingList.$container, 'stop');
+      var animate = sandbox.spy(readingList.$container, 'animate');
+
+      var $item1 = $('<div id="item1" class="reading-list-item"></div>');
+      var $item2 = $('<div id="item2" class="reading-list-item"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1)
+        .append($item2);
+
+      readingList.settings.scrollToSpeed = 0;
+
+      readingList.scrollToItem($item2);
+
+      stop.calledOnce.should.be.true;
+      animate.calledOnce.should.be.true;
+      animate.args[0][0].scrollTop.should.equal($item2.position().top);
+    });
+
+    it('should converge scrollTop to the top of the item at the end of the animation', function () {
+      // Specifically: when the top position of the target item changes during the animation.
+      //    Such as when images load and change the page height.
+
+      readingList.$container.scrollTop(100);
+      var tween = {now: 100};
+
+      var $item1 = $('<div id="item1" class="reading-list-item"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1);
+
+      $item1.position = function () {
+        return {top: 100};
+      };
+
+      readingList.$container.animate = function (params, options) {
+        readingList.$container.scrollTop = function () {
+          return readingList.$container.scrollTop * 1.5;
+        }
+
+        $item1.position = function () {
+          return {top: 150};
+        };
+
+        options.step(null, tween);
+        tween.now.should.eql(150);
+      };
+
+      readingList.scrollToItem($item1);
+    });
+
     it('should have a test for elements being in looking area', function () {
       var _elementBoundingInsideArea = sandbox.stub(readingList, '_elementBoundingInsideArea');
       var el = {};

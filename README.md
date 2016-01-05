@@ -154,3 +154,10 @@ $ npm run test
 ```bash
 $ npm run build
 ```
+
+## Running Tests/Development
+```bash
+npm install
+bower install
+npm test
+```
