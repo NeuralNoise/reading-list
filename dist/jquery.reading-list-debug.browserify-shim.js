@@ -1,3 +1,6 @@
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function (global){
+; var __browserify_shim_require__=require;(function browserifyShim(module, exports, require, define, browserify_shim__define__module__export__) {
 
 // some constants
 var MOVEMENTS =
@@ -863,3 +866,108 @@ var createReadingList = function (options) {
 $.fn.readingList = createReadingList;
 
 exports = ReadingList;
+
+; browserify_shim__define__module__export__(typeof ReadingList != "undefined" ? ReadingList : window.ReadingList);
+
+}).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],2:[function(require,module,exports){
+
+/**
+ * Provide a visual way to debug reading list elements.
+ */
+!(function ($) {
+  var $body = $(document.body);
+
+  var $debugContainer = $('<div class="reading-list-debug-container">');
+  $body.append($debugContainer);
+
+  var $addDebugBar = function () {
+    var $debugBar = $('<div class="reading-list-debug-bar">');
+
+    $debugBar
+      .css('background-color', 'grey')
+      .css('bottom', 0)
+      .css('position', 'fixed')
+      .css('right', 0);
+
+    $debugContainer.append($debugBar);
+    return $debugBar;
+  };
+
+  var $addVisualRule = function (top, isAbsolute) {
+    var $rule = $('<hr>');
+
+    $rule
+      .css('border-bottom', 'none')
+      .css('border-left', 'none')
+      .css('border-right', 'none')
+      .css('border-top', '1px solid red')
+      .css('bottom', 0)
+      .css('margin', 0)
+      .css('pointer-events', 'none')
+      .css('position', isAbsolute ? 'absolute' : 'fixed')
+      .css('right', 0)
+      .css('top', top + 'px')
+      .css('width', '100%');
+
+    $debugContainer.append($rule);
+    return $rule;
+  };
+
+  var setActiveItemIndicator = function (e, $item) {
+    var $debugBar = $('.reading-list-debug-bar');
+
+    if ($debugBar.length > 0) {
+      var $activeItemIndicator = $debugBar.find('.reading-list-debug-active-item');
+
+      if ($activeItemIndicator.length < 1) {
+        $activeItemIndicator = $(
+          '<div class="reading-list-debug-active-item">' +
+            '<span>Active Item:</span>' +
+            '<span class="reading-list-debug-active-item-text">UNSET</span>' +
+          '</div>'
+        );
+        $debugBar.append($activeItemIndicator);
+      }
+
+      $activeItemIndicator
+        .find('.reading-list-debug-active-item-text')
+        .html(typeof($item) !== 'undefined' ? $item.attr('id') : 'undefined');
+    }
+  };
+
+  window.readingListDebug = {
+    /**
+     * Debug given reading list.
+     *
+     * @param {ReadingList} readingList - reading list to debug.
+     */
+    debug: function (readingList) {
+      this.debugOff(readingList);
+
+      $addDebugBar();
+      $addVisualRule(readingList.settings.lookingThresholdTop);
+      $addVisualRule(readingList.settings.lookingThresholdBottom);
+
+      readingList.$container.on('reading-list-item-in-looking', setActiveItemIndicator);
+      readingList.$container.on('reading-list-item-out-looking', setActiveItemIndicator);
+
+      setActiveItemIndicator(null, readingList.$activeItem);
+
+      return this;
+    },
+    debugOff: function (readingList) {
+      $debugContainer.empty();
+
+      readingList.$container.off('reading-list-item-in-looking', setActiveItemIndicator);
+      readingList.$container.off('reading-list-item-out-looking', setActiveItemIndicator);
+
+      return this;
+    }
+  };
+
+})(window.jQuery);
+
+},{}]},{},[1,2]);

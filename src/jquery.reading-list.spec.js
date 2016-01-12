@@ -104,6 +104,17 @@ describe('Reading list', function () {
       expect(retrieveSpy.calledWith(jqueryMatcher($item3))).to.be.true;
     });
 
+    it('should call onPreSetup function if provided', function () {
+      var onPreSetup = sandbox.stub();
+
+      var readingList = new ReadingList($validReadingList, {
+        onPreSetup: onPreSetup
+      });
+
+      onPreSetup.called.should.be.true;
+      onPreSetup.args[0][0].should.equal(readingList);
+    });
+
     it('should call onReady function if provided', function () {
       var onReady = sandbox.stub();
 
@@ -113,6 +124,96 @@ describe('Reading list', function () {
 
       onReady.called.should.be.true;
       onReady.args[0][0].should.equal(readingList);
+    });
+
+    it('should fire top event', function () {
+      var trigger = sandbox.spy($validReadingList, 'trigger');
+      var readingList = new ReadingList($validReadingList);
+
+      trigger.withArgs('reading-list-at-top').callCount.should.equal(1);
+    });
+
+    it('should fire item load done event for any items already loaded in', function () {
+      var preLoadedClass = 'pre-loaded';
+
+      var $item1 = $('<div class="item ' + preLoadedClass + '" href="/one"></div>');
+      var $item2 = $('<div class="item ' + preLoadedClass + '" href="/two"></div>');
+      var $item3 = $('<div class="item" href="/three"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1)
+        .append($item2)
+        .append($item3);
+
+      var trigger = sandbox.spy($validReadingList, 'trigger');
+
+      var readingList = new ReadingList($validReadingList, {
+        selectorsItems: '.item',
+        selectorsItemsPreLoaded: '.' + preLoadedClass
+      });
+
+      var events = trigger.withArgs('reading-list-item-load-done');
+      events.callCount.should.equal(2);
+
+      expect(jqueryMatcher(events.args[0][1][0]).test($item1)).to.be.true;
+      expect(jqueryMatcher(events.args[1][1][0]).test($item2)).to.be.true;
+    });
+
+    it('should fire in looking event for first preloaded item', function () {
+      var $item1 = $('<div class="reading-list-item reading-list-loaded" href="/one"></div>');
+      var $item2 = $('<div class="reading-list-item reading-list-loaded" href="/two"></div>');
+      var $item3 = $('<div class="reading-list-item" href="/three"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1)
+        .append($item2)
+        .append($item3);
+
+      var trigger = sandbox.spy($validReadingList, 'trigger');
+
+      var readingList = new ReadingList($validReadingList, {});
+
+      var events = trigger.withArgs('reading-list-item-in-looking');
+      events.callCount.should.equal(1);
+
+      expect(jqueryMatcher(events.args[0][1][0]).test($item1)).to.be.true;
+    });
+
+    it('should fire progress event for first preloaded item', function () {
+      var $item1 = $('<div class="reading-list-item reading-list-loaded" href="/one"></div>');
+      var $item2 = $('<div class="reading-list-item reading-list-loaded" href="/two"></div>');
+      var $item3 = $('<div class="reading-list-item" href="/three"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1)
+        .append($item2)
+        .append($item3);
+
+      var trigger = sandbox.spy($validReadingList, 'trigger');
+
+      var readingList = new ReadingList($validReadingList, {});
+
+      var events = trigger.withArgs('reading-list-item-progress');
+      events.callCount.should.equal(1);
+
+      expect(jqueryMatcher(events.args[0][1][0]).test($item1)).to.be.true;
+      expect(events.args[0][1][1].progress).to.equal(0);
+    });
+
+    it('should set the active item to the first item in the list', function () {
+
+      var $item1 = $('<div class="reading-list-item reading-list-loaded" href="/one"></div>');
+      var $item2 = $('<div class="reading-list-item reading-list-loaded" href="/two"></div>');
+      var $item3 = $('<div class="reading-list-item" href="/three"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1)
+        .append($item2)
+        .append($item3);
+
+      var readingList = new ReadingList($validReadingList, {});
+
+      expect(jqueryMatcher(readingList.$activeItem).test($item1)).to.be.true;
     });
   });
 
@@ -136,17 +237,17 @@ describe('Reading list', function () {
       $item1.data('loadStatus', 'loaded');
 
       // don't bother with setup since we just need to test the eventing function
-      sandbox.stub(ReadingList.prototype, 'setup');
+      sandbox.stub(ReadingList.prototype, '_setup');
       readingList = new ReadingList($validReadingList);
       trigger = sandbox.spy(readingList.$container, 'trigger');
     });
 
     describe('entire reading list', function () {
-      var itemEventing;
+      var _itemEventing;
 
       beforeEach(function () {
         // skip individual item eventing
-        itemEventing = sandbox.stub(ReadingList.prototype, 'itemEventing');
+        _itemEventing = sandbox.stub(ReadingList.prototype, '_itemEventing');
       });
 
       it('when at the top of the list', function () {
@@ -156,119 +257,101 @@ describe('Reading list', function () {
 
         // scroll down and ensure reading list at top does not fire
         scrollTop.returns(100);
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
         // scroll top and ensure reading list at top event does fire
         scrollTop.returns(0);
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
         trigger.withArgs('reading-list-at-top').callCount.should.equal(1);
-      });
-
-      it('when at the bottom of the list', function () {
-        // note: we're at the bottom of the list when scrollHeight = height + scrollTop
-        //  or scrollHeight - height - scrollTop = 0
-
-        var scrollTop = sandbox.stub(readingList.$container, 'scrollTop');
-
-        readingList.settings.scrollContainerHeight = function () {
-          return 300;
-        };
-        readingList.$container[0] = {scrollHeight: 1000};
-
-        // scroll to middle, event should not fire
-        scrollTop.returns(300);
-        readingList.unthrottledEventing();
-
-        // scroll to bottom, event should fire
-        scrollTop.returns(700);
-        readingList.unthrottledEventing();
-
-        trigger.withArgs('reading-list-at-bottom').callCount.should.equal(1);
-      });
-
-      it('when past the loading threshold', function () {
-        // note: we're past the loading threshold when
-        //  total scroll area - scrollTop - visible scroll area <= loadingThreshold
-
-        var scrollTop = sandbox.stub(readingList.$container, 'scrollTop');
-
-        readingList.settings.scrollContainerHeight = function () {
-          return 300;
-        };
-        readingList.settings.loadingThreshold = 300;
-        readingList.$container[0] = {scrollHeight: 1000};
-
-        // prevent out of content event from firing
-        itemEventing.returns(4);
-        sandbox.stub(readingList.$listItems, 'length', 5);
-
-        // scroll to a point above loading threshold, should not fire
-        scrollTop.returns(300);
-        readingList.unthrottledEventing();
-
-        // scroll past threshold, should fire
-        scrollTop.returns(600);
-        readingList.unthrottledEventing();
-
-        trigger.withArgs('reading-list-at-bottom-load-threshold').callCount.should.equal(1);
-        trigger.withArgs('reading-list-out-of-content').callCount.should.equal(0);
       });
 
       it('when the reading list is out of content', function () {
         // note: we're out of content when all reading list items have been loaded and
         //  we've gone past the bottom load threshold
 
+        var _addContent = sandbox.stub(readingList, '_addContent');
         var scrollTop = sandbox.stub(readingList.$container, 'scrollTop');
 
-        readingList.settings.scrollContainerHeight = function () {
-          return 300;
-        };
         readingList.settings.loadingThreshold = 300;
-        readingList.$container[0] = {scrollHeight: 1000};
+        $validReadingList.height(100);
+        sandbox.stub(readingList, '_getScrollTotalHeight').returns(1000);
 
         // cause out of content event to fire
-        itemEventing.returns(5);
+        _itemEventing.returns(5);
         sandbox.stub(readingList.$listItems, 'length', 5);
 
         // scroll to a point above loading threshold, should not fire
         scrollTop.returns(300);
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
         // scroll past threshold, should fire
         scrollTop.returns(600);
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
-        trigger.withArgs('reading-list-at-bottom-load-threshold').callCount.should.equal(1);
         trigger.withArgs('reading-list-out-of-content').callCount.should.equal(1);
+        _addContent.callCount.should.equal(1);
       });
 
       it('when scrolling to an item', function () {
+        var _doItemEvent = sandbox.stub(readingList, '_doItemEvent');
 
         readingList.settings.scrollToSpeed = 0;
-        readingList.unthrottledEventing();
+        readingList._unthrottledEventing();
 
         readingList.scrollToItem($item3);
 
-        trigger.withArgs('reading-list-start-scroll-to').callCount.should.equal(1);
-        trigger.withArgs('reading-list-end-scroll-to').callCount.should.equal(1);
+        _doItemEvent.withArgs('reading-list-start-scroll-to').callCount.should.equal(1);
+        _doItemEvent.withArgs('reading-list-end-scroll-to').callCount.should.equal(1);
       });
     });
 
     describe('an individual item', function () {
 
+      it('through a utility function', function () {
+
+        var eventName = 'something';
+        var arg1 = 'one';
+        var arg2 = 'two';
+        var arg3 = 'three';
+        var args = {
+          arg1: arg1,
+          arg2: arg2,
+          arg3: arg3
+        };
+
+        var numberOfCalls = 3;
+        readingList._doItemEvent(eventName, $item1, args, true);
+        readingList._doItemEvent(eventName, $item1, args, true);
+        readingList._doItemEvent(eventName, $item1, args, true);
+
+        var events = trigger.withArgs(eventName);
+        events.callCount.should.equal(numberOfCalls);
+
+        var callCount = 0;
+        events.args.forEach(function (argList) {
+          expect(argList[0]).to.equal(eventName);
+          expect(jqueryMatcher(argList[1][0]).test($item1)).to.be.true;
+          expect(argList[1][1].callCount).to.equal(++callCount);
+          expect(argList[1][1].arg1).to.equal(arg1);
+          expect(argList[1][1].arg2).to.equal(arg2);
+          expect(argList[1][1].arg3).to.equal(arg3);
+        });
+
+        expect(callCount).to.equal(numberOfCalls);
+      });
+
       it('when it starts loading', function () {
-        // do eventing for items
-        var loaded = readingList.itemEventing(true);
+        var _doItemEvent = sandbox.stub(readingList, '_doItemEvent');
+        var loaded = readingList._itemEventing(true);
 
-        // sort out trigger calls
-        var events = trigger.withArgs('reading-list-start-item-load');
-        events.callCount.should.equal(1);
+        var calls = _doItemEvent.withArgs('reading-list-item-load-start');
+        calls.callCount.should.equal(1);
 
-        // check the arguments that will be given to callbacks for this event
-        var callbackArgs = events.args[0][1];
-        expect(jqueryMatcher($item2).test(callbackArgs[0])).to.be.true;
-        callbackArgs[1].should.equal('down');
+        var args = calls.args[0];
+
+        expect(jqueryMatcher(args[1]).test($item2)).to.be.true;
+        args[2].direction.should.equal('down');
 
         // only 1 item was previously loaded
         loaded.should.equal(1);
@@ -277,21 +360,17 @@ describe('Reading list', function () {
       it('when it falls into the view', function () {
         // stub out within looking area function to test separately
         var withinLookingArea = sandbox.stub(readingList, 'withinLookingArea');
+        var _doItemEvent = sandbox.stub(readingList, '_doItemEvent');
 
         // pretend item2 is in the looking area
         readingList.$activeItem = $item1;
         withinLookingArea.withArgs($item2[0]).returns(true);
 
         // do item eventing
-        readingList.itemEventing(true);
+        readingList._itemEventing(true);
 
-        // sort out trigger calls
-        var events = trigger.withArgs('reading-list-item-in-looking');
-        events.callCount.should.equal(1);
-
-        // check the arguments that will be given to callbacks for this event
-        var callbackArgs = events.args[0][1];
-        expect(jqueryMatcher($item2).test(callbackArgs[0])).to.be.true;
+        var _doItemEventCalls = _doItemEvent.withArgs('reading-list-item-in-looking');
+        _doItemEventCalls.callCount.should.equal(1);
 
         expect(jqueryMatcher($item2).test(readingList.$activeItem)).to.be.true;
         $item2.hasClass('reading-list-in-looking').should.be.true;
@@ -300,6 +379,7 @@ describe('Reading list', function () {
       it('when it falls out of view', function () {
         // stub out within looking area function to test separately
         var withinLookingArea = sandbox.stub(readingList, 'withinLookingArea');
+        var _doItemEvent = sandbox.stub(readingList, '_doItemEvent');
 
         // pretend item2 has moved out of looking area, and item3 has moved in
         readingList.$activeItem = $item2;
@@ -307,15 +387,10 @@ describe('Reading list', function () {
         withinLookingArea.withArgs($item3[0]).returns(true);
 
         // do item eventing
-        readingList.itemEventing(true);
+        readingList._itemEventing(true);
 
-        // sort out trigger calls
-        var events = trigger.withArgs('reading-list-item-out-looking');
-        events.callCount.should.equal(1);
-
-        // check the arguments that will be given to callbacks for this event
-        var callbackArgs = events.args[0][1];
-        expect(jqueryMatcher($item2).test(callbackArgs[0])).to.be.true;
+        var _doItemEventCalls = _doItemEvent.withArgs('reading-list-item-out-looking');
+        _doItemEventCalls.callCount.should.equal(1);
 
         expect(jqueryMatcher($item2).test(readingList.$activeItem)).to.be.false;
         expect(jqueryMatcher($item3).test(readingList.$activeItem)).to.be.true;
@@ -325,6 +400,7 @@ describe('Reading list', function () {
       it('showing what percentage of it has been viewed', function () {
         // stub out within looking area function to test separately
         var withinLookingArea = sandbox.stub(readingList, 'withinLookingArea');
+        var _doItemEvent = sandbox.spy(readingList, '_doItemEvent');
 
         // pretend item2 is in the looking area
         readingList.$activeItem = $item1;
@@ -342,14 +418,14 @@ describe('Reading list', function () {
           top: 300,
           height: boundingHeight
         });
-        readingList.itemEventing(true);
+        readingList._itemEventing(true);
 
         // 45% viewed
         getBoundingClientRect.returns({
           top: -375,
           height: boundingHeight
         });
-        readingList.itemEventing(true);
+        readingList._itemEventing(true);
 
         // 100% viewed and now passing bottom of item, really over 100%, but should
         //  be capped at 100%
@@ -357,26 +433,28 @@ describe('Reading list', function () {
           top: -1500,
           height: boundingHeight
         });
-        readingList.itemEventing(true);
+        readingList._itemEventing(true);
 
         // sort out trigger calls
+        var _doItemEventCalls = _doItemEvent.withArgs('reading-list-item-progress');
         var events = trigger.withArgs('reading-list-item-progress');
         events.callCount.should.equal(3);
+        _doItemEventCalls.callCount.should.equal(3);
 
         // check 0% call
         var callbackArgs1 = events.args[0][1];
         expect(jqueryMatcher($item1).test(callbackArgs1[0])).to.be.true;
-        expect(callbackArgs1[1]).to.equal(0);
+        expect(callbackArgs1[1].progress).to.equal(0);
 
         // check 45% call
         var callbackArgs2 = events.args[1][1];
         expect(jqueryMatcher($item1).test(callbackArgs2[0])).to.be.true;
-        expect(callbackArgs2[1]).to.equal(0.45);
+        expect(callbackArgs2[1].progress).to.equal(0.45);
 
         // check over 100% call
         var callbackArgs3 = events.args[2][1];
         expect(jqueryMatcher($item1).test(callbackArgs3[0])).to.be.true;
-        expect(callbackArgs3[1]).to.equal(1.0);
+        expect(callbackArgs3[1].progress).to.equal(1.0);
       });
     });
   });
@@ -393,7 +471,7 @@ describe('Reading list', function () {
       $item1 = $('<div id="item1" data-href="' + href1 + '" class="reading-list-item"></div>');
       $validReadingList.find('.reading-list-items').append($item1);
 
-      sandbox.stub(ReadingList.prototype, 'setup');
+      sandbox.stub(ReadingList.prototype, '_setup');
 
       readingList = new ReadingList($validReadingList);
       trigger = sandbox.spy(readingList.$container, 'trigger');
@@ -417,6 +495,8 @@ describe('Reading list', function () {
       var responseContent = '<div>some html content</div>';
       var success = sandbox.stub();
 
+      var _doItemEvent = sandbox.stub(readingList, '_doItemEvent');
+
       readingList.settings.dataRetrievalSuccess = success;
       success.returns(responseContent);
 
@@ -438,15 +518,15 @@ describe('Reading list', function () {
       $item1.html().should.equal(responseContent);
       readingList.eventing.callCount.should.equal(1);
 
-      // check load done event
-      var events = trigger.withArgs('reading-list-start-item-load-done');
-      events.callCount.should.equal(1);
-      expect(jqueryMatcher($item1).test(events.args[0][1][0])).to.be.true;
+      var _doItemEventCalls = _doItemEvent.withArgs('reading-list-item-load-done');
+      _doItemEventCalls.callCount.should.equal(1);
     });
 
     it('should update item element on failure', function () {
       var responseContent = '<div>some html content</div>';
       var fail = sandbox.stub();
+
+      var _doItemEvent = sandbox.stub(readingList, '_doItemEvent');
 
       readingList.settings.dataRetrievalFail = fail;
       fail.returns(responseContent);
@@ -468,39 +548,21 @@ describe('Reading list', function () {
       $item1.html().should.equal(responseContent);
       readingList.eventing.callCount.should.equal(1);
 
-      // check load done event
-      var events = trigger.withArgs('reading-list-start-item-load-done');
-      events.callCount.should.equal(1);
-      expect(jqueryMatcher($item1).test(events.args[0][1][0])).to.be.true;
+      var _doItemEventCalls = _doItemEvent.withArgs('reading-list-item-load-done');
+      _doItemEventCalls.callCount.should.equal(1);
     });
 
   });
 
   describe('config options', function () {
 
-    it('should call out of content function when defined', function () {
-      var addContent = sandbox.stub();
-
-      var deferred = $.Deferred();
-      deferred.resolve();
-      addContent.returns(deferred.promise());
-
-      var readingList = new ReadingList($validReadingList, {
-        addContent: addContent
-      });
-
-      readingList.$container.trigger('reading-list-out-of-content');
-
-      addContent.callCount.should.equal(1);
-    });
-
     it('should prevent bubbling when noEventBubbling is true', function () {
 
       sandbox.stub(ReadingList.prototype, 'miniMapItemActivate');
       sandbox.stub(ReadingList.prototype, 'miniMapItemDeactivate');
-      sandbox.stub(ReadingList.prototype, 'startItemLoad');
-      sandbox.stub(ReadingList.prototype, 'initialLoad');
-      sandbox.stub(ReadingList.prototype, 'unthrottledEventing');
+      sandbox.stub(ReadingList.prototype, '_startItemLoad');
+      sandbox.stub(ReadingList.prototype, '_initialLoad');
+      sandbox.stub(ReadingList.prototype, '_unthrottledEventing');
 
       var readingList = new ReadingList($validReadingList, {
         noEventBubbling: true
@@ -510,54 +572,118 @@ describe('Reading list', function () {
 
       readingList.$container.on(
         'reading-list-at-top ' +
-        'reading-list-at-bottom ' +
-        'reading-list-at-bottom-load-threshold ' +
         'reading-list-out-of-content ' +
-        'reading-list-start-item-load ' +
+        'reading-list-item-load-start ' +
         'reading-list-item-in-looking ' +
         'reading-list-item-out-looking ' +
         'reading-list-item-progress ' +
-        'reading-list-start-item-load-done ' +
+        'reading-list-item-load-done ' +
         'reading-list-start-scroll-to ' +
         'reading-list-end-scroll-to',
         callback);
       $(document).on(
         'reading-list-at-top ' +
-        'reading-list-at-bottom ' +
-        'reading-list-at-bottom-load-threshold ' +
         'reading-list-out-of-content ' +
-        'reading-list-start-item-load ' +
+        'reading-list-item-load-start ' +
         'reading-list-item-in-looking ' +
         'reading-list-item-out-looking ' +
         'reading-list-item-progress ' +
-        'reading-list-start-item-load-done ' +
+        'reading-list-item-load-done ' +
         'reading-list-start-scroll-to ' +
         'reading-list-end-scroll-to',
         docCallback);
 
       readingList.$container.trigger('reading-list-at-top');
-      readingList.$container.trigger('reading-list-at-bottom');
-      readingList.$container.trigger('reading-list-at-bottom-load-threshold');
       readingList.$container.trigger('reading-list-out-of-content');
-      readingList.$container.trigger('reading-list-start-item-load');
+      readingList.$container.trigger('reading-list-item-load-start');
       readingList.$container.trigger('reading-list-item-in-looking');
       readingList.$container.trigger('reading-list-item-out-looking');
       readingList.$container.trigger('reading-list-item-progress');
-      readingList.$container.trigger('reading-list-start-item-load-done');
+      readingList.$container.trigger('reading-list-item-load-done');
       readingList.$container.trigger('reading-list-start-scroll-to');
       readingList.$container.trigger('reading-list-end-scroll-to');
 
-      callback.callCount.should.equal(11);
+      callback.callCount.should.equal(9);
       docCallback.callCount.should.equal(0);
     });
   });
+
+	describe('item capping', function () {
+		var readingList, $item1, $item2, $item3, style;
+
+		beforeEach(function () {
+			style = document.createElement('style');
+			style.appendChild(document.createTextNode(""));
+			document.head.appendChild(style);
+			style.sheet.insertRule('.reading-list-capped-item { height: 250px; }');
+			style.sheet.insertRule('.reading-list-item { height: 4000px; }');
+
+			$validReadingList.css({
+				height: '400px',
+				overflowY: 'auto'
+			});
+
+			$item1 = $('<div class="reading-list-item" reading-list-loaded" href="/one"></div>');
+      $item2 = $('<div class="reading-list-item" reading-list-loaded" href="/two"></div>');
+      $item3 = $('<div class="reading-list-item" reading-list-loaded" href="/three"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1)
+        .append($item2)
+        .append($item3);
+
+      readingList = new ReadingList($validReadingList);
+		});
+
+		afterEach(function () {
+			document.head.removeChild(style);
+		});
+
+		describe('_capItems', function () {
+			it('caps items that are fully above the top of the viewport', function () {
+				$validReadingList.scrollTop(8000);
+				readingList._capItems();
+				$item1.hasClass('reading-list-capped-item').should.eql(true);
+			});
+
+			it('uncaps items that are below the top of the viewport', function () {
+				$item1.addClass('reading-list-capped-item');
+				readingList._capItems();
+				$item1.hasClass('reading-list-capped-item').should.eql(false);
+			});
+		});
+
+		describe('_capItem', function () {
+			it('juggles the container scrollTop', function () {
+				$validReadingList.scrollTop(4100);
+
+				readingList._capItems();
+				readingList._capItems();
+
+				$validReadingList.scrollTop().should.eql(4100 - (4000 - 250)); // scrolltop - (item height - capped item height)
+			});
+		});
+
+		describe('_uncapItem', function () {
+			it('juggles the container scrollTop', function () {
+				$validReadingList.scrollTop(4100);
+				readingList._capItems();
+				readingList._capItems();
+				$validReadingList[0].scrollTop -= 1;
+
+				readingList._capItems();
+
+				$validReadingList.scrollTop().should.eql(4100 - (4000 - 250) - 1); // scrolltop - (item height - capped item height) - amount scrolled
+			});
+		});
+	});
 
   describe('misc functions', function () {
     var readingList;
 
     beforeEach(function () {
       // don't bother with setup since we just need to test the calculating function
-      sandbox.stub(ReadingList.prototype, 'setup');
+      sandbox.stub(ReadingList.prototype, '_setup');
       readingList = new ReadingList($validReadingList);
     });
 
@@ -581,8 +707,40 @@ describe('Reading list', function () {
       animate.args[0][0].scrollTop.should.equal($item2.position().top);
     });
 
+    it('should converge scrollTop to the top of the item at the end of the animation', function () {
+      // Specifically: when the top position of the target item changes during the animation.
+      //    Such as when images load and change the page height.
+
+      readingList.$container.scrollTop(100);
+      var tween = {now: 100};
+
+      var $item1 = $('<div id="item1" class="reading-list-item"></div>');
+
+      $validReadingList.find('.reading-list-items')
+        .append($item1);
+
+      $item1.position = function () {
+        return {top: 100};
+      };
+
+      readingList.$container.animate = function (params, options) {
+        readingList.$container.scrollTop = function () {
+          return readingList.$container.scrollTop * 1.5;
+        }
+
+        $item1.position = function () {
+          return {top: 150};
+        };
+
+        options.step(null, tween);
+        tween.now.should.eql(150);
+      };
+
+      readingList.scrollToItem($item1);
+    });
+
     it('should have a test for elements being in looking area', function () {
-      var elementBoundingInsideArea = sandbox.stub(readingList, 'elementBoundingInsideArea');
+      var _elementBoundingInsideArea = sandbox.stub(readingList, '_elementBoundingInsideArea');
       var el = {};
 
       readingList.settings.lookingThresholdTop = 200;
@@ -590,7 +748,7 @@ describe('Reading list', function () {
 
       readingList.withinLookingArea(el);
 
-      elementBoundingInsideArea.withArgs(
+      _elementBoundingInsideArea.withArgs(
         el,
         readingList.settings.lookingThresholdTop,
         readingList.settings.lookingThresholdBottom).callCount.should.equal(1);
@@ -602,24 +760,290 @@ describe('Reading list', function () {
 
       // totally above box
       el.getBoundingClientRect.returns({top: -500, bottom: 100});
-      readingList.elementBoundingInsideArea(el, 200, 500).should.be.false;
+      readingList._elementBoundingInsideArea(el, 200, 500).should.be.false;
 
       // bottom inside box
       el.getBoundingClientRect.returns({top: -500, bottom: 300});
-      readingList.elementBoundingInsideArea(el, 200, 500).should.be.true;
+      readingList._elementBoundingInsideArea(el, 200, 500).should.be.true;
 
       // totally inside box
       el.getBoundingClientRect.returns({top: 300, bottom: 400});
-      readingList.elementBoundingInsideArea(el, 200, 500).should.be.true;
+      readingList._elementBoundingInsideArea(el, 200, 500).should.be.true;
 
       // top inside box
       el.getBoundingClientRect.returns({top: 300, bottom: 600});
-      readingList.elementBoundingInsideArea(el, 200, 500).should.be.true;
+      readingList._elementBoundingInsideArea(el, 200, 500).should.be.true;
 
       // totally below box
       el.getBoundingClientRect.returns({top: 600, bottom: 800});
-      readingList.elementBoundingInsideArea(el, 200, 500).should.be.false ;
+      readingList._elementBoundingInsideArea(el, 200, 500).should.be.false ;
+    });
+
+    describe('include a way to scroll to a given item that', function () {
+
+      it('should scroll to given item', function () {
+        var $item1 = $('<div id="item1" class="reading-list-item"></div>');
+        var $item2 = $('<div id="item2" class="reading-list-item"></div>');
+        var stop = sandbox.spy(readingList.$container, 'stop');
+        var animate = sandbox.spy(readingList.$container, 'animate');
+        var scrollToSpeed = 123;
+
+        $validReadingList.find('.reading-list-items')
+          .append($item1)
+          .append($item2);
+
+        readingList.settings.scrollToSpeed = scrollToSpeed;
+        readingList.settings.scrollToAddPx = function () { return 10; };
+
+        readingList.scrollToItem($item2);
+
+        stop.calledOnce.should.be.true;
+        animate.calledOnce.should.be.true;
+        animate.args[0][0].scrollTop.should.equal(
+          $item2.position().top + readingList.settings.scrollToAddPx()
+        );
+        animate.args[0][1].duration.should.equal(scrollToSpeed);
+      });
+
+      it('should use a zero scroll to speed when user is mobile', function () {
+        var $item1 = $('<div id="item1" class="reading-list-item"></div>');
+        var $item2 = $('<div id="item2" class="reading-list-item"></div>');
+        var animate = sandbox.spy(readingList.$container, 'animate');
+        var isMobile = sandbox.stub(readingList, '_isMobile');
+
+        $validReadingList.find('.reading-list-items')
+          .append($item1)
+          .append($item2);
+
+        isMobile.returns(true);
+        readingList.settings.scrollToSpeed = 123;
+
+        readingList.scrollToItem($item2);
+
+        isMobile.calledOnce.should.be.true;
+        animate.args[0][1].duration.should.equal(0);
+      });
+    });
+
+    describe('include a way to get the scroll container total height that', function () {
+
+      it('should return body scrollHeight if container is window', function () {
+        readingList.$container = $(window);
+
+        var value = readingList._getScrollTotalHeight();
+
+        expect(value).to.equal(document.body.scrollHeight);
+      });
+
+      it('should return body scrollHeight if container is document', function () {
+        readingList.$container = $(document);
+
+        var value = readingList._getScrollTotalHeight();
+
+        expect(value).to.equal(document.body.scrollHeight);
+      });
+
+      it('should return container scrollHeight if container is not window or document', function () {
+        var scrollHeight = 1001;
+
+        readingList.$container[0] = {scrollHeight: scrollHeight};
+
+        var value = readingList._getScrollTotalHeight();
+
+        expect(value).to.equal(scrollHeight);
+      });
+    });
+
+    describe('include a way to get the looking threshold bottom that', function () {
+
+      it('should call setting if it is a function', function () {
+        var lookingThresholdBottom = 100;
+        readingList.settings.lookingThresholdBottom = sandbox.stub().returns(lookingThresholdBottom);
+
+        var value = readingList._getLookingThresholdBottom();
+
+        expect(value).to.equal(lookingThresholdBottom);
+        expect(readingList.settings.lookingThresholdBottom.calledOnce).to.be.true;
+      });
+
+      it('should return setting if it is a number', function () {
+        var lookingThresholdBottom = 100;
+        readingList.settings.lookingThresholdBottom = lookingThresholdBottom;
+
+        var value = readingList._getLookingThresholdBottom();
+
+        expect(value).to.equal(lookingThresholdBottom);
+      });
+
+      it('should return 0 if no valid setting is given', function () {
+        readingList.settings.lookingThresholdBottom = null;
+
+        var value = readingList._getLookingThresholdBottom();
+
+        expect(value).to.equal(0);
+      });
+    });
+
+    describe('include a way to get the looking threshold top that', function () {
+
+      it('should call setting if it is a function', function () {
+        var lookingThresholdTop = 100;
+        readingList.settings.lookingThresholdTop = sandbox.stub().returns(lookingThresholdTop);
+
+        var value = readingList._getLookingThresholdTop();
+
+        expect(value).to.equal(lookingThresholdTop);
+        expect(readingList.settings.lookingThresholdTop.calledOnce).to.be.true;
+      });
+
+      it('should return setting if it is a number', function () {
+        var lookingThresholdTop = 100;
+        readingList.settings.lookingThresholdTop = lookingThresholdTop;
+
+        var value = readingList._getLookingThresholdTop();
+
+        expect(value).to.equal(lookingThresholdTop);
+      });
+
+      it('should return 0 if no valid setting is given', function () {
+        readingList.settings.lookingThresholdTop = null;
+
+        var value = readingList._getLookingThresholdTop();
+
+        expect(value).to.equal(0);
+      });
+    });
+
+    describe('include a way to get the loading threshold that', function () {
+
+      it('should call setting if it is a function', function () {
+        var loadingThreshold = 100;
+        readingList.settings.loadingThreshold = sandbox.stub().returns(loadingThreshold);
+
+        var value = readingList._getLoadingThreshold();
+
+        expect(value).to.equal(loadingThreshold);
+        expect(readingList.settings.loadingThreshold.calledOnce).to.be.true;
+      });
+
+      it('should return setting if it is a number', function () {
+        var loadingThreshold = 100;
+        readingList.settings.loadingThreshold = loadingThreshold;
+
+        var value = readingList._getLoadingThreshold();
+
+        expect(value).to.equal(loadingThreshold);
+      });
+
+      it('should return 0 if no valid setting is given', function () {
+        readingList.settings.loadingThreshold = null;
+
+        var value = readingList._getLoadingThreshold();
+
+        expect(value).to.equal(0);
+      });
+    });
+
+    describe('include a way to get the scroll container that', function () {
+
+      it('should call setting if it is a function', function () {
+        var container = {};
+        readingList.settings.scrollContainer = sandbox.stub().returns(container);
+
+        var value = readingList._getScrollContainer();
+
+        expect(value).to.equal(container);
+        expect(readingList.settings.scrollContainer.calledOnce).to.be.true;
+      });
+
+      it('should return setting if it is a jQuery object', function () {
+        var container = $('div');
+        readingList.settings.scrollContainer = container;
+
+        var value = readingList._getScrollContainer();
+
+        expect(value).to.equal(container);
+      });
+
+      it('should use container if no valid setting is given', function () {
+        readingList.settings.scrollContainer = null;
+
+        var value = readingList._getScrollContainer();
+
+        expect(value).to.equal(readingList.$container);
+      });
+    });
+
+    describe('include a way to retrieve isMobile setting that', function () {
+
+      it('should call setting if it is a function', function () {
+        var isMobile = true;
+        readingList.settings.isMobile = sandbox.stub().returns(isMobile);
+
+        var value = readingList._isMobile();
+
+        expect(value).to.equal(isMobile);
+        expect(readingList.settings.isMobile.calledOnce).to.be.true;
+      });
+
+      it('should return setting if it is a boolean', function () {
+        var isMobile = true;
+        readingList.settings.isMobile = isMobile;
+
+        var value = readingList._isMobile();
+
+        expect(value).to.equal(isMobile);
+      });
+
+      it('should return false if no valid setting is given', function () {
+        readingList.settings.isMobile =  null;
+
+        var value = readingList._isMobile();
+
+        expect(value).to.equal(false);
+      });
     });
   });
 
+  describe('utilities', function () {
+
+    it('should have a function to attach an event callback that can be stubbed later', function () {
+      var $body = $(document.body);
+      var callbackName = 'someCallbackFunction';
+      var eventName = 'some-test-event';
+      var myReadingList = {};
+      var readingList = new ReadingList($validReadingList);
+
+      myReadingList[callbackName] = function () {};
+
+      $body.on(eventName, readingList.callback(myReadingList, callbackName));
+
+      var callback = sandbox.stub(myReadingList, callbackName);
+
+      $body.trigger(eventName);
+
+      $body.off();
+
+      expect(callback.calledOnce).to.be.true;
+    });
+  });
+
+  describe('normal operation', function () {
+
+    it('should keep active item set to last active item if it would otherwise be undefined', function () {
+      var $item1 = $('<div class="reading-list-item"></div>');
+
+      $validReadingList.find('.reading-list-items').append($item1);
+
+      var readingList = new ReadingList($validReadingList);
+      var $oldActiveItem = readingList.$activeItem;
+
+      sandbox.stub(readingList, 'withinLookingArea').returns(false);
+
+      readingList._itemEventing();
+
+      expect(jqueryMatcher($oldActiveItem).test($item1)).to.be.true;
+      expect(jqueryMatcher(readingList.$activeItem).test($item1)).to.be.true;
+    });
+  });
 });

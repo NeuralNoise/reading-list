@@ -74,57 +74,57 @@ Following is a breakdown of the options available for this plugin:
 
 | Option | Notes |
 |--------:|:-------|
-| ```loadingThreshold``` | Height from the bottom of scrolling container to start loading. |
-| ```lookingThresholdTop``` | Top boundary of "looking" area, measured from top of window. |
-| ```lookingThresholdBottom``` | Bottom boundary of "looking" area, measured from top of window. |
-| ```eventingThrottle``` | Time in ms to delay eventing execution on scroll. Use larger values when considering slower browsers so that scrolling isn't affected by event triggering. |
-| ```scrollToSpeed``` | Time in ms for scroll to event when scrolling to an article. |
-| ```selectors``` | Customize the selectors used for each reading list component. Note that whatever classes you choose, the layout of those components must be nested properly. |
-| ```addContent``` | Define this content to add content to the end of the reading list when there are no more items to load. Expected to return a promise that will resolve with the content to append to the end of the list. |
-| ```dataRetrievalSuccess``` | Reading list data transform callback to change received data to HTML. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return the HTML of the reading list item. |
-| ```dataRetrievalFail``` | Reading list data failure callback. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return HTML of some error message. |
-| ```scrollContainerHeight``` | Set this to use a custom value for scroll container height in calculations, should be a function that returns an integer which is the height of the container being scrolled. Needed in cases, like were reading list is entire document and the window should be used for height calculations vs. document height. |
-| ```scrollTotalHeight``` | Set this to use a custom value for scroll total height in calculations. Should be a function that returns an integer which is the total scrollable height of the scroll container. Needed in cases such as when the reading list is entire document and the body should be used for scroll total height calculations. |
-| ```scrollAnimationContainer``` | Set this to use a custom container for scrolling animation. A jQuery object that encapsulates the element that scrolling will occur on. Needed in cases such as when the reading list is entire document and the body should be used for scroll animations. |
-| ```noEventBubbling```| Set to true to stop events from bubbling up the DOM tree, in which case, any event listeners must attach to the reading list element itself. This **must** be set to true for any reading lists that are nested inside another reading list! |
-| ```onReady``` | Set to a function that will fire when the reading list is ready. Reading list object will be passed in as first argument. |
+| `addContent` | Define this content to add content to the end of the reading list when there are no more items to load. Expected to return a promise that will resolve with the content to append to the end of the list. |
+| `dataRetrievalFail` | Reading list data failure callback. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return HTML of some error message. |
+| `dataRetrievalSuccess` | Reading list data transform callback to change received data to HTML. Non-falsy return values from this function will replace the contents of the reading list item. In the ideal case, this function will return the HTML of the reading list item. |
+| `eventingThrottle` | Time in ms to delay eventing execution on scroll. Use larger values when considering slower browsers so that scrolling isn't affected by event triggering. |
+| `isMobile` | A value that determines if the user is currently on a mobile device, used for changing reading list behaviors depending on how the reading list is being viewed. Either a function that returns a boolean, or a constant boolean value. |
+| `loadingThreshold` | Height from the bottom of scrolling container to start loading. Either a function that returns a number or a constant number value. |
+| `lookingThresholdBottom` | Bottom boundary of "looking" area, measured from top of window. Either a function that returns a number or a constant number value. |
+| `lookingThresholdTop` | Top boundary of "looking" area, measured from top of window. Either a function that returns a number or a constant number value. |
+| `miniMapActiveClass` | Class to apply to active minimap items. |
+| `noEventBubbling` | Set to true to stop events from bubbling up the DOM tree, in which case, any event listeners must attach to the reading list element itself. This **must** be set to true for any reading lists that are nested inside another reading list! |
+| `onPreSetup` | Set to a function that will fire before reading list is setup and initial eventing and loading is done. Reading list object will be passed in as first argument. |
+| `onReady` | Set to a function that will fire when the reading list is ready and initial eventing and loading has been done. Reading list object will be passed in as first argument. |
+| `scrollContainer` | Container that is used for scrolling. Customize this only if using a non-element--such as window, body, document, html--for scrolling. |
+| `scrollToAddPx` | Number, or function that returns a number, to add to scroll to distance. Useful if some absolute position element (such as a sticky header) needs to be accounted for when scrolling to an item. |
+| `scrollToSpeed` | Time in ms for scroll to event when scrolling to an article. |
+| `selectorsItems` | Direct children of `itemsContainer`, the class used for individual reading list items. |
+| `selectorsItemsContainer` | Direct child of element used to create reading list. |
+| `selectorsItemsPreLoaded` | Filter selector for `selectorsItems` that distinguishes items that have already been loaded into the reading list before reading list initialization. |
+| `selectorsMiniMapItems` | Selector for mini-map elements. Minimap elements can be anywhere on the page as long as they can be selected with this selector and have the `data-item-ref` attribute. If you are using multiple reading lists on a single page, this selector should be customized for each individual instance of a reading list. |
 
-#### Customizing Selectors
-The following selectors can be customized as options of the ```selectors``` option:
-
-| Selector Name | Selector Rules |
-|--------------:|:---------------|
-| ```itemsContainer``` | Direct child of element used to create reading list. |
-| ```items``` | Direct children of ```itemsContainer```, the class used for individual reading list items.  |
-| ```miniMapItems``` | Selector for mini-map elements. Minimap elements can be anywhere on the page as long as they can be selected with this selector and have the ```data-item-ref``` attribute. If you are using multiple reading lists on a single page, this selector should be customized for each individual instance of a reading list. |
-
-Note, also, that any styles that come along with the plugin must be applied to the corresponding customized classes here.
+Note, that any styles that come along with the plugin must be applied to the corresponding customized classes here.
 
 ### Events
 Following are events you can hook into as the page scrolls. Note: all events are triggered on the container used to build the reading list, so in the example, it would be on the ```#readingList``` element.
 
 #### Reading List Events
-Events applicable to the state of the entire reading list:
+Events applicable to the state of the entire reading list. No arguments are given
+to event callbacks.
 
-| Name | Arguments | Notes |
+| Name | Notes |
 |-----:|:----------|:------|
-| ```reading-list-at-top``` | None | Fires when reading list hits the top. |
-| ```reading-list-at-bottom``` | None | Fires when reading list hits the bottom. |
-| ```reading-list-at-bottom-load-threshold``` | None | Triggered when the reading list is nearing the bottom, a threshold specified by ```loadingThreshold``` option. |
-| ```reading-list-out-of-content``` | None | Reading list has run out of content. Internally, if ```addContent``` is defined it will be used when this event triggers to add new content to the end of the reading list. |
+| ```reading-list-at-top``` | Fires when reading list hits the top. |
+| ```reading-list-out-of-content``` | Reading list has run out of content. Internally, if ```addContent``` is defined it will be used when this event triggers to add new content to the end of the reading list. |
 
 #### Item Events
-Events applicable to individual reading list items:
+Events applicable to individual reading list items. Note that:
+1. All event callbacks are given the ```$item``` the event is for as the first
+argument.
+2. The ```Arguments``` listed are keys of the second argument into the callback.
+3. ```callCount``` refers to the number of times the given event has been
+triggered on that item.
 
 | Name | Arguments | Notes |
 |-----:|:----------|:------|
-| ```reading-list-start-item-load``` | ```$item``` ```direction``` | ```$item``` is starting to load, triggered by a scrolling ```direction```. |
-| ```reading-list-item-in-looking``` | ```$item``` | ```$item``` has entered the looking area and is the active item. |
-| ```reading-list-item-out-looking``` | ```$item``` | ```$item``` has fallen out of the looking area and is no longer the active item. |
-| ```reading-list-item-progress``` | ```$item``` ```progress``` | Has viewed ```progress``` ratio of the entire ```$item```. Use to update progress bars. To make ```progress``` a percentage, do ```progress * 100```.  |
-| ```reading-list-start-item-load-done``` | ```$item``` | ```$item``` is done loading. |
-| ```reading-list-start-scroll-to```|```$item```|```$item``` is being scrolled into view.|
-| ```reading-list-end-scroll-to```|```$item```|```$item``` has been scrolled into view.|
+| ```reading-list-item-load-start``` | ```callCount``` ```direction``` | ```$item``` is starting to load, triggered by a scrolling ```direction```. |
+| ```reading-list-item-load-done``` | ```callCount``` | ```$item``` is done loading. |
+| ```reading-list-item-in-looking``` | ```callCount``` | ```$item``` has entered the looking area and is the active item. |
+| ```reading-list-item-out-looking``` | ```callCount``` | ```$item``` has fallen out of the looking area and is no longer the active item. |
+| ```reading-list-item-progress``` | ```progress``` | Has viewed ```progress``` ratio of the entire ```$item```. Use to update progress bars. To make ```progress``` a percentage, do ```progress * 100```.  |
+| ```reading-list-start-scroll-to```| None |```$item``` is being scrolled into view.|
+| ```reading-list-end-scroll-to```| None |```$item``` has been scrolled into view.|
 
 ## Usage Notes
 
@@ -138,9 +138,26 @@ the bottom of the "looking area".
 Any reading list items that are loaded with the page should have the attribute ```data-load-status="loaded"``` to prevent reloading that item. In order to keep
 styling consistent, the item should also get the ```loaded``` CSS class.
 
-## Running the Example
-If you'd like to see the example, clone down this code, then:
+## Development
+
+### Running the Example
 ```bash
-$ cd reading-list
-$ npm run-script example
+$ npm run example
+```
+
+### Run tests
+```bash
+$ npm run test
+```
+
+### Creating a New Build
+```bash
+$ npm run build
+```
+
+## Running Tests/Development
+```bash
+npm install
+bower install
+npm test
 ```

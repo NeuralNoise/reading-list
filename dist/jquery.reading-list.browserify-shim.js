@@ -18,65 +18,58 @@ var loadDirection = {
   DOWN: 'down'
 };
 
+var events = {
+  atTop: 'reading-list-at-top',
+  itemLoadStart: 'reading-list-item-load-start',
+  itemLoadFinish: 'reading-list-item-load-done',
+  itemLookingIn: 'reading-list-item-in-looking',
+  itemLookingOut: 'reading-list-item-out-looking',
+  itemProgress: 'reading-list-item-progress',
+  outOfContent: 'reading-list-out-of-content',
+  scrollToEventStart: 'reading-list-start-scroll-to',
+  scrollToEventFinish: 'reading-list-end-scroll-to'
+};
+var eventsList = Object.keys(events).map(function (key) {
+  return events[key];
+});
+
+var CAPPED_ITEM_CLASS = 'reading-list-capped-item';
+
 var $window = $(window);
 var $document = $(window.document);
 var $body = $(window.document.body);
 
+/**
+ * ReadingList constructor.
+ *
+ * @param {(HTMLElement|jQuery|String)} element - object to pass into jQuery
+ *    selector and to use for ReadingList container.
+ * @returns {ReadingList}
+ */
 var ReadingList = function ($element, options) {
 
   this.$container = $element;
 
-  // settings defaults, then extend
   this.settings = $.extend({
-    // height from the bottom of scrolling container to start loading
-    loadingThreshold: 300,
-    // top boundary of "looking" area, measured from top of window
-    lookingThresholdTop: 200,
-    // bottom boundary of "looking" area, measured from top of window
-    lookingThresholdBottom: 250,
-    // throttle in ms for eventing, use larger values if considering slower browsers
-    eventingThrottle: 10,
-    // time in ms for scroll to event when scrolling to an article
-    scrollToSpeed: 1000,
-    // class names for different parts of reading list
-    selectorsMiniMapItems: '.reading-list-mini-map-item',
-    selectorsItemsContainer: '.reading-list-items',
-    selectorsItems: '.reading-list-item',
-    // define this function to add content to the end of the reading list when
-    //  there are no more items to load. Expected to return a promise that will
-    //  resolve with the content to append to the end of the list.
     addContent: false,
-    // reading list data transform callback to change received data to html
-    dataRetrievalSuccess: function ($item, data) {
-      return data;
-    },
-    // reading list data failure callback, return html to replace item contents
-    dataRetrievalFail: function ($item) {
-      return '';
-    },
-    // set this to use a custom value for scroll container height in calculations,
-    //  should be a function that returns an integer which is the height of the
-    //  container being scrolled. Needed in cases, like were reading list is
-    //  entire document and the window should be used for height calculations
-    //  vs. document height.
-    scrollContainerHeight: null,
-    // set this to use a custom value for scroll total height in calculations. Should
-    //   be a function that returns an integer which is the total scrollable height
-    //   of the scroll container. Needed in cases such as when the reading list is
-    //   entire document and the body should be used for scroll total height calculations.
-    scrollTotalHeight: null,
-    // set this to use a custom container for scrolling animation. A jQuery object
-    //  that encapsulates the element that scrolling will occur on. Needed in cases
-    //  such as when the reading list is entire document and the body should be used
-    //  for scroll animations.
-    scrollAnimationContainer: null,
-    // set to true to stop events from bubbling up the DOM tree, in which case, any
-    //  event listeners must attach to the reading list element itself. This **must**
-    //  be set to true for any reading lists that are nested inside another reading list!
+    dataRetrievalFail: function ($item) { return ''; },
+    dataRetrievalSuccess: function ($item, data) { return data; },
+    eventingThrottle: 10,
+    isMobile: false,
+    loadingThreshold: 300,
+    lookingThresholdBottom: 250,
+    lookingThresholdTop: 200,
+    miniMapActiveClass: 'reading-list-active',
     noEventBubbling: false,
-    // set to a function that will fire when the reading list is ready. Reading list
-    //  object will be passed in as first argument.
-    onReady: null
+    onPreSetup: null,
+    onReady: null,
+    scrollContainer: null,
+    scrollToAddPx: 0,
+    scrollToSpeed: 1000,
+    selectorsItems: '.reading-list-item',
+    selectorsItemsContainer: '.reading-list-items',
+    selectorsItemsPreLoaded: '.reading-list-loaded',
+    selectorsMiniMapItems: '.reading-list-mini-map-item'
   }, options);
 
   // ensure reading list elements we need are available, fail otherwise
@@ -91,86 +84,87 @@ var ReadingList = function ($element, options) {
 
   // elements needed for reading list
   this.$listItems = this.$container.find(this.settings.selectorsItems);
+  this.$activeItem = this.$listItems.length > 0 ? this.$listItems.eq(0) : null;
   this.$miniMapItems = $(this.settings.selectorsMiniMapItems);
 
-  this.setup();
+  if (typeof(this.settings.onPreSetup) === 'function') {
+    this.settings.onPreSetup(this);
+  }
+
+  this._setup();
+  this._itemCappingAnimationLoop();
+
+  if (typeof(this.settings.onReady) === 'function') {
+    this.settings.onReady(this);
+  }
+
+  return this;
 };
 
 /**
  * Setup function.
+ *
+ * @returns {undefined}
  */
-ReadingList.prototype.setup = function () {
+ReadingList.prototype._setup = function () {
 
   // throttled eventing function to be used for all events
-  this.eventing = _.throttle(this.unthrottledEventing, this.settings.eventingThrottle);
-
-  // currently active item
-  this.$activeItem = null;
+  this.eventing = _.throttle(this._unthrottledEventing, this.settings.eventingThrottle);
 
   // set up minimap item click
-  this.$miniMapItems.on('click', this.miniMapItemClicked.bind(this));
+  this.$miniMapItems.on('click', this._miniMapItemClicked.bind(this));
 
   if (this.settings.noEventBubbling) {
     // don't bubble events up the dom tree, listeners must attach to the original container
     this.$container.on(
-      'reading-list-at-top ' +
-      'reading-list-at-bottom ' +
-      'reading-list-at-bottom-load-threshold ' +
-      'reading-list-out-of-content ' +
-      'reading-list-start-item-load ' +
-      'reading-list-item-in-looking ' +
-      'reading-list-item-out-looking ' +
-      'reading-list-item-progress ' +
-      'reading-list-start-item-load-done ' +
-      'reading-list-start-scroll-to ' +
-      'reading-list-end-scroll-to',
+      eventsList.join(' '),
       function (e) {
         e.stopPropagation();
       });
   }
 
-  // set up some default event callbacks
-  this.$container.on('reading-list-start-item-load', this.startItemLoad.bind(this));
-  this.$container.on('reading-list-item-in-looking', this.miniMapItemActivate.bind(this));
-  this.$container.on('reading-list-item-out-looking', this.miniMapItemDeactivate.bind(this));
-  if (this.settings.addContent) {
-    // set up event for when reading list is out of content
-    this.$container.on('reading-list-out-of-content', this.addContent.bind(this));
-  }
+  this.$container.trigger(events.atTop);
 
-  // do initial load
-  this.initialLoad();
+  this._initialLoad();
 
-  // events to do this logic on
-  this.$container.on('scroll', this.eventing.bind(this));
+  this._getScrollContainer().on('scroll', this.eventing.bind(this));
   $window.on('resize', this.eventing.bind(this));
 
-  // put up a flag once we're done setting up
   this.ready = true;
-
-  if (this.settings.onReady) {
-    // a ready callback function was provided, call it
-    this.settings.onReady(this);
-  }
 };
 
 /**
  * Initial item loading function to use when reading list is setup.
+ *
+ * @returns {undefined}
  */
-ReadingList.prototype.initialLoad = function () {
+ReadingList.prototype._initialLoad = function () {
 
   if (this.$listItems.length > 0) {
-    // check if some item in list has been marked with load-first, use to load
-    var $firstLoad = this.$listItems.filter(function () {
-      return $(this).data('loadTo');
+    var $firstLoad = $();
+    var self = this;
+    this.$listItems.each(function (i) {
+      var $this = $(this);
+      if ($firstLoad.length < 1 && $this.data('loadTo')) {
+        $firstLoad = $this;
+      }
+
+      if ($this.filter(self.settings.selectorsItemsPreLoaded).length > 0) {
+        self._doItemEvent(events.itemLoadFinish, $this, true);
+
+        if (i === 0) {
+          self.miniMapItemActivate($this);
+          self._doItemEvent(events.itemLookingIn, $this, true);
+          self._doItemEvent(events.itemProgress, $this, {progress: 0});
+        }
+      }
     });
 
     if ($firstLoad.length > 0) {
-      // found an item to load first, retrieve everything up to that point
       this.retrieveListItemsTo($firstLoad);
     } else {
       // no first load specified, just load first item
-      $itemToLoad = this.$listItems.first();
+      var $itemToLoad = this.$listItems.first();
       if (!$itemToLoad.data('loadStatus')) {
         this.retrieveListItem($itemToLoad);
       }
@@ -181,9 +175,15 @@ ReadingList.prototype.initialLoad = function () {
 /**
  * Use an element's bounding box to determine if it's within an area defined
  *  by the top and bot boundaries. This is relative to the window!
+ *
+ * @param {HTMLElement} el - element being checked.
+ * @param {Number} top - distance from the top of window to the top of the area
+ *  to check if element is inside of.
+ * @param {Number} bot - distance from top of window t the bottom of the area to
+ *  check if the element is inside of.
+ * @returns {Boolean} true if element is inside boundary, false otherwise.
  */
-ReadingList.prototype.elementBoundingInsideArea = function (el, top, bot) {
-  // check if element bounding box is within area
+ReadingList.prototype._elementBoundingInsideArea = function (el, top, bot) {
   var elBounding = el.getBoundingClientRect();
   var overTop = elBounding.top < top && elBounding.bottom < top;
   var belowBot = elBounding.top > bot && elBounding.bottom > bot;
@@ -196,38 +196,174 @@ ReadingList.prototype.elementBoundingInsideArea = function (el, top, bot) {
 /**
  * Determine if a user is "looking" at an item. User is "looking" at the item
  *  if it falls within the boundaries created by the top and bottom
- *  thresholds, which are calculated as distances from the window top.
+ *  thresholds, which are calculated as distances from the window top. Uses
+ *  lookingThresholdTop and lookingThresholdBottom to test.
+ *
+ * @param {HTMLElement} el - element to test.
+ * @returns {Boolean} true if element is inside boundary, false otherwise.
  */
 ReadingList.prototype.withinLookingArea = function (el) {
-  // check if element is inside threshold
-  var topThreshold = this.settings.lookingThresholdTop;
-  var botThreshold = this.settings.lookingThresholdBottom;
-  return this.elementBoundingInsideArea(el, topThreshold, botThreshold);
+  var topThreshold = this._getLookingThresholdTop();
+  var botThreshold = this._getLookingThresholdBottom();
+  return this._elementBoundingInsideArea(el, topThreshold, botThreshold);
 };
 
 /**
- * Figure out what to use for scroll height calculations
+ * Figure out what to use for looking threshold top.
+ *
+ * @returns {Number} looking threshold top.
  */
-ReadingList.prototype.getScrollContainerHeight = function () {
-  return $.isFunction(this.settings.scrollContainerHeight) ?
-    this.settings.scrollContainerHeight() :
-    this.$container.height();
+ReadingList.prototype._getLookingThresholdTop = function (el) {
+  var lookingThresholdTop = 0;
+  var value = this.settings.lookingThresholdTop;
+
+  if (_.isFunction(value)) {
+    lookingThresholdTop = value();
+  } else if (_.isNumber(value)) {
+    lookingThresholdTop = value;
+  }
+
+  return lookingThresholdTop;
+};
+
+/**
+ * Figure out what to use for looking threshold bottom.
+ *
+ * @returns {Number} looking threshold bottom.
+ */
+ReadingList.prototype._getLookingThresholdBottom = function (el) {
+  var lookingThresholdBottom = 0;
+  var value = this.settings.lookingThresholdBottom;
+
+  if (_.isFunction(value)) {
+    lookingThresholdBottom = value();
+  } else if (_.isNumber(value)) {
+    lookingThresholdBottom = value;
+  }
+
+  return lookingThresholdBottom;
 };
 
 /**
  * Figure out what to use for scroll total height calculations.
+ *
+ * @returns {Number} scroll total height.
  */
-ReadingList.prototype.getScrollTotalHeight = function () {
-  return $.isFunction(this.settings.scrollTotalHeight) ?
-    this.settings.scrollTotalHeight() :
-    this.$container[0].scrollHeight;
+ReadingList.prototype._getScrollTotalHeight = function () {
+  var scrollTotalHeight;
+
+  if ([window, document].indexOf(this.$container[0]) > -1) {
+    scrollTotalHeight = document.body.scrollHeight;
+  } else {
+    scrollTotalHeight = this.$container[0].scrollHeight
+  }
+
+  return scrollTotalHeight;
 };
 
 /**
- * Figure out what the scroll animation container should be.
+ * Figure out what to use for loading threshold.
+ *
+ * @returns {Number} loading threshold.
  */
-ReadingList.prototype.getScrollAnimationContainer = function () {
-  return (this.settings.scrollAnimationContainer || this.$container);
+ReadingList.prototype._getLoadingThreshold = function () {
+  var loadingThreshold = 0;
+  var value = this.settings.loadingThreshold;
+
+  if (_.isFunction(value)) {
+    loadingThreshold = value();
+  } else if (_.isNumber(value)) {
+    loadingThreshold = value;
+  }
+
+  return loadingThreshold;
+};
+
+/**
+ * Figure out what the scroll container should be if it's been customized.
+ *
+ * @returns {Object} either the scroll container provided by the scrollContainer
+ *  setting or the container the reading list is operating on.
+ */
+ReadingList.prototype._getScrollContainer = function () {
+  var $scrollContainer = this.$container;
+  var value = this.settings.scrollContainer;
+
+  if (_.isFunction(value)) {
+    $scrollContainer = value();
+  } else if (value instanceof jQuery) {
+    $scrollContainer = value;
+  }
+
+  return $scrollContainer;
+};
+
+/**
+ * Get item top adjusted by given addPx setting.
+ *
+ * @param {jQuery} $item - item to get position top of.
+ * @returns {Number} item top.
+ */
+ReadingList.prototype._getAdjustedItemPosition = function ($item) {
+  var addPx = 0;
+  var value = this.settings.scrollToAddPx;
+
+  if (_.isFunction(value)) {
+    addPx = value($item);
+  } else if (_.isNumber(value)) {
+    addPx = value;
+  }
+
+  return $item.position().top + addPx;
+};
+
+/**
+ * Figure out how to read the isMobile setting and return its value.
+ *
+ * @returns {Boolean} true if user is mobile, false otherwise.
+ */
+ReadingList.prototype._isMobile = function () {
+  var mobile = false;
+  var value = this.settings.isMobile;
+
+  if (_.isFunction(value)) {
+    mobile = value();
+  } else if (_.isBoolean(value)) {
+    mobile = value;
+  }
+
+  return mobile;
+};
+
+/**
+ * Trigger an event on an item and track the number of times it's been called.
+ *
+ * @param {String} name - name of event to trigger.
+ * @param {Object} $item - item that event should trigger for.
+ * @param {Object} [kwargs] - arguments object to pass into trigger.
+ * @param {Boolean} [countCalls] - true to increment trigger counter.
+ * @returns {undefined}
+ */
+ReadingList.prototype._doItemEvent = function (name, $item, kwargs, countCalls) {
+  var doCountCalls = typeof(kwargs) === 'boolean' ? kwargs : countCalls;
+  var eventTracker = $item.data('eventTracker') || {};
+
+  if (doCountCalls) {
+    if (eventTracker.hasOwnProperty(name)) {
+      eventTracker[name]++;
+    } else {
+      eventTracker[name] = 1;
+    }
+
+    $item.data('eventTracker', eventTracker);
+  }
+
+  this.$container.trigger(name, [
+    $item,
+    $.extend({
+      callCount: eventTracker[name],
+    }, kwargs)
+  ]);
 };
 
 /**
@@ -236,8 +372,7 @@ ReadingList.prototype.getScrollAnimationContainer = function () {
  * @param {Boolean} loadBot - set to true if next item down needs to load.
  * @returns {Number} count of loaded items.
  */
-ReadingList.prototype.itemEventing = function (loadBot) {
-  // do event checks on individual items
+ReadingList.prototype._itemEventing = function (loadBot) {
   var $nowActive;
   var loadingBotCounter = 0;
   var loadedCounter = 0;
@@ -251,8 +386,14 @@ ReadingList.prototype.itemEventing = function (loadBot) {
     if (!$item.data('loadStatus') &&
         loadingBotCounter < loadingBotMax && loadBot &&
         $item.prev().data('loadStatus') === loadStatus.LOADED) {
-      // fire event telling loading to start
-      this.$container.trigger('reading-list-start-item-load', [$item, loadDirection.DOWN]);
+      this._doItemEvent(
+        events.itemLoadStart,
+        $item,
+        { direction: loadDirection.DOWN },
+        true
+      );
+      this._startItemLoad($item);
+
       // this item is going to be loading, count it
       loadingBotCounter++;
     } else if ($item.data('loadStatus') === loadStatus.LOADED) {
@@ -264,31 +405,29 @@ ReadingList.prototype.itemEventing = function (loadBot) {
     //  means that items higher up in the list take priority of being visible, e.g.
     //  given two reading list items in the viewing area, the top one will be marked
     //  as currently being read
-    if (!$nowActive && this.withinLookingArea($item[0])) {
+    if (typeof($nowActive) === 'undefined' && this.withinLookingArea($item[0])) {
 
-      // in looking area, and we haven't assigned a now active item yet
       if (!$item.is(this.$activeItem)) {
-        // this is not the currently active item, so we'll want to fire off
-        //  events to indicate the change
         if (this.$activeItem) {
-          // previously active item gets an event for no longer being active
           this.$activeItem.removeClass('reading-list-in-looking');
-          this.$container.trigger('reading-list-item-out-looking', [this.$activeItem]);
+          this.miniMapItemDeactivate(this.$activeItem);
+          this._doItemEvent(events.itemLookingOut, this.$activeItem, true);
         }
 
-        // add looking class to active item, trigger event
         $item.addClass('reading-list-in-looking');
-        this.$container.trigger('reading-list-item-in-looking', [$item]);
+        this.miniMapItemActivate($item);
+        this._doItemEvent(events.itemLookingIn, $item, true);
       }
 
-      // set the now active item to this item
       $nowActive = $item;
     }
   }).bind(this));
 
-  // check if there's an active item, fire progress events if so
-  this.$activeItem = $nowActive;
-  if (this.$activeItem && this.$activeItem.length > 0) {
+  if (typeof($nowActive) !== 'undefined') {
+    this.$activeItem = $nowActive;
+  }
+
+  if (this.withinLookingArea(this.$activeItem[0])) {
     // fire an event with percentage of article viewed
     //
     // given:
@@ -298,10 +437,10 @@ ReadingList.prototype.itemEventing = function (loadBot) {
     //
     // p = (-t + x) / h = ratio viewed, max(p) = 1.0
     var bounding = this.$activeItem[0].getBoundingClientRect();
-    var ratioViewed = (-bounding.top + this.settings.lookingThresholdBottom) /
+    var ratioViewed = (-bounding.top + this._getLookingThresholdBottom()) /
       bounding.height;
     var progress = ratioViewed <= 1.0 ? ratioViewed : 1.0;
-    this.$container.trigger('reading-list-item-progress', [this.$activeItem, progress]);
+    this._doItemEvent(events.itemProgress, this.$activeItem, {progress: progress});
   }
 
   return loadedCounter;
@@ -313,118 +452,198 @@ ReadingList.prototype.itemEventing = function (loadBot) {
  *  movement.
  *
  * This is the unthrottled version that shouldn't be used directly.
+ *
+ * @returns {undefined}
  */
-ReadingList.prototype.unthrottledEventing = function () {
+ReadingList.prototype._unthrottledEventing = function () {
 
   // given:
   //  x = scrollTotalHeight      -> entire height of scrollable area
   //  y = scrollContainerHeight  -> visible height of scrollable area
   //  z = scrollTop              -> current scroll location relative to total scrollable height
   //  a = loadingThreshold       -> distance from bottom of scrollable area to begin loading
-  var scrollTop = this.$container.scrollTop();
-  var scrollContainerHeight = this.getScrollContainerHeight();
-  var scrollTotalHeight = this.getScrollTotalHeight();
+  var $scrollContainer = this._getScrollContainer();
+  var scrollTop = $scrollContainer.scrollTop();
+  var scrollContainerHeight = $scrollContainer.height();
+  var scrollTotalHeight = this._getScrollTotalHeight();
+  var loadingThreshold = this._getLoadingThreshold();
 
   // check min/max scroll
   if (scrollTop <= 0) {
     // we're at the top of the reading list
-    this.$container.trigger('reading-list-at-top');
-  }
-
-  // do bot check separate since you can be at the top/bot simultaneously if
-  //  one item deep and item is shorter than window
-  //
-  // iff x <= z + y then bottom of reading list
-  if (scrollTotalHeight <= scrollTop + scrollContainerHeight) {
-    // we're at the bottom of the reading list
-    this.$container.trigger('reading-list-at-bottom');
+    this.$container.trigger(events.atTop);
   }
 
   // check bottom loading threshold
   //
   // iff x - z - y <= a then past loading threshold
   var loadBot = false;
-  if (scrollTotalHeight - scrollTop - scrollContainerHeight <= this.settings.loadingThreshold) {
-    // we're in the bottom loading threshold
-    this.$container.trigger('reading-list-at-bottom-load-threshold');
+  if (scrollTotalHeight - scrollTop - scrollContainerHeight <= loadingThreshold) {
     // flag that we need to load something bot
     loadBot = true;
   }
 
-  var itemsLoaded = this.itemEventing(loadBot);
+  var itemsLoaded = this._itemEventing(loadBot);
 
   // check if we've run out of reading list content
   if (itemsLoaded === this.$listItems.length && loadBot) {
-    // everything is loaded, fire event
-    this.$container.trigger('reading-list-out-of-content');
+    this._addContent();
+    this.$container.trigger(events.outOfContent);
   }
 };
 
 /**
- * GET an item from reading list. Returns a promise that resolves when the
- *   response comes back from the server and html is loaded in to the page.
+ * Uncap given item height.
+ *
+ * @param {jQuery} $item - item to cap.
+ * @param {String} why - reason why item was capped.
+ * @returns {undefined}
+ */
+ReadingList.prototype._uncapItem = function ($item, why) {
+  if (!$item.hasClass(CAPPED_ITEM_CLASS)) {
+    return;
+  }
+
+  var preUncapHeight = $item[0].offsetHeight;
+
+  $item.removeClass(CAPPED_ITEM_CLASS);
+
+  var diff = $item[0].scrollHeight - preUncapHeight;
+
+  this.$container[0].scrollTop += diff;
+};
+
+/**
+ * Cap given item height.
+ *
+ * @param {jQuery} $item - item to cap.
+ * @param {String} why - reason why item was capped.
+ * @returns {undefined}
+ */
+ReadingList.prototype._capItem = function ($item, why) {
+  if ($item.hasClass(CAPPED_ITEM_CLASS)) {
+    return;
+  }
+
+  var startScrollTop = this.$container[0].scrollTop;
+  var preCapHeight = $item[0].scrollHeight;
+
+  $item.addClass(CAPPED_ITEM_CLASS);
+
+  var diff = preCapHeight - $item[0].offsetHeight;
+  var scrollTopDiff = startScrollTop - this.$container[0].scrollTop;
+
+  diff -= scrollTopDiff;
+  this.$container[0].scrollTop -= diff;
+};
+
+/*
+ * Cap the height of items that are entirely above the viewport. Handles
+ *  adjusting the scroll offset to ensure a smooth user scrolling experience.
+ */
+ReadingList.prototype._capItems = function () {
+
+  // Cache the scroll position and container height so we can bypass
+  // all capping checks on most frames. (this whole check took < 1ms
+  // per frame on my dev machine)
+  var scrollTotalHeight = this._getScrollTotalHeight();
+
+  if (this.$container.scrollTop() === this.lastScrollTop &&
+      this.lastHeight === scrollTotalHeight) {
+    // no-op on animation
+    return;
+  }
+  this.lastScrollTop = this.$container.scrollTop();
+  this.lastHeight = scrollTotalHeight;
+
+  var _this = this;
+  this.$listItems.each(function () {
+    var $item = $(this);
+    // check yourself before you rect yourself
+    //    (very important comment, do not delete -CM )
+    var rect = this.getBoundingClientRect();
+    var isCapped = $item.hasClass(CAPPED_ITEM_CLASS);
+
+    if (rect.bottom < 0) {
+      // rectangle  is entirely above the viewport
+      _this._capItem($item, 'above');
+    } else {
+      // rectangle is entirely below the viewport
+      _this._uncapItem($item, 'below');
+    }
+  });
+};
+
+/**
+ * Queues capping item heights for the next animaiton frame. And loops forever.
+ */
+ReadingList.prototype._itemCappingAnimationLoop = function () {
+  var _this = this;
+  requestAnimationFrame(function () {
+    _this._capItems();
+    _this._itemCappingAnimationLoop();
+  });
+};
+
+/**
+ * GET an item from reading list.
+ *
+ * @param {jQuery} $readingListItem - item to retrieve.
+ * @returns {Promise} resolves when the response comes back from the server and
+ *  html is loaded into the page.
  */
 ReadingList.prototype.retrieveListItem = function ($readingListItem) {
 
-  // set up a load status so we know we're loading
   $readingListItem.data('loadStatus', loadStatus.LOADING);
-
-  // indicate loading is occuring
   $readingListItem.addClass('reading-list-loading');
 
-  // do get request, return it as a promise
   var html;
   var status;
   var self = this;
   return $.get($readingListItem.data('href'))
     .done(function (data) {
-      // get html from success callback, deal with it
       html = self.settings.dataRetrievalSuccess($readingListItem, data);
       status = loadStatus.LOADED;
+
       $readingListItem.removeClass('reading-list-loading');
       $readingListItem.addClass('reading-list-loaded');
     })
     .fail(function () {
-      // get html from failure callback, deal with it
       html = self.settings.dataRetrievalFail($readingListItem);
       status = loadStatus.FAILED;
+
       $readingListItem.removeClass('reading-list-loading');
       $readingListItem.addClass('reading-list-load-failed');
     })
     .always(function () {
-      // set load status depending on response
       $readingListItem.data('loadStatus', status);
 
-      // set html if any was provided
       if (html) {
-        // add html and resolve promise so we know html is for sure on page
         $readingListItem.html(html);
       }
 
-      // do eventing
       self.eventing();
-      // event that tells us something is done loading
-      self.$container.trigger('reading-list-start-item-load-done', [$readingListItem]);
+      self._doItemEvent(events.itemLoadFinish, $readingListItem, true);
     });
 };
 
 /**
  * Load up all the items on the way to given reading list item.
  *
- * @returns {Promise} resolves with the item scrolled to in a jQuery container.
+ * @returns {Promise} resolves with the item scrolled to in a jQuery container
+ *  when all items have been loaded up to given item.
  */
 ReadingList.prototype.retrieveListItemsTo = function ($readingListItem) {
-  // keep promise to resolve once they all come back
+
   var deferred = $.Deferred();
-  // loop through reading list items and load everything up to and
-  //  including given item
+  // loop through reading list items and load everything up to and including
+  //  given item
   var pos = this.$listItems.index($readingListItem) + 1;
   var loaded = 0;
   var completeCheck = function () {
     loaded++;
-    if (pos === loaded &&
-        deferred.state() !== 'resolved') {
-      // we're done loading,resolve our promise
+    if (pos === loaded && deferred.state() !== 'resolved') {
+      // done loading, resolve
       deferred.resolve($readingListItem);
     }
   };
@@ -432,7 +651,6 @@ ReadingList.prototype.retrieveListItemsTo = function ($readingListItem) {
   var self = this;
   this.$listItems.each(function () {
     var $item = $(this);
-    // start loading item
     if (!$item.data('loadStatus')) {
       // hasn't been loaded yet, attempt to load it
       self.retrieveListItem($item).always(completeCheck);
@@ -440,9 +658,8 @@ ReadingList.prototype.retrieveListItemsTo = function ($readingListItem) {
       // already loaded
       completeCheck();
     }
-    // check if we have our item that we want to stop at
     if ($readingListItem.is($item)) {
-      // found our item, stop loadings
+      // found our item to stop loading at
       return false;
     }
   });
@@ -453,10 +670,13 @@ ReadingList.prototype.retrieveListItemsTo = function ($readingListItem) {
 
 /**
  * Check if item hasn't been loaded yet and then retrieve it if it hasn't.
+ *
+ * @param {jQuery} $item - item to start loading.
+ * @returns {undefined}
  */
-ReadingList.prototype.startItemLoad = function (e, $item, direction) {
-  // attempt to load this if loading hasn't been attempted before
+ReadingList.prototype._startItemLoad = function ($item) {
   if (!$item.data('loadStatus')) {
+    // no attempt has ever been made to load this item, start loading it
     this.retrieveListItem($item);
   }
 };
@@ -469,75 +689,96 @@ ReadingList.prototype.startItemLoad = function (e, $item, direction) {
  */
 ReadingList.prototype.appendItem = function (html) {
   var $item = $(html);
-  // mark this new item as loaded
+
   $item.data('loadStatus', loadStatus.LOADED);
-  // add this new item to the collection of reading list items
   this.$listItems.add($item);
-  // finally, append item to reading list
   this.$itemsContainer.append($item);
-  // let others know a new item has loaded
-  this.$container.trigger('reading-list-start-item-load-done', [$item]);
+  this._doItemEvent(events.itemLoadFinish, $item, true);
 
   return $item;
 };
 
 /**
  * Adds content to end of reading list based on given addContent function.
+ *
+ * @returns {undefined}
  */
-ReadingList.prototype.addContent = function () {
-  this.settings.addContent()
-    .done(this.appendItem.bind(this))
-    .fail(function () {
-      console.log('Add item function failed, content not added to reading list.');
-    });
+ReadingList.prototype._addContent = function () {
+  if (this.settings.addContent) {
+    this.settings.addContent()
+      .done(this.appendItem.bind(this))
+      .fail(function () {
+        console.log('Add item function failed, content not added to reading list.');
+      });
+  }
 };
 
 /**
  * Stop animations being done on container.
+ *
+ * @returns {Object} animation interface.
  */
 ReadingList.prototype.stopContainerAnimation = function () {
-  return this.getScrollAnimationContainer().stop();
+  return this._getScrollContainer().stop();
 };
 
 /**
- * Scroll to a given item.
+ * Scroll to a given item. Reads settings scrollToAddPx to add additional pixels
+ *  to scroll event, useful if a sticky header or something similar is positioned
+ *  absolutely and may block scrolled-to content.
  *
  * @param {jQuery} $item - item to scroll to.
- * @param {Number} addPx - additional number of pixels to scroll.
+ * @returns {undefined}
  */
-ReadingList.prototype.scrollToItem = function ($item, addPx) {
+ReadingList.prototype.scrollToItem = function ($item) {
+
+  var predictedScrollTop = this._getAdjustedItemPosition($item);
+  var actualScrollTop = predictedScrollTop;
   var stopContainerAnimation = this.stopContainerAnimation.bind(this);
+  var animationContainer = this._getScrollContainer();
 
   // ensure the animation stops when user interaction occurs
   $document.on(MOVEMENTS, stopContainerAnimation);
 
-  this.$container.trigger('reading-list-start-scroll-to', [$item]);
-  // stop any running animations and begin a new one
+  this._doItemEvent(events.scrollToEventStart, $item);
+
+  var _this = this;
   this.stopContainerAnimation().animate({
-    scrollTop: $item.position().top + (addPx || 0)
-  },
-  this.settings.scrollToSpeed,
-  (function () {
-    // unbind the scroll stoppage
-    $document.off(MOVEMENTS, stopContainerAnimation);
-    this.$container.trigger('reading-list-end-scroll-to', [$item]);
-  }).bind(this));
+    scrollTop: predictedScrollTop,
+  }, {
+    duration: this._isMobile() ? 0 : this.settings.scrollToSpeed,
+    step: function (now, tween) {
+      // images may load during the animation
+      actualScrollTop = _this._getAdjustedItemPosition($item);
+      if (predictedScrollTop !== 0) {
+        tween.now = (actualScrollTop / predictedScrollTop) * tween.now;
+      }
+    }.bind(this),
+    complete: function () {
+			// unbind the scroll stoppage
+			$document.off(MOVEMENTS, stopContainerAnimation);
+			_this._doItemEvent(events.scrollToEventFinish, $item);
+    }
+  });
 };
 
 /**
  * Event for clicks of minimap items.
+ *
+ * @param {Event} e - click event.
+ * @returns {undefined}
  */
-ReadingList.prototype.miniMapItemClicked = function (e) {
+ReadingList.prototype._miniMapItemClicked = function (e) {
   var $miniMapItem = $(e.currentTarget);
-  // ensure our click event doesn't go through to the anchor
+
   e.preventDefault();
-  // find the item to scroll to
+
   var itemRef = $miniMapItem.data('itemRef');
 
   // retrieve everything on the way to our item, then scroll to it
   var $item = this.$listItems.filter('#' + itemRef);
   this.retrieveListItemsTo($item)
-    .always(this.scrollToItem.bind(this));
+    .always(this.scrollToItem.bind(this, $item));
 };
 
 /**
@@ -556,25 +797,57 @@ ReadingList.prototype.miniMapFindByItem = function ($item) {
 /**
  * Activate the minimap items associated with given item.
  *
- * @param {Event} e - event that triggered this call.
  * @param {jQuery} $item - item to find minimap items for.
+ * @returns {undefined}
  */
-ReadingList.prototype.miniMapItemActivate = function (e, $item) {
-  this.miniMapFindByItem($item).addClass('reading-list-active');
+ReadingList.prototype.miniMapItemActivate = function ($item) {
+  this.miniMapFindByItem($item).addClass(this.settings.miniMapActiveClass);
 };
 
 /**
  * Deactivate the minimap items associated with given item.
  *
- * @param {Event} e - event that triggered this call.
  * @param {jQuery} $item - item to find minimap items for.
+ * @returns {undefined}
  */
-ReadingList.prototype.miniMapItemDeactivate = function (e, $item) {
-  this.miniMapFindByItem($item).removeClass('reading-list-active');
+ReadingList.prototype.miniMapItemDeactivate = function ($item) {
+  this.miniMapFindByItem($item).removeClass(this.settings.miniMapActiveClass);
+};
+
+/**
+ * Utility to wrap a callback function. Improves testability by allowing
+ *  stubbing of callbacks even after the object has been setup.
+ *
+ * Usage:
+ *
+ * `$element.on('some-event', readingList.callback(myReadingList, 'someCallbackFunction'));`
+ *
+ *  which can be stubbed later. As opposed to:
+ *
+ * `$element.on('some-event', myReadingList.someCallbackFunction.bind(myReadingList));`
+ *
+ *  which cannot be stubbed later.
+ *
+ * @param {Object} thisArg - Object to use for `this` inside callback.
+ * @param {String} callbackName - name of function to use for callback. Must
+ *  be a function and already be present on Object given for `thisArg`.
+ * @returns {undefined}
+ */
+ReadingList.prototype.callback = function (thisArg, callbackName) {
+  if (typeof thisArg[callbackName] !== 'function') {
+    throw new Error('Listener callback must be a function!');
+  }
+
+  return function () {
+    return thisArg[callbackName].apply(thisArg, arguments);
+  };
 };
 
 /**
  * Wrapper to contain reading list logic inside a subobject of jquery element.
+ *
+ * @param {Object} options - options to pass to reading list.
+ * @returns {jQuery} selected reading list element(s).
  */
 var createReadingList = function (options) {
   // note: 'this' refers to the jquery object wrapping the reading list element
@@ -590,10 +863,8 @@ var createReadingList = function (options) {
   return this;
 };
 
-// attach this as a jquery plugin
 $.fn.readingList = createReadingList;
 
-// expose reading list functions
 exports = ReadingList;
 
 ; browserify_shim__define__module__export__(typeof ReadingList != "undefined" ? ReadingList : window.ReadingList);
