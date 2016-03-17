@@ -3,7 +3,8 @@
   "version": "0.0.31",
   "main": [
     "dist/jquery.reading-list.css",
-    "dist/jquery.reading-list.js"
+    "dist/jquery.reading-list.js",
+    "dist/jquery.reading-list.browserify-shim.js"
   ],
   "ignore": [
     ".gitignore",
