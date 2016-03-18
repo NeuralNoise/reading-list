@@ -688,8 +688,8 @@ describe('Reading list', function () {
     });
 
     it('should have a way to scroll to a given item', function () {
-      var stop = sandbox.spy(readingList.$container, 'stop');
-      var animate = sandbox.spy(readingList.$container, 'animate');
+      var stop = sandbox.spy(readingList.$scrollAnimator, 'stop');
+      var animate = sandbox.spy(readingList.$scrollAnimator, 'animate');
 
       var $item1 = $('<div id="item1" class="reading-list-item"></div>');
       var $item2 = $('<div id="item2" class="reading-list-item"></div>');
@@ -784,8 +784,8 @@ describe('Reading list', function () {
       it('should scroll to given item', function () {
         var $item1 = $('<div id="item1" class="reading-list-item"></div>');
         var $item2 = $('<div id="item2" class="reading-list-item"></div>');
-        var stop = sandbox.spy(readingList.$container, 'stop');
-        var animate = sandbox.spy(readingList.$container, 'animate');
+        var stop = sandbox.spy(readingList.$scrollAnimator, 'stop');
+        var animate = sandbox.spy(readingList.$scrollAnimator, 'animate');
         var scrollToSpeed = 123;
 
         $validReadingList.find('.reading-list-items')
@@ -808,7 +808,7 @@ describe('Reading list', function () {
       it('should use a zero scroll to speed when user is mobile', function () {
         var $item1 = $('<div id="item1" class="reading-list-item"></div>');
         var $item2 = $('<div id="item2" class="reading-list-item"></div>');
-        var animate = sandbox.spy(readingList.$container, 'animate');
+        var animate = sandbox.spy(readingList.$scrollAnimator, 'animate');
         var isMobile = sandbox.stub(readingList, '_isMobile');
 
         $validReadingList.find('.reading-list-items')

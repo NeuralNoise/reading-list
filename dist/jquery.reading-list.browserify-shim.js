@@ -98,6 +98,9 @@ var ReadingList = function ($element, options) {
     this.settings.onReady(this);
   }
 
+  this.$scrollAnimatorState = {};
+  this.$scrollAnimator = $(this.$scrollAnimatorState);
+
   return this;
 };
 
@@ -486,14 +489,13 @@ ReadingList.prototype._unthrottledEventing = function () {
     // flag that we need to load something bot
     loadBot = true;
   }
-
   var itemsLoaded = this._itemEventing(loadBot);
 
   // check if we've run out of reading list content
   if (itemsLoaded === this.$listItems.length && loadBot) {
     this._addContent();
     this.$container.trigger(events.outOfContent);
-  }
+ }
 };
 
 /**
@@ -723,7 +725,7 @@ ReadingList.prototype._addContent = function () {
  * @returns {Object} animation interface.
  */
 ReadingList.prototype.stopContainerAnimation = function () {
-  return this._getScrollContainer().stop();
+  this.$scrollAnimator.stop();
 };
 
 /**
@@ -747,7 +749,14 @@ ReadingList.prototype.scrollToItem = function ($item) {
   this._doItemEvent(events.scrollToEventStart, $item);
 
   var _this = this;
-  this.stopContainerAnimation().animate({
+  // Clickhole exposed an issue where animating `scrollTop` of $(window)
+  //   threw an error. This way we animate a value on a POJO and then manually
+  //   move the scroll position on each step of the tween.
+  this.stopContainerAnimation();
+
+  this.$scrollAnimatorState.scrollTop = window.pageYOffset;
+
+  this.$scrollAnimator.animate({
     scrollTop: predictedScrollTop,
   }, {
     duration: this._isMobile() ? 0 : this.settings.scrollToSpeed,
@@ -757,7 +766,8 @@ ReadingList.prototype.scrollToItem = function ($item) {
       if (predictedScrollTop !== 0) {
         tween.now = (actualScrollTop / predictedScrollTop) * tween.now;
       }
-    }.bind(this),
+      window.scrollTo(0, tween.now);
+    },
     complete: function () {
 			// unbind the scroll stoppage
 			$document.off(MOVEMENTS, stopContainerAnimation);

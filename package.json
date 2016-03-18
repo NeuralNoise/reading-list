@@ -25,6 +25,7 @@
   },
   "scripts": {
     "test": "./node_modules/karma/bin/karma start ./testing/karma.conf.js",
+    "ci": "./node_modules/karma/bin/karma start ./testing/karma.conf.js --single-run",
     "cov": "./node_modules/karma/bin/karma start ./testing/karma.conf.cov.js",
     "build-prepare": "rm -rf dist && mkdir dist",
     "build-copy": "cp src/jquery.reading-list.css dist/ && cp src/jquery.reading-list.js dist/",
