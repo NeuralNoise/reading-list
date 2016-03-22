@@ -483,7 +483,7 @@ ReadingList.prototype._unthrottledEventing = function () {
 
   // check bottom loading threshold
   //
-  // iff x - z - y <= a then past loading threshold
+  // if x - z - y <= a then past loading threshold
   var loadBot = false;
   if (scrollTotalHeight - scrollTop - scrollContainerHeight <= loadingThreshold) {
     // flag that we need to load something bot
@@ -548,18 +548,18 @@ ReadingList.prototype._capItem = function ($item, why) {
  *  adjusting the scroll offset to ensure a smooth user scrolling experience.
  */
 ReadingList.prototype._capItems = function () {
-
   // Cache the scroll position and container height so we can bypass
   // all capping checks on most frames. (this whole check took < 1ms
   // per frame on my dev machine)
   var scrollTotalHeight = this._getScrollTotalHeight();
+  var scrollContainer = this._getScrollContainer();
 
-  if (this.$container.scrollTop() === this.lastScrollTop &&
+  if (scrollContainer.scrollTop() === this.lastScrollTop &&
       this.lastHeight === scrollTotalHeight) {
     // no-op on animation
     return;
   }
-  this.lastScrollTop = this.$container.scrollTop();
+  this.lastScrollTop = scrollContainer.scrollTop();
   this.lastHeight = scrollTotalHeight;
 
   var _this = this;
@@ -624,8 +624,11 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
     .always(function () {
       $readingListItem.data('loadStatus', status);
 
-      if (html) {
+      try {
         $readingListItem.html(html);
+      }
+      catch (error) {
+        console.warn('Error setting readingListItem innerHTML');
       }
 
       self.eventing();
