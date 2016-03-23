@@ -321,7 +321,7 @@ ReadingList.prototype._getAdjustedItemPosition = function ($item) {
     addPx = value;
   }
 
-  return $item.position().top + addPx;
+  return $item.offset().top + addPx;
 };
 
 /**
