@@ -510,13 +510,13 @@ ReadingList.prototype._uncapItem = function ($item, why) {
     return;
   }
 
+  var scrollContainer = this._getScrollContainer();
   var preUncapHeight = $item[0].offsetHeight;
 
   $item.removeClass(CAPPED_ITEM_CLASS);
 
   var diff = $item[0].scrollHeight - preUncapHeight;
-
-  this.$container[0].scrollTop += diff;
+  scrollContainer.scrollTop(scrollContainer.scrollTop() + diff);
 };
 
 /**
@@ -531,16 +531,17 @@ ReadingList.prototype._capItem = function ($item, why) {
     return;
   }
 
-  var startScrollTop = this.$container[0].scrollTop;
+  var scrollContainer = this._getScrollContainer();
+  var startScrollTop = scrollContainer.scrollTop();
   var preCapHeight = $item[0].scrollHeight;
 
   $item.addClass(CAPPED_ITEM_CLASS);
 
   var diff = preCapHeight - $item[0].offsetHeight;
-  var scrollTopDiff = startScrollTop - this.$container[0].scrollTop;
-
+  var scrollTopDiff = startScrollTop - scrollContainer.scrollTop();
   diff -= scrollTopDiff;
-  this.$container[0].scrollTop -= diff;
+
+  scrollContainer.scrollTop(scrollContainer.scrollTop() - diff);
 };
 
 /*
