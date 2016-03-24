@@ -724,9 +724,9 @@ ReadingList.prototype._addContent = function () {
 };
 
 /**
- * Stop animations being done on container.
+ * Stop animations being done on container animator.
  *
- * @returns {Object} animation interface.
+ * @returns {undefined}
  */
 ReadingList.prototype.stopContainerAnimation = function () {
   this.$scrollAnimator.stop();
