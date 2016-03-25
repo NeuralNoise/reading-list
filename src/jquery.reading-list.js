@@ -626,11 +626,18 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
         $readingListItem.html(html);
       }
       catch (error) {
-        console.warn('Error setting readingListItem innerHTML');
+        console.error('Error setting readingListItem innerHTML');
+        console.error(error);
       }
 
-      self.eventing();
-      self._doItemEvent(events.itemLoadFinish, $readingListItem, true);
+      try {
+        self.eventing();
+        self._doItemEvent(events.itemLoadFinish, $readingListItem, true);
+      }
+      catch (error) {
+        console.error('Error triggering readingList item events');
+        console.error(error);
+      }
     });
 };
 
