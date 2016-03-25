@@ -131,7 +131,7 @@ ReadingList.prototype._setup = function () {
   // even though it is the scrolling element
   // So we have to listen to $window rather than the
   // specified scroll container
-  $window.on('scroll', this.eventing.bind(this));
+  this._getScrollContainer().on('scroll', this.eventing.bind(this));
   $window.on('resize', this.eventing.bind(this));
 
   this.ready = true;
