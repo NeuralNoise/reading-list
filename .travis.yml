@@ -10,4 +10,5 @@ cache:
   - bower_components
 env:
   global:
-    secure: WT4CeYGOWHMQdumYl0Bv8ueaY+8RblhJEa7aAOsuPvXvvg42eW0nUnAirZe4RGC/64uX2k0nFoyzFbY/ZFjkGjS0gOHETtVb5d0ZtCyw/bfckp3uOkuWa03Liwa7POFpxDWFpIMMqBabA4Y9OF0o5R6ihP8JDNsgXJRe77Nwj6o=
+  - secure: ByVWSzM0BVhdOQP5Gqfy3qySag4gBjKxWzaHO2ui/nYUCpTW87is6KpS6q6dq4qnPkP3XTGtpFE+KRNIeKUq8Dmvr2EVJwQcg923zrmMjL7WD1GThFBW9QkDyUR4Um96QkkAaoOS5m6NNhtCZ77h93xiW0+OtCTj2MnWMynA8fo=
+  - secure: DyHVo4vtw0m2VDDTTKaRDg8lNOdzuzyvGPxAmR+uJeWIlkvTfTTQGjTdSOQhFr7nnitkW1SbHlp+pCpyrqdfErP5cYkFiFUMoXJQJ/X3AIIiuqTU4t+9PEzPleuPtUuaJAXOarlZjwniRmARdEV5yiBPkIqW55v4CviDd50Z/+4=
