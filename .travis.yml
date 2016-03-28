@@ -1,0 +1,10 @@
+language: node_js
+sudo: false
+before_script:
+- "./node_modules/.bin/bower install"
+script:
+- "npm run ci"
+cache:
+  directories:
+  - node_modules
+  - bower_components
