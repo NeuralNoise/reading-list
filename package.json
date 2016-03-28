@@ -6,6 +6,7 @@
     "example": "example"
   },
   "devDependencies": {
+    "bower": "^1.7.7",
     "browserify": "^9.0.8",
     "browserify-istanbul": "^0.2.1",
     "browserify-shim": "^3.8.5",
