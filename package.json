@@ -13,6 +13,7 @@
     "chai": "^2.2.0",
     "karma": "^0.12.31",
     "karma-browserify": "^4.1.2",
+    "karma-browserstack-launcher": "^0.1.10",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^0.1.7",
     "karma-coverage": "0.2.6",
@@ -26,7 +27,7 @@
   },
   "scripts": {
     "test": "./node_modules/karma/bin/karma start ./testing/karma.conf.js",
-    "ci": "./node_modules/karma/bin/karma start ./testing/karma.conf.js --single-run",
+    "ci": "./node_modules/karma/bin/karma start ./testing/karma.devicelab.js --single-run",
     "cov": "./node_modules/karma/bin/karma start ./testing/karma.conf.cov.js",
     "build-prepare": "rm -rf dist && mkdir dist",
     "build-copy": "cp src/jquery.reading-list.css dist/ && cp src/jquery.reading-list.js dist/",

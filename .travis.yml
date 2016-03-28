@@ -3,8 +3,11 @@ sudo: false
 before_script:
 - "./node_modules/.bin/bower install"
 script:
-- "npm run ci"
+- npm run ci
 cache:
   directories:
   - node_modules
   - bower_components
+env:
+  global:
+    secure: WT4CeYGOWHMQdumYl0Bv8ueaY+8RblhJEa7aAOsuPvXvvg42eW0nUnAirZe4RGC/64uX2k0nFoyzFbY/ZFjkGjS0gOHETtVb5d0ZtCyw/bfckp3uOkuWa03Liwa7POFpxDWFpIMMqBabA4Y9OF0o5R6ihP8JDNsgXJRe77Nwj6o=
