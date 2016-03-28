@@ -1,0 +1,14 @@
+language: node_js
+sudo: false
+before_script:
+- "./node_modules/.bin/bower install"
+script:
+- npm run ci
+cache:
+  directories:
+  - node_modules
+  - bower_components
+env:
+  global:
+  - secure: KsPizriP8J/y2ed1kBXfWYcvx/zGoLqBzh4Tf6S/Xbo1bCFxwWVg5koXAvf9lkThDvedxOsSnmfzwVysAUn8o34kwU31Af/ECl9KN81b54p5YIGz2MopOzjgLjvAaxE6xMhTMFuwzgxqIZbuYf6B+/tG9S4pmxHL97eSxvN/ixM=
+  - secure: RFcEv1FV93b7PR8OqliGYJ2lXxJI35ZgnryTdBNeOuMV7Q7707BGqdYgCOD5VW6TANG5f9Vts0n3wshKTfqb0BgSLbHQSD5mMOEyY30hO53giWPONOc892TQASXeA/CAMeBZ2mVo5L86LZvKJxrKXvVE9+Jy10J4G/I+rrmmrSg=

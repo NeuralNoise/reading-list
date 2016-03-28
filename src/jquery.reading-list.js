@@ -95,6 +95,9 @@ var ReadingList = function ($element, options) {
     this.settings.onReady(this);
   }
 
+  this.$scrollAnimatorState = {};
+  this.$scrollAnimator = $(this.$scrollAnimatorState);
+
   return this;
 };
 
@@ -124,6 +127,10 @@ ReadingList.prototype._setup = function () {
 
   this._initialLoad();
 
+  // clickhole body doesn't emit scroll events
+  // even though it is the scrolling element
+  // So we have to listen to $window rather than the
+  // specified scroll container
   this._getScrollContainer().on('scroll', this.eventing.bind(this));
   $window.on('resize', this.eventing.bind(this));
 
@@ -311,7 +318,7 @@ ReadingList.prototype._getAdjustedItemPosition = function ($item) {
     addPx = value;
   }
 
-  return $item.position().top + addPx;
+  return $item.offset().top + addPx;
 };
 
 /**
@@ -473,20 +480,19 @@ ReadingList.prototype._unthrottledEventing = function () {
 
   // check bottom loading threshold
   //
-  // iff x - z - y <= a then past loading threshold
+  // if x - z - y <= a then past loading threshold
   var loadBot = false;
   if (scrollTotalHeight - scrollTop - scrollContainerHeight <= loadingThreshold) {
     // flag that we need to load something bot
     loadBot = true;
   }
-
   var itemsLoaded = this._itemEventing(loadBot);
 
   // check if we've run out of reading list content
   if (itemsLoaded === this.$listItems.length && loadBot) {
     this._addContent();
     this.$container.trigger(events.outOfContent);
-  }
+ }
 };
 
 /**
@@ -501,13 +507,13 @@ ReadingList.prototype._uncapItem = function ($item, why) {
     return;
   }
 
+  var scrollContainer = this._getScrollContainer();
   var preUncapHeight = $item[0].offsetHeight;
 
   $item.removeClass(CAPPED_ITEM_CLASS);
 
   var diff = $item[0].scrollHeight - preUncapHeight;
-
-  this.$container[0].scrollTop += diff;
+  scrollContainer.scrollTop(scrollContainer.scrollTop() + diff);
 };
 
 /**
@@ -522,16 +528,17 @@ ReadingList.prototype._capItem = function ($item, why) {
     return;
   }
 
-  var startScrollTop = this.$container[0].scrollTop;
+  var scrollContainer = this._getScrollContainer();
+  var startScrollTop = scrollContainer.scrollTop();
   var preCapHeight = $item[0].scrollHeight;
 
   $item.addClass(CAPPED_ITEM_CLASS);
 
   var diff = preCapHeight - $item[0].offsetHeight;
-  var scrollTopDiff = startScrollTop - this.$container[0].scrollTop;
-
+  var scrollTopDiff = startScrollTop - scrollContainer.scrollTop();
   diff -= scrollTopDiff;
-  this.$container[0].scrollTop -= diff;
+
+  scrollContainer.scrollTop(scrollContainer.scrollTop() - diff);
 };
 
 /*
@@ -539,18 +546,18 @@ ReadingList.prototype._capItem = function ($item, why) {
  *  adjusting the scroll offset to ensure a smooth user scrolling experience.
  */
 ReadingList.prototype._capItems = function () {
-
   // Cache the scroll position and container height so we can bypass
   // all capping checks on most frames. (this whole check took < 1ms
   // per frame on my dev machine)
   var scrollTotalHeight = this._getScrollTotalHeight();
+  var scrollContainer = this._getScrollContainer();
 
-  if (this.$container.scrollTop() === this.lastScrollTop &&
+  if (scrollContainer.scrollTop() === this.lastScrollTop &&
       this.lastHeight === scrollTotalHeight) {
     // no-op on animation
     return;
   }
-  this.lastScrollTop = this.$container.scrollTop();
+  this.lastScrollTop = scrollContainer.scrollTop();
   this.lastHeight = scrollTotalHeight;
 
   var _this = this;
@@ -615,12 +622,22 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
     .always(function () {
       $readingListItem.data('loadStatus', status);
 
-      if (html) {
+      try {
         $readingListItem.html(html);
       }
+      catch (error) {
+        console.error('Error setting readingListItem innerHTML');
+        console.error(error);
+      }
 
-      self.eventing();
-      self._doItemEvent(events.itemLoadFinish, $readingListItem, true);
+      try {
+        self.eventing();
+        self._doItemEvent(events.itemLoadFinish, $readingListItem, true);
+      }
+      catch (error) {
+        console.error('Error triggering readingList item events');
+        console.error(error);
+      }
     });
 };
 
@@ -711,12 +728,12 @@ ReadingList.prototype._addContent = function () {
 };
 
 /**
- * Stop animations being done on container.
+ * Stop animations being done on container animator.
  *
- * @returns {Object} animation interface.
+ * @returns {undefined}
  */
 ReadingList.prototype.stopContainerAnimation = function () {
-  return this._getScrollContainer().stop();
+  this.$scrollAnimator.stop();
 };
 
 /**
@@ -740,7 +757,14 @@ ReadingList.prototype.scrollToItem = function ($item) {
   this._doItemEvent(events.scrollToEventStart, $item);
 
   var _this = this;
-  this.stopContainerAnimation().animate({
+  // Clickhole exposed an issue where animating `scrollTop` of $(window)
+  //   threw an error. This way we animate a value on a POJO and then manually
+  //   move the scroll position on each step of the tween.
+  this.stopContainerAnimation();
+
+  this.$scrollAnimatorState.scrollTop = window.pageYOffset;
+
+  this.$scrollAnimator.animate({
     scrollTop: predictedScrollTop,
   }, {
     duration: this._isMobile() ? 0 : this.settings.scrollToSpeed,
@@ -750,7 +774,8 @@ ReadingList.prototype.scrollToItem = function ($item) {
       if (predictedScrollTop !== 0) {
         tween.now = (actualScrollTop / predictedScrollTop) * tween.now;
       }
-    }.bind(this),
+      window.scrollTo(0, tween.now);
+    },
     complete: function () {
 			// unbind the scroll stoppage
 			$document.off(MOVEMENTS, stopContainerAnimation);
