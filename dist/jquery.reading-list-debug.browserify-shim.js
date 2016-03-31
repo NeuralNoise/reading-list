@@ -306,22 +306,22 @@ ReadingList.prototype._getScrollContainer = function () {
 };
 
 /**
- * Get item top adjusted by given addPx setting.
+ * Get item top adjusted by given subtractPx setting.
  *
  * @param {jQuery} $item - item to get position top of.
  * @returns {Number} item top.
  */
 ReadingList.prototype._getAdjustedItemPosition = function ($item) {
-  var addPx = 0;
-  var value = this.settings.scrollToAddPx;
+  var subtractPx = 0;
+  var value = this.settings.scrollToSubtractPx;
 
   if (_.isFunction(value)) {
-    addPx = value($item);
+    subtractPx = value($item);
   } else if (_.isNumber(value)) {
-    addPx = value;
+    subtractPx = value;
   }
 
-  return $item.offset().top + addPx;
+  return $item.offset().top - subtractPx;
 };
 
 /**

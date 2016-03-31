@@ -784,6 +784,7 @@ describe('Reading list', function () {
       it('should scroll to given item', function () {
         var $item1 = $('<div id="item1" class="reading-list-item"></div>');
         var $item2 = $('<div id="item2" class="reading-list-item"></div>');
+        $item1.height(100);
         var stop = sandbox.spy(readingList.$scrollAnimator, 'stop');
         var animate = sandbox.spy(readingList.$scrollAnimator, 'animate');
         var scrollToSpeed = 123;
@@ -793,14 +794,14 @@ describe('Reading list', function () {
           .append($item2);
 
         readingList.settings.scrollToSpeed = scrollToSpeed;
-        readingList.settings.scrollToAddPx = function () { return 10; };
+        readingList.settings.scrollToSubtractPx = function () { return 4; };
 
         readingList.scrollToItem($item2);
 
         stop.calledOnce.should.be.true;
         animate.calledOnce.should.be.true;
         animate.args[0][0].scrollTop.should.equal(
-          $item2.position().top + readingList.settings.scrollToAddPx()
+          $item2.position().top - readingList.settings.scrollToSubtractPx()
         );
         animate.args[0][1].duration.should.equal(scrollToSpeed);
       });

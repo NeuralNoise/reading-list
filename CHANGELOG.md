@@ -1,3 +1,7 @@
+## Version 0.2.0
+- replaced `settings.scrollToAddPx` with `settings.scrollToSubtractPx`
+  The value is now subtracted.
+
 ## Version 0.1.0
 
 - using `$.fn.offset()` in favor of `$.fn.position()` to
