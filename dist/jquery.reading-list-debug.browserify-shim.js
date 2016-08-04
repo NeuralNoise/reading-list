@@ -22,6 +22,7 @@ var events = {
   atTop: 'reading-list-at-top',
   itemLoadStart: 'reading-list-item-load-start',
   itemLoadFinish: 'reading-list-item-load-done',
+  itemLoadError: 'reading-list-item-load-error',
   itemLookingIn: 'reading-list-item-in-looking',
   itemLookingOut: 'reading-list-item-out-looking',
   itemProgress: 'reading-list-item-progress',
@@ -607,7 +608,8 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
   var html;
   var status;
   var self = this;
-  return $.get($readingListItem.data('href'))
+  var partialUrl = $readingListItem.data('href');
+  return $.get(partialUrl)
     .done(function (data) {
       html = self.settings.dataRetrievalSuccess($readingListItem, data);
       status = loadStatus.LOADED;
@@ -626,6 +628,13 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
       $readingListItem.data('loadStatus', status);
 
       try {
+        if (html.startsWith('<!DOCTYPE html>') || html.startsWith('<html>')) {
+          $readingListItem.html('');
+          self._doItemEvent(events.itemLoadError, $readingListItem, { errorMsg: 'URL returned full document, instead of partial: ' + partialUrl }, true);
+          // Still fire finish event so the reading list moves on with the next item
+          self._doItemEvent(events.itemLoadFinish, $readingListItem, true);
+          return;
+        }
         $readingListItem.html(html);
       }
       catch (error) {
