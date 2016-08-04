@@ -374,7 +374,10 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
   var html;
   var status;
   var self = this;
-  return $.get($readingListItem.data('href'))
+
+  var partialUrl = $readingListItem.data('href');
+
+  return $.get(partialUrl)
     .done(function (data) {
       // get html from success callback, deal with it
       html = self.settings.dataRetrievalSuccess($readingListItem, data);
@@ -395,7 +398,14 @@ ReadingList.prototype.retrieveListItem = function ($readingListItem) {
 
       // set html if any was provided
       if (html) {
-        // add html and resolve promise so we know html is for sure on page
+        if (html.startsWith('<!DOCTYPE html>') || html.startsWith('<html>')) {
+          $readingListItem.html('');
+
+          self.$container.trigger('reading-list-start-item-load-error', [$readingListItem, { errorMsg: 'URL returned full document, instead of partial: ' + partialUrl }]);
+          // Still fire finish event so the reading list moves on with the next item
+          self.$container.trigger('reading-list-start-item-load-done', [$readingListItem]);
+          return;
+        }
         $readingListItem.html(html);
       }
 
